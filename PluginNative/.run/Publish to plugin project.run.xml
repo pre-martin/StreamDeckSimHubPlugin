@@ -1,0 +1,6 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Publish to plugin project" type="DotNetFolderPublish" factoryName="Publish to folder">
+    <riderPublish configuration="Debug" platform="Any CPU" produce_single_file="true" runtime="win-x64" target_folder="../net.planetrenner.simhub.sdPlugin/plugin" target_framework="net6.0" uuid_high="-1799380692585725511" uuid_low="-7528727609606281259" />
+    <method v="2" />
+  </configuration>
+</component>

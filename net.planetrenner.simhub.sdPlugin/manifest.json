@@ -1,0 +1,44 @@
+{
+  "Actions": [
+    {
+      "Icon": "plugin/images/actions/simhub",
+      "Name": "Hotkey",
+      "PropertyInspectorPath": "pi/hotkey.html",
+      "States": [
+        {
+          "Image": "plugin/images/icons/off",
+          "Name": "off"
+        },
+        {
+          "Image": "plugin/images/icons/on",
+          "Name": "on"
+        }
+      ],
+      "Tooltip": "Hotkey with SimHub state",
+      "UUID": "net.planetrenner.simhub.hotkey"
+    }
+  ],
+  "Author": "Martin Renner",
+  "Category": "SimHub",
+  "CategoryIcon": "plugin/images/category/simhub",
+  "CodePath": "plugin/StreamDeckSimHub.exe",
+  "Description": "Keys with state controlled by SimHub",
+  "Icon": "plugin/images/store/plugin",
+  "Name": "SimHub Stream Deck integration",
+  "Version": "1.0",
+  "SDKVersion": 2,
+  "OS": [
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    },
+    {
+      "Platform": "mac",
+      "MinimumVersion": "10.11"
+    }
+  ],
+  "Software":
+  {
+    "MinimumVersion": "5.3"
+  }
+}
