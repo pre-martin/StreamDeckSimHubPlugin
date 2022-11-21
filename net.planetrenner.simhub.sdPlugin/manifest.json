@@ -1,7 +1,7 @@
 {
   "Actions": [
     {
-      "Icon": "plugin/images/actions/simhub",
+      "Icon": "plugin/images/actions/hotkey",
       "Name": "Hotkey",
       "PropertyInspectorPath": "pi/hotkey.html",
       "States": [
