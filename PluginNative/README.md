@@ -11,7 +11,7 @@ This plugin depends on the [SimHub Property Server plugin](https://github.com/pr
 
 ## Requirements
 
-For the usage of this plugin, the [.NET Runtime 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) has to be installed.
+For the usage of this plugin, the [.NET Runtime 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) has to be installed. It is very likely, that this is already installed in your PC.
 
 
 ## Building
