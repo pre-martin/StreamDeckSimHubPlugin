@@ -25,7 +25,7 @@
   "Description": "Keys with state controlled by SimHub",
   "Icon": "plugin/images/store/plugin",
   "Name": "SimHub Stream Deck integration",
-  "Version": "1.0",
+  "Version": "1.1",
   "SDKVersion": 2,
   "OS": [
     {
