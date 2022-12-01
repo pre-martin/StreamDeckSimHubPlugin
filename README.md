@@ -12,7 +12,7 @@ This plugin depends on the [SimHub Property Server plugin](https://github.com/pr
 
 ## Installation
 
-Be sure to have the SimHub Property Server plugin installed into SimHub (see above).
+Be sure to have the SimHub Property Server plugin installed into SimHub (see above). When updating this plugin, be sure to also check the SimHub Property Server plugin for updates.
 
 Download the file `net.planetrenner.simhub.streamDeckPlugin` from the GitHub "Releases" page and double-click it to install it into Stream Deck.
 
