@@ -162,12 +162,16 @@ public class SimHubConnection
                     ParseProperty(line);
                 }
             }
+            // "line == null": End of stream. Fall through to "CloseAndReconnect".
+            Logger.Info("Server closed connection");
         }
         catch (IOException ioe)
         {
+            // IOException: Fall through to "CloseAndReconnect".
             Logger.Warn($"Received IOException while waiting for data: {ioe.Message}");
-            await CloseAndReconnect();
         }
+
+        await CloseAndReconnect();
     }
 
     private async Task WriteToServer(string line)

@@ -9,7 +9,7 @@ using StreamDeckSimHub;
 
 var logger = LogManager.GetCurrentClassLogger();
 
-logger.Debug($"Plugin loading with args: {string.Join(" ", args)}");
+logger.Info($"Plugin loading with args: {string.Join(" ", args)}");
 
 for (var count = 0; count < args.Length; count++)
 {
