@@ -77,17 +77,28 @@ public class Plugin
                 return;
             }
 
-            if (e.Event.Action == "net.planetrenner.simhub.hotkey")
+            Debug.Assert(_streamDeckConnection != null, nameof(_streamDeckConnection) + " != null");
+            Debug.Assert(_simHubConnection != null, nameof(_simHubConnection) + " != null");
+
+            switch (e.Event.Action)
             {
-                Logger.Info($"Creating action HotkeyAction with Context {e.Event.Context}");
-                Debug.Assert(_streamDeckConnection != null, nameof(_streamDeckConnection) + " != null");
-                Debug.Assert(_simHubConnection != null, nameof(_simHubConnection) + " != null");
-                var actionInstance = new HotkeyAction(e.Event.Context, e.Event.Payload, _streamDeckConnection, _simHubConnection);
-                _actionInstances[e.Event.Context] = actionInstance;
-            }
-            else
-            {
-                Logger.Warn($"No action named \"{e.Event.Action}\" known.");
+                case "net.planetrenner.simhub.hotkey":
+                {
+                    Logger.Info($"Creating action HotkeyAction with Context {e.Event.Context}");
+                    var actionInstance = new HotkeyAction(e.Event.Context, e.Event.Payload, _streamDeckConnection, _simHubConnection);
+                    _actionInstances[e.Event.Context] = actionInstance;
+                    break;
+                }
+                case "net.planetrenner.simhub.hotkey4":
+                {
+                    Logger.Info($"Creating action Hotkey4StateAction with Context {e.Event.Context}");
+                    var actionInstance = new Hotkey4StateAction(e.Event.Context, e.Event.Payload, _streamDeckConnection, _simHubConnection);
+                    _actionInstances[e.Event.Context] = actionInstance;
+                    break;
+                }
+                default:
+                    Logger.Warn($"No action named \"{e.Event.Action}\" known.");
+                    break;
             }
         }
         finally

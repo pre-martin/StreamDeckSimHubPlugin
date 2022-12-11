@@ -16,6 +16,31 @@
       ],
       "Tooltip": "Hotkey with SimHub state",
       "UUID": "net.planetrenner.simhub.hotkey"
+    },
+    {
+      "Icon": "plugin/images/actions/hotkey4",
+      "Name": "Hotkey 4-state",
+      "PropertyInspectorPath": "pi/hotkey.html",
+      "States": [
+        {
+          "Image": "plugin/images/icons/0",
+          "Name": "0"
+        },
+        {
+          "Image": "plugin/images/icons/1",
+          "Name": "1"
+        },
+        {
+          "Image": "plugin/images/icons/2",
+          "Name": "2"
+        },
+        {
+          "Image": "plugin/images/icons/3",
+          "Name": "3"
+        }
+      ],
+      "Tooltip": "Hotkey with SimHub state (4 states)",
+      "UUID": "net.planetrenner.simhub.hotkey4"
     }
   ],
   "Author": "Martin Renner",

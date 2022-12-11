@@ -9,11 +9,11 @@ namespace StreamDeckSimHub.Actions;
 
 /// <summary>
 /// This action sends a key stroke to the active window and it can update its state from a SimHub property.
-/// This action supports two states: "0" and "1".
+/// This action supports four states: "0", "1", "2" and "3".
 /// </summary>
-public class HotkeyAction : HotkeyBaseAction
+public class Hotkey4StateAction : HotkeyBaseAction
 {
-    public HotkeyAction(string context, AppearancePayload eventPayload, StreamDeckConnection streamDeckConnection,
+    public Hotkey4StateAction(string context, AppearancePayload eventPayload, StreamDeckConnection streamDeckConnection,
         SimHubConnection simHubConnection) : base(context, eventPayload, streamDeckConnection, simHubConnection)
     {
     }
@@ -27,7 +27,7 @@ public class HotkeyAction : HotkeyBaseAction
                 return propertyValue == "True" ? 1 : 0;
             case "integer":
             case "long":
-                return propertyValue != null && int.Parse(propertyValue, CultureInfo.InvariantCulture) > 0 ? 1 : 0;
+                return propertyValue != null ? int.Parse(propertyValue, CultureInfo.InvariantCulture) : 0;
             default:
                 return 0;
         }
