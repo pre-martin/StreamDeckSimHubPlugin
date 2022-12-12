@@ -20,7 +20,12 @@ Modifiers like Ctrl, Alt and Shift have to be specified by using the correspondi
 
 Please note, that not all entries in "VirtualKeyShort" make sense in the field "Hotkey".
 
-The added value for this action is in the field "SimHub Property": It allows to enter the name of a SimHub property. The value of this SimHub property will update the state of the button. See [SimHub Property Server](https://github.com/pre-martin/SimHubPropertyServer) for a list of valid property names. 
+The added value for this action is in the field "SimHub Property": It allows to enter the name of a SimHub property. The value of this SimHub property will update the state of the button. See [SimHub Property Server](https://github.com/pre-martin/SimHubPropertyServer) for a list of valid property names.
+
+The logic for the action state in dependency from the SimHub property value is as follows:
+
+- `boolean`: If the property value is `True`, the action will be in the "on" state, otherwise in the "off" state.
+- `integer` and `long`: If the property value is greater than zero, the action will be in the "on" state, otherwise in the "off" state.
 
 Examples:
 
@@ -29,3 +34,14 @@ Examples:
 - Button to toggle the Engine in ACC (which is mapped to "S" by default):
   ![Engine](Example-Engine.png)
 - Another useful button for ACC would be the Hotkey "Alt + L" with the SimHub property "gd.sdb.PitLimiterOn" to toggle the pit limiter.
+
+### Hotkey 4-state
+
+This action is the same as the "Hotkey" action: It sends a keystroke to the active window, and it can be connected to a SimHub property, which will update its state.
+
+The difference is that this action can have up to four states. The logic for the action state in dependency from the SimHub property value is as follows:
+
+- `boolean`: If the property value is `True`, the action will be in the state "1", otherwise in the state "0" state.
+- `integer` and `long`: The property value will directly set the state. The value "0" maps to the action state "0", "1" to the action state "1" and so on.
+
+Unfortunately, the Stream Deck UI support is very limited for actions which have more than two states. "Title" and icon can only be customized for the first two states. Maybe Stream Deck will enhance their UI one day to allow customization of all states. 
