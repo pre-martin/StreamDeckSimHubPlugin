@@ -4,14 +4,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using NLog;
 using NLog.Extensions.Logging;
 using SharpDeck.Extensions.Hosting;
 using StreamDeckSimHub;
 
 // Main entry. Started by Stream Deck with appropriate arguments.
-
-LogManager.GetCurrentClassLogger().Info();
 
 var host = Host.CreateDefaultBuilder()
     .ConfigureLogging((context, loggingBuilder) =>
