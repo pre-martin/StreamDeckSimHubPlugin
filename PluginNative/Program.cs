@@ -1,32 +1,35 @@
 ﻿// Copyright (C) 2022 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
-using CommandLine;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using NLog;
+using NLog.Extensions.Logging;
+using SharpDeck.Extensions.Hosting;
 using StreamDeckSimHub;
 
 // Main entry. Started by Stream Deck with appropriate arguments.
 
-var logger = LogManager.GetCurrentClassLogger();
+LogManager.GetCurrentClassLogger().Info();
 
-logger.Info($"Plugin loading with args: {string.Join(" ", args)}");
-
-for (var count = 0; count < args.Length; count++)
-{
-    if (args[count].StartsWith("-") && !args[count].StartsWith("--"))
+var host = Host.CreateDefaultBuilder()
+    .ConfigureLogging((context, loggingBuilder) =>
     {
-        args[count] = $"-{args[count]}";
-    }
-}
+        loggingBuilder
+            .ClearProviders()
+            .AddNLog();
+    })
+    .UseStreamDeck()
+    .ConfigureServices(ConfigureServices)
+    .Build();
 
-var parser = new Parser(config =>
+host.Services.GetRequiredService<SimHubConnection>().Run();
+
+host.Run();
+
+
+void ConfigureServices(IServiceCollection serviceCollection)
 {
-    config.EnableDashDash = true;
-    config.CaseSensitive = false;
-    config.CaseInsensitiveEnumValues = true;
-    config.IgnoreUnknownArguments = true;
-    config.HelpWriter = Console.Error;
-});
-
-var options = parser.ParseArguments<StreamDeckOptions>(args);
-options.WithParsed(Plugin.Run);
+    serviceCollection.AddSingleton<SimHubConnection>();
+}

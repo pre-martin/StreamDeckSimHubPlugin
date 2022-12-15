@@ -2,8 +2,7 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Globalization;
-using streamdeck_client_csharp;
-using streamdeck_client_csharp.Events;
+using SharpDeck;
 
 namespace StreamDeckSimHub.Actions;
 
@@ -11,10 +10,10 @@ namespace StreamDeckSimHub.Actions;
 /// This action sends a key stroke to the active window and it can update its state from a SimHub property.
 /// This action supports two states: "0" and "1".
 /// </summary>
+[StreamDeckAction("net.planetrenner.simhub.hotkey")]
 public class HotkeyAction : HotkeyBaseAction
 {
-    public HotkeyAction(string context, AppearancePayload eventPayload, StreamDeckConnection streamDeckConnection,
-        SimHubConnection simHubConnection) : base(context, eventPayload, streamDeckConnection, simHubConnection)
+    public HotkeyAction(SimHubConnection simHubConnection) : base(simHubConnection)
     {
     }
 

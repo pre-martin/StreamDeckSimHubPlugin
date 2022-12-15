@@ -1,11 +1,9 @@
 ﻿// Copyright (C) 2022 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using NLog;
-using streamdeck_client_csharp;
-using streamdeck_client_csharp.Events;
+using Microsoft.Extensions.Logging;
+using SharpDeck;
+using SharpDeck.Events.Received;
 using StreamDeckSimHub.Tools;
 
 namespace StreamDeckSimHub.Actions;
@@ -14,50 +12,36 @@ namespace StreamDeckSimHub.Actions;
 /// This action sends a key stroke to the active window and it can update its state from a SimHub property. Concrete implementations
 /// have to handle the conversion from SimHub property values into Stream Deck action states.
 /// </summary>
-public abstract class HotkeyBaseAction : BaseAction
+public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>
 {
-    private class ActionSettings
-    {
-        [JsonProperty]
-        public string Hotkey { get; set; } = string.Empty;
-
-        [JsonProperty]
-        public string SimHubProperty { get; set; } = string.Empty;
-
-        [JsonProperty]
-        public bool Ctrl { get; set; }
-
-        [JsonProperty]
-        public bool Alt { get; set; }
-
-        [JsonProperty]
-        public bool Shift { get; set; }
-
-        internal static ActionSettings Default()
-        {
-            return new ActionSettings();
-        }
-    }
-
-    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-    private readonly string _context;
-    private readonly StreamDeckConnection _streamDeckConnection;
     private readonly SimHubConnection _simHubConnection;
 
-    private ActionSettings _actionSettings;
+    private HotkeySettings _hotkeySettings;
     private Keyboard.VirtualKeyShort? _vks;
     private Keyboard.ScanCodeShort? _scs;
     private int _state;
 
-    protected HotkeyBaseAction(string context, AppearancePayload eventPayload, StreamDeckConnection streamDeckConnection,
-        SimHubConnection simHubConnection)
+    protected HotkeyBaseAction(SimHubConnection simHubConnection)
     {
-        _context = context;
-        _actionSettings = ActionSettings.Default();
-        _streamDeckConnection = streamDeckConnection;
+        _hotkeySettings = new HotkeySettings();
         _simHubConnection = simHubConnection;
+    }
+
+    protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
+    {
         _simHubConnection.PropertyChangedEvent += PropertyChangedEvent;
-        SetSettings(FromJson(eventPayload.Settings));
+
+        var settings = args.Payload.GetSettings<HotkeySettings>();
+        SetSettings(settings);
+        await base.OnWillAppear(args);
+    }
+
+    protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
+    {
+        _simHubConnection.PropertyChangedEvent -= PropertyChangedEvent;
+        await _simHubConnection.Unsubscribe(_hotkeySettings.SimHubProperty);
+
+        await base.OnWillDisappear(args);
     }
 
     /// <summary>
@@ -65,59 +49,58 @@ public abstract class HotkeyBaseAction : BaseAction
     /// </summary>
     private async void PropertyChangedEvent(object? sender, SimHubConnection.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == _actionSettings.SimHubProperty)
+        if (e.PropertyName == _hotkeySettings.SimHubProperty)
         {
-            Logger.Info($"Property {e.PropertyName} changed to '{e.PropertyValue}'");
+            Logger.LogInformation("Property {PropertyName} changed to '{PropertyValue}'", e.PropertyName, e.PropertyValue);
             _state = ValueToState(e.PropertyType, e.PropertyValue);
             // see https://github.com/pre-martin/SimHubPropertyServer/blob/main/Property/SimHubProperty.cs, "TypeToString()"
-            await _streamDeckConnection.SetStateAsync((uint)_state, _context);
+            await SetStateAsync(_state);
         }
     }
 
     protected abstract int ValueToState(string propertyType, string? propertyValue);
 
-    public override void ReceivedSettings(ReceiveSettingsPayload eventPayload)
+    protected override async Task OnDidReceiveSettings(ActionEventArgs<ActionPayload> args, HotkeySettings settings)
     {
-        SetSettings(FromJson(eventPayload.Settings));
+        SetSettings(settings);
+        await base.OnDidReceiveSettings(args, settings);
     }
 
-    public override void KeyDown(KeyPayload eventPayload)
+    protected override async Task OnKeyDown(ActionEventArgs<KeyPayload> args)
     {
-        if (_actionSettings.Ctrl) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LCONTROL, Keyboard.ScanCodeShort.LCONTROL);
-        if (_actionSettings.Alt) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LMENU, Keyboard.ScanCodeShort.LMENU);
-        if (_actionSettings.Shift) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LSHIFT, Keyboard.ScanCodeShort.LSHIFT);
+        if (_hotkeySettings.Ctrl) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LCONTROL, Keyboard.ScanCodeShort.LCONTROL);
+        if (_hotkeySettings.Alt) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LMENU, Keyboard.ScanCodeShort.LMENU);
+        if (_hotkeySettings.Shift) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LSHIFT, Keyboard.ScanCodeShort.LSHIFT);
         if (_vks.HasValue && _scs.HasValue) Keyboard.KeyDown(_vks.Value, _scs.Value);
+
+        await base.OnKeyDown(args);
     }
 
-    public override async void KeyUp(KeyPayload eventPayload)
+    protected override async Task OnKeyUp(ActionEventArgs<KeyPayload> args)
     {
         if (_vks.HasValue && _scs.HasValue) Keyboard.KeyUp(_vks.Value, _scs.Value);
-        if (_actionSettings.Ctrl) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LCONTROL, Keyboard.ScanCodeShort.LCONTROL);
-        if (_actionSettings.Alt) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LMENU, Keyboard.ScanCodeShort.LMENU);
-        if (_actionSettings.Shift) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LSHIFT, Keyboard.ScanCodeShort.LSHIFT);
+        if (_hotkeySettings.Ctrl) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LCONTROL, Keyboard.ScanCodeShort.LCONTROL);
+        if (_hotkeySettings.Alt) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LMENU, Keyboard.ScanCodeShort.LMENU);
+        if (_hotkeySettings.Shift) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LSHIFT, Keyboard.ScanCodeShort.LSHIFT);
         // Stream Deck always toggle the state for each keypress (at "key up", to be precise). So we have to set the
         // state again to the correct one, after Stream Deck has done its toggling stuff.
-        await _streamDeckConnection.SetStateAsync((uint)_state, _context);
+        await SetStateAsync(_state);
+
+        await base.OnKeyUp(args);
     }
 
-    public override void Destroy()
+    private void SetSettings(HotkeySettings ac)
     {
-        _simHubConnection.PropertyChangedEvent -= PropertyChangedEvent;
-        _simHubConnection.Unsubscribe(_actionSettings.SimHubProperty).Wait();
-    }
-
-    private void SetSettings(ActionSettings ac)
-    {
-        Logger.Info(
-            $"Modifiers: Ctrl: {ac.Ctrl}, Alt: {ac.Alt}, Shift: {ac.Shift}, Hotkey: {ac.Hotkey}, SimHubProperty: {ac.SimHubProperty}");
+        Logger.LogInformation("Modifiers: Ctrl: {Ctrl}, Alt: {Alt}, Shift: {Shift}, Hotkey: {Hotkey}, SimHubProperty: {SimHubProperty}",
+            ac.Ctrl, ac.Alt, ac.Shift, ac.Hotkey, ac.SimHubProperty);
 
         // Unsubscribe previous SimHub property.
-        if (!string.IsNullOrEmpty(_actionSettings.SimHubProperty))
+        if (!string.IsNullOrEmpty(_hotkeySettings.SimHubProperty))
         {
-            _simHubConnection.Unsubscribe(_actionSettings.SimHubProperty).Wait();
+            _simHubConnection.Unsubscribe(_hotkeySettings.SimHubProperty).Wait();
         }
 
-        this._actionSettings = ac;
+        this._hotkeySettings = ac;
 
         this._vks = null;
         this._scs = null;
@@ -126,7 +109,7 @@ public abstract class HotkeyBaseAction : BaseAction
             var virtualKeyShort = KeyboardUtils.FindVirtualKey(ac.Hotkey);
             if (virtualKeyShort == null)
             {
-                Logger.Error($"Could not find VirtualKeyCode for hotkey '{ac.Hotkey}'");
+                Logger.LogError("Could not find VirtualKeyCode for hotkey '{Hotkey}'", ac.Hotkey);
                 return;
             }
 
@@ -134,7 +117,7 @@ public abstract class HotkeyBaseAction : BaseAction
                 KeyboardUtils.MapVirtualKey((uint)virtualKeyShort, KeyboardUtils.MapType.MAPVK_VK_TO_VSC);
             if (scanCodeShort == 0)
             {
-                Logger.Error($"Could not find ScanCode for hotkey '{ac.Hotkey}'");
+                Logger.LogError("Could not find ScanCode for hotkey '{Hotkey}'", ac.Hotkey);
                 return;
             }
 
@@ -147,24 +130,5 @@ public abstract class HotkeyBaseAction : BaseAction
         {
             _simHubConnection.Subscribe(ac.SimHubProperty).Wait();
         }
-    }
-
-    private ActionSettings FromJson(JObject? jsonObject)
-    {
-        if (jsonObject != null && jsonObject.Count > 0)
-        {
-            try
-            {
-                return jsonObject.ToObject<ActionSettings>() ?? ActionSettings.Default();
-            }
-            catch (Exception e)
-            {
-                Logger.Warn(e,
-                    $"Could not deserialize JSON into ActionSettings: {jsonObject.ToString(Formatting.None)}");
-                return ActionSettings.Default();
-            }
-        }
-
-        return ActionSettings.Default();
     }
 }
