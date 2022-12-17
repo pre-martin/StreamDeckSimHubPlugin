@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using SharpDeck.Extensions.Hosting;
-using StreamDeckSimHub;
+using StreamDeckSimHub.Plugin;
 
 // Main entry. Started by Stream Deck with appropriate arguments.
 

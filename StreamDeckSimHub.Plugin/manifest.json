@@ -1,16 +1,16 @@
 {
   "Actions": [
     {
-      "Icon": "plugin/images/actions/hotkey",
+      "Icon": "images/actions/hotkey",
       "Name": "Hotkey",
       "PropertyInspectorPath": "pi/hotkey.html",
       "States": [
         {
-          "Image": "plugin/images/icons/off",
+          "Image": "images/icons/off",
           "Name": "off"
         },
         {
-          "Image": "plugin/images/icons/on",
+          "Image": "images/icons/on",
           "Name": "on"
         }
       ],
@@ -18,24 +18,24 @@
       "UUID": "net.planetrenner.simhub.hotkey"
     },
     {
-      "Icon": "plugin/images/actions/hotkey4",
+      "Icon": "images/actions/hotkey4",
       "Name": "Hotkey 4-state",
       "PropertyInspectorPath": "pi/hotkey.html",
       "States": [
         {
-          "Image": "plugin/images/icons/0",
+          "Image": "images/icons/0",
           "Name": "0"
         },
         {
-          "Image": "plugin/images/icons/1",
+          "Image": "images/icons/1",
           "Name": "1"
         },
         {
-          "Image": "plugin/images/icons/2",
+          "Image": "images/icons/2",
           "Name": "2"
         },
         {
-          "Image": "plugin/images/icons/3",
+          "Image": "images/icons/3",
           "Name": "3"
         }
       ],
@@ -45,10 +45,10 @@
   ],
   "Author": "Martin Renner",
   "Category": "SimHub",
-  "CategoryIcon": "plugin/images/category/simhub",
-  "CodePath": "plugin/StreamDeckSimHub.exe",
+  "CategoryIcon": "images/category/simhub",
+  "CodePath": "StreamDeckSimHub.exe",
   "Description": "Keys with state controlled by SimHub",
-  "Icon": "plugin/images/store/plugin",
+  "Icon": "images/store/plugin",
   "Name": "SimHub Stream Deck integration",
   "Version": "1.3",
   "SDKVersion": 2,

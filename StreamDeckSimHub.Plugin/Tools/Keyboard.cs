@@ -3,7 +3,7 @@
 
 using System.Runtime.InteropServices;
 
-namespace StreamDeckSimHub.Tools;
+namespace StreamDeckSimHub.Plugin.Tools;
 
 /// see https://stackoverflow.com/questions/20482338/simulate-keyboard-input-in-c-sharp
 public class Keyboard

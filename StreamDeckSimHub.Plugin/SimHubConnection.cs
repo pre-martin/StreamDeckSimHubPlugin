@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using NLog;
 
-namespace StreamDeckSimHub;
+namespace StreamDeckSimHub.Plugin;
 
 /// <summary>
 /// Manages the TCP connection to SimHub. The class automatically manages reconnects.

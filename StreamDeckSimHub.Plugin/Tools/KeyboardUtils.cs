@@ -3,7 +3,7 @@
 
 using System.Runtime.InteropServices;
 
-namespace StreamDeckSimHub.Tools;
+namespace StreamDeckSimHub.Plugin.Tools;
 
 
 public static class KeyboardUtils
