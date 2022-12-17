@@ -14,9 +14,9 @@ This plugin depends on the [SimHub Property Server plugin](https://github.com/pr
 
 Be sure to have the SimHub Property Server plugin installed into SimHub (see above). When updating this plugin, be sure to also check the SimHub Property Server plugin for updates.
 
-Download the file `net.planetrenner.simhub.streamDeckPlugin` from the GitHub "Releases" page and double-click it to install it into Stream Deck.
+For the usage of this plugin, the [.NET Runtime 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) has to be installed. It is very likely, that this is already installed in your PC.
 
-Please have a look at [the native part of the plugin](PluginNative/README.md) for installation requirements.
+Download the file `net.planetrenner.simhub.streamDeckPlugin` from the GitHub "Releases" page and double-click it to install it into Stream Deck.
 
 
 ## Usage

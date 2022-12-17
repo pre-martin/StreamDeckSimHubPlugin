@@ -4,7 +4,7 @@
 using System.Globalization;
 using SharpDeck;
 
-namespace StreamDeckSimHub.Actions;
+namespace StreamDeckSimHub.Plugin.Actions;
 
 /// <summary>
 /// This action sends a key stroke to the active window and it can update its state from a SimHub property.

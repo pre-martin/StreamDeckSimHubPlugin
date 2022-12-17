@@ -9,11 +9,6 @@ This means, that actions can be bound to SimHub properties. If the value of a bo
 This plugin depends on the [SimHub Property Server plugin](https://github.com/pre-martin/SimHubPropertyServer), which has to be installed in SimHub.
 
 
-## Requirements
-
-For the usage of this plugin, the [.NET Runtime 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) has to be installed. It is very likely, that this is already installed in your PC.
-
-
 ## Building
 
 For the "Debug" build:
