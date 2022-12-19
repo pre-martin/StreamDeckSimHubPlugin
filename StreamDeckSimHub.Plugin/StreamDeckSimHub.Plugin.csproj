@@ -22,8 +22,12 @@
     </ItemGroup>
 
     <Target Name="CustomAfterBuild" AfterTargets="AfterBuild" DependsOnTargets="GetBuildVersion">
+        <PropertyGroup>
+            <PowerShell Condition="!$([MSBuild]::IsOSUnixLike())">powershell.exe</PowerShell>
+            <PowerShell Condition="$([MSBuild]::IsOSUnixLike())">powershell</PowerShell>
+        </PropertyGroup>
         <!-- Replace version in manifest.json with the version from nbgv -->
-        <Exec Command="powershell.exe -NonInteractive -ExecutionPolicy Bypass -Command &quot;&amp; '.\ReplaceVersion.ps1' '$(OutputPath)manifest.json' '$(AssemblyFileVersion)' &quot;" />
+        <Exec Command="$(PowerShell) -NonInteractive -ExecutionPolicy Bypass -Command &quot;&amp; '.\ReplaceVersion.ps1' '$(OutputPath)manifest.json' '$(AssemblyFileVersion)' &quot;" />
     </Target>
 
     <ItemGroup>
