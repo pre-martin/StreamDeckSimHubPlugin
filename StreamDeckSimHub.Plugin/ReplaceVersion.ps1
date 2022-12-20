@@ -18,4 +18,4 @@ $Version = $Args[1]
 
 $manifest = (Get-Content($ManifestFile) | ConvertFrom-Json)
 $manifest.Version = $Version
-$manifest | ConvertTo-Json -depth 100 | Out-File $ManifestFile
+$manifest | ConvertTo-Json -depth 100 | Out-File -Encoding utf8 $ManifestFile
