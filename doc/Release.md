@@ -1,12 +1,14 @@
 # Release Process
 
-1. Create and push a tag like `v1.2` (see [manifest.json](net.planetrenner.simhub.sdPlugin/manifest.json) for the current version):  
-  `git tag -a -m "Version 1.2" v1.2`  
-  `git push origin v1.2`
-2. Build the native plugin (see [the native part of the plugin](PluginNative/README.md)).
-3. Use the "DistributionTool" from Stream Deck to create the installable archive:
-   ```
-   DistributionTool.exe -b -i net.planetrenner.simhub.sdPlugin -o ..\Release
-   ```
-4. Create a release in GitHub from the tag and attach the archive.
-5. Increment the version in "manifest.json".
+1. If there is no release branch yet for the current version:  
+   `nbgv prepare-release`
+2. Switch to the release branch:  
+   `git switch release/v1.2`
+3. Push the release branch
+4. Create a tag and push it afterwards:
+    - `nbgv tag`
+    - `git push origin v1.2`
+5. Build the plugin:
+    - `release.bat`
+6. Create a release in GitHub from the tag and attach the file `net.planetrenner.simhub.streamDeckPlugin`
+7. Push the main branch.
