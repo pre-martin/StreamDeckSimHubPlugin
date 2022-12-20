@@ -10,7 +10,6 @@
 
 if ($Args.Count -lt 2) {
     throw 'Arguments are missing'
-    Exit 1
 }
 
 $ManifestFile = $Args[0]
