@@ -32,7 +32,7 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>
         _simHubConnection.PropertyChangedEvent += PropertyChangedEvent;
 
         var settings = args.Payload.GetSettings<HotkeySettings>();
-        SetSettings(settings);
+        await SetSettings(settings);
         await base.OnWillAppear(args);
     }
 
@@ -62,7 +62,7 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>
 
     protected override async Task OnDidReceiveSettings(ActionEventArgs<ActionPayload> args, HotkeySettings settings)
     {
-        SetSettings(settings);
+        await SetSettings(settings);
         await base.OnDidReceiveSettings(args, settings);
     }
 
@@ -89,18 +89,16 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>
         await base.OnKeyUp(args);
     }
 
-    private void SetSettings(HotkeySettings ac)
+    private async Task SetSettings(HotkeySettings ac)
     {
         Logger.LogInformation("Modifiers: Ctrl: {Ctrl}, Alt: {Alt}, Shift: {Shift}, Hotkey: {Hotkey}, SimHubProperty: {SimHubProperty}",
             ac.Ctrl, ac.Alt, ac.Shift, ac.Hotkey, ac.SimHubProperty);
 
-        // Unsubscribe previous SimHub property.
-        if (!string.IsNullOrEmpty(_hotkeySettings.SimHubProperty))
+        // Unsubscribe previous SimHub property, if it was set and is different than the new one.
+        if (!string.IsNullOrEmpty(_hotkeySettings.SimHubProperty) && _hotkeySettings.SimHubProperty != ac.SimHubProperty)
         {
-            _simHubConnection.Unsubscribe(_hotkeySettings.SimHubProperty).Wait();
+            await _simHubConnection.Unsubscribe(_hotkeySettings.SimHubProperty);
         }
-
-        this._hotkeySettings = ac;
 
         this._vks = null;
         this._scs = null;
@@ -125,10 +123,12 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>
             this._scs = (Keyboard.ScanCodeShort)scanCodeShort;
         }
 
-        // Subscribe SimHub property.
-        if (!string.IsNullOrEmpty(ac.SimHubProperty))
+        // Subscribe SimHub property, if it is set and different than the previous one.
+        if (!string.IsNullOrEmpty(ac.SimHubProperty) && ac.SimHubProperty != _hotkeySettings.SimHubProperty)
         {
-            _simHubConnection.Subscribe(ac.SimHubProperty).Wait();
+            await _simHubConnection.Subscribe(ac.SimHubProperty);
         }
+
+        this._hotkeySettings = ac;
     }
 }
