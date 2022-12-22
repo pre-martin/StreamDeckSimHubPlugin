@@ -4,6 +4,7 @@
 using Microsoft.Extensions.Logging;
 using SharpDeck;
 using SharpDeck.Events.Received;
+using StreamDeckSimHub.Plugin.SimHub;
 using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.Actions;
@@ -53,12 +54,11 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>
         {
             Logger.LogInformation("Property {PropertyName} changed to '{PropertyValue}'", e.PropertyName, e.PropertyValue);
             _state = ValueToState(e.PropertyType, e.PropertyValue);
-            // see https://github.com/pre-martin/SimHubPropertyServer/blob/main/Property/SimHubProperty.cs, "TypeToString()"
             await SetStateAsync(_state);
         }
     }
 
-    protected abstract int ValueToState(string propertyType, string? propertyValue);
+    protected abstract int ValueToState(PropertyType propertyType, IComparable? propertyValue);
 
     protected override async Task OnDidReceiveSettings(ActionEventArgs<ActionPayload> args, HotkeySettings settings)
     {
@@ -82,14 +82,14 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>
         if (_hotkeySettings.Ctrl) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LCONTROL, Keyboard.ScanCodeShort.LCONTROL);
         if (_hotkeySettings.Alt) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LMENU, Keyboard.ScanCodeShort.LMENU);
         if (_hotkeySettings.Shift) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LSHIFT, Keyboard.ScanCodeShort.LSHIFT);
-        // Stream Deck always toggle the state for each keypress (at "key up", to be precise). So we have to set the
+        // Stream Deck always toggles the state for each keypress (at "key up", to be precise). So we have to set the
         // state again to the correct one, after Stream Deck has done its toggling stuff.
         await SetStateAsync(_state);
 
         await base.OnKeyUp(args);
     }
 
-    private async Task SetSettings(HotkeySettings ac)
+    protected virtual async Task SetSettings(HotkeySettings ac)
     {
         Logger.LogInformation("Modifiers: Ctrl: {Ctrl}, Alt: {Alt}, Shift: {Shift}, Hotkey: {Hotkey}, SimHubProperty: {SimHubProperty}",
             ac.Ctrl, ac.Alt, ac.Shift, ac.Hotkey, ac.SimHubProperty);

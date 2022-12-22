@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using NLog;
 
-namespace StreamDeckSimHub.Plugin;
+namespace StreamDeckSimHub.Plugin.SimHub;
 
 /// <summary>
 /// Manages the TCP connection to SimHub. The class automatically manages reconnects.
@@ -15,9 +15,15 @@ namespace StreamDeckSimHub.Plugin;
 public class SimHubConnection
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+    private readonly PropertyParser _propertyParser;
     private TcpClient? _tcpClient;
     private long _connected;
     private readonly HashSet<string> _subscriptions = new();
+
+    public SimHubConnection(PropertyParser propertyParser)
+    {
+        _propertyParser = propertyParser;
+    }
 
     private bool Connected
     {
@@ -32,8 +38,8 @@ public class SimHubConnection
     public class PropertyChangedEventArgs : EventArgs
     {
         public string PropertyName { get; init; } = string.Empty;
-        public string PropertyType { get; init; } = string.Empty;
-        public string? PropertyValue { get; init; } = string.Empty;
+        public PropertyType PropertyType { get; init; }
+        public IComparable? PropertyValue { get; init; } = string.Empty;
     }
 
     public event EventHandler<PropertyChangedEventArgs>? PropertyChangedEvent;
@@ -64,6 +70,7 @@ public class SimHubConnection
                     {
                         await SendSubscribe(propertyName);
                     }
+
                     await ReadFromServer();
                 }
             }
@@ -132,19 +139,18 @@ public class SimHubConnection
 
     private void ParseProperty(string line)
     {
-        var lineItems = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        if (lineItems.Length != 4)
+        var parserResult = _propertyParser.ParseLine(line);
+        if (parserResult == null)
         {
             Logger.Warn($"Could not parse property: {line}");
             return;
         }
 
-        var name = lineItems[1];
-        var type = lineItems[2];
-        var value = lineItems[3];
-        if (value == "(null)") value = null;
         PropertyChangedEvent?.Invoke(this,
-            new PropertyChangedEventArgs { PropertyName = name, PropertyType = type, PropertyValue = value });
+            new PropertyChangedEventArgs
+            {
+                PropertyName = parserResult.Value.name, PropertyType = parserResult.Value.type, PropertyValue = parserResult.Value.value
+            });
     }
 
     private async Task ReadFromServer()
@@ -162,6 +168,7 @@ public class SimHubConnection
                     ParseProperty(line);
                 }
             }
+
             // "line == null": End of stream. Fall through to "CloseAndReconnect".
             Logger.Info("Server closed connection");
         }
