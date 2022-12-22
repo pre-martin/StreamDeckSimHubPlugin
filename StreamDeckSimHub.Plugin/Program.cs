@@ -6,7 +6,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using SharpDeck.Extensions.Hosting;
-using StreamDeckSimHub.Plugin;
+using StreamDeckSimHub.Plugin.PropertyLogic;
+using StreamDeckSimHub.Plugin.SimHub;
 
 // Main entry. Started by Stream Deck with appropriate arguments.
 
@@ -28,5 +29,7 @@ host.Run();
 
 void ConfigureServices(IServiceCollection serviceCollection)
 {
+    serviceCollection.AddSingleton<PropertyParser>();
     serviceCollection.AddSingleton<SimHubConnection>();
+    serviceCollection.AddSingleton<PropertyComparer>();
 }
