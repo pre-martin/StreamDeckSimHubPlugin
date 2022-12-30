@@ -91,8 +91,12 @@ public static class PropertyTypeEx
             }
             case PropertyType.Long:
             {
+                // Try to parse as long value.
                 var result = long.TryParse(propertyValue, out var longResult);
-                return result ? longResult : 0L;
+                if (result) return longResult;
+                // If not possible, try to parse as boolean and return "1" for "true" and "0" for "false".
+                result = bool.TryParse(propertyValue, out var boolResult);
+                return result && boolResult ? 1L : 0L;
             }
             case PropertyType.Double:
             {

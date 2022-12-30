@@ -15,6 +15,9 @@ public class PropertyComparerEvaluateTests
     private readonly IComparable? _propValueZero = PropertyType.Integer.ParseFromSimHub("0");
     private readonly IComparable? _propValueOne = PropertyType.Integer.ParseFromSimHub("1");
     private readonly IComparable? _propValueTwo = PropertyType.Integer.ParseFromSimHub("2");
+    private readonly IComparable? _propValueLongZero = PropertyType.Long.ParseFromSimHub("0");
+    private readonly IComparable? _propValueLongOne = PropertyType.Long.ParseFromSimHub("1");
+    private readonly IComparable? _propValueLongTwo = PropertyType.Long.ParseFromSimHub("2");
 
     [SetUp]
     public void Init()
@@ -46,9 +49,13 @@ public class PropertyComparerEvaluateTests
         Assert.That(_propertyComparer.Evaluate(PropertyType.Boolean, _propValueTrue, ce), Is.True);
         Assert.That(_propertyComparer.Evaluate(PropertyType.Boolean, _propValueFalse, ce), Is.False);
 
-        var ce2 = _propertyComparer.Parse("dcp.gd.IsLapValid==0");
-        Assert.That(_propertyComparer.Evaluate(PropertyType.Boolean, _propValueTrue, ce2), Is.False);
-        Assert.That(_propertyComparer.Evaluate(PropertyType.Boolean, _propValueFalse, ce2), Is.True);
+        var ce2 = _propertyComparer.Parse("dcp.gd.IsLapValid==2");
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Boolean, _propValueTrue, ce2), Is.True);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Boolean, _propValueFalse, ce2), Is.False);
+
+        var ce3 = _propertyComparer.Parse("dcp.gd.IsLapValid==0");
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Boolean, _propValueTrue, ce3), Is.False);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Boolean, _propValueFalse, ce3), Is.True);
     }
 
     [Test]
@@ -56,6 +63,7 @@ public class PropertyComparerEvaluateTests
     {
         var ce = _propertyComparer.Parse("dcp.gd.EngineStarted==TruE");
         Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, _propValueOne, ce), Is.True);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, _propValueTwo, ce), Is.False);
         Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, _propValueZero, ce), Is.False);
 
         var ce2 = _propertyComparer.Parse("dcp.gd.EngineStarted==false");
@@ -74,6 +82,32 @@ public class PropertyComparerEvaluateTests
         Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, _propValueOne, ce2), Is.False);
         Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, _propValueZero, ce2), Is.False);
         Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, _propValueTwo, ce2), Is.True);
+    }
+
+    [Test]
+    public void LongPropWithBooleanValue()
+    {
+        var ce = _propertyComparer.Parse("some.property==true");
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Long, _propValueLongOne, ce), Is.True);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Long, _propValueLongTwo, ce), Is.False);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Long, _propValueLongZero, ce), Is.False);
+
+        var ce2 = _propertyComparer.Parse("some.property==false");
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Long, _propValueLongOne, ce2), Is.False);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Long, _propValueLongZero, ce2), Is.True);
+    }
+
+    [Test]
+    public void LongPropWithIntegerValue()
+    {
+        var ce = _propertyComparer.Parse("some.property==1");
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Long, _propValueLongOne, ce), Is.True);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Long, _propValueLongZero, ce), Is.False);
+
+        var ce2 = _propertyComparer.Parse("some.property>=2");
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Long, _propValueLongOne, ce2), Is.False);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Long, _propValueLongZero, ce2), Is.False);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Long, _propValueLongTwo, ce2), Is.True);
     }
 
     [Test]
