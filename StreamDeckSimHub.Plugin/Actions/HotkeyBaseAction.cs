@@ -91,7 +91,8 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>
 
     private async Task SetSettings(HotkeySettings ac)
     {
-        Logger.LogInformation("Modifiers: Ctrl: {Ctrl}, Alt: {Alt}, Shift: {Shift}, Hotkey: {Hotkey}, SimHubProperty: {SimHubProperty}",
+        Logger.LogInformation(
+            "SetSettings: Modifiers: Ctrl: {Ctrl}, Alt: {Alt}, Shift: {Shift}, Hotkey: {Hotkey}, SimHubProperty: {SimHubProperty}",
             ac.Ctrl, ac.Alt, ac.Shift, ac.Hotkey, ac.SimHubProperty);
 
         // Unsubscribe previous SimHub property, if it was set and is different than the new one.
