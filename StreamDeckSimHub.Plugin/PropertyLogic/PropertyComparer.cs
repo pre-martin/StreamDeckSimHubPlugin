@@ -6,6 +6,9 @@ using StreamDeckSimHub.Plugin.SimHub;
 
 namespace StreamDeckSimHub.Plugin.PropertyLogic;
 
+/// <summary>
+/// Parses expressions like <c>some.property==5</c> and evaluates their resuls.
+/// </summary>
 public class PropertyComparer
 {
     private readonly ILogger<PropertyComparer> _logger;
@@ -27,6 +30,18 @@ public class PropertyComparer
         _logger = logger;
     }
 
+    /// <summary>
+    /// Parses an expression. The syntax has to be in one of two forms:
+    /// <list type="number">
+    /// <item>
+    /// <c>some.property</c> This is the old format. The property will be compared with <c>>=0</c> against the property value.
+    /// </item>
+    /// <item>
+    /// <c>some.property [condition] [value]</c> The property will be compared with the given condition against the given
+    /// value. E.g. <c>some.property >= 2</c>.
+    /// </item>
+    /// </list>
+    /// </summary>
     public ConditionExpression Parse(string expression)
     {
         var matchedCondition = AllConditions.FirstOrDefault(tuple => expression.Contains(tuple.asString));

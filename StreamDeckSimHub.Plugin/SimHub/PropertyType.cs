@@ -57,6 +57,11 @@ public static class PropertyTypeEx
         }
     }
 
+    /// Converts a string value into a typed value, which is returned as <c>IComparable</c>. The method is more liberal
+    /// than <c>ParseFromSimHub</c> and accepts a wider range of property values.
+    /// <remarks>
+    /// This method should be used to parse user input.
+    /// </remarks>
     public static IComparable? ParseLiberally(this PropertyType propertyType, string? propertyValue)
     {
         if (propertyValue == null)
@@ -68,18 +73,21 @@ public static class PropertyTypeEx
         {
             case PropertyType.Boolean:
             {
+                // Try to parse string from "true" or "false".
                 var result = bool.TryParse(propertyValue, out var boolResult);
-                if (result)
-                {
-                    return boolResult;
-                }
+                if (result) return boolResult;
+                // If not possible, try to parse as integer value and return "true" if the integer value is > 0.
                 result = int.TryParse(propertyValue, out var intResult);
-                return result && (intResult > 0);
+                return result && intResult > 0;
             }
             case PropertyType.Integer:
             {
+                // Try to parse as integer value.
                 var result = int.TryParse(propertyValue, out var intResult);
-                return result ? intResult : 0;
+                if (result) return intResult;
+                // If not possible, try to parse as boolean and return "1" for "true" and "0" for "false".
+                result = bool.TryParse(propertyValue, out var boolResult);
+                return result && boolResult ? 1 : 0;
             }
             case PropertyType.Long:
             {
