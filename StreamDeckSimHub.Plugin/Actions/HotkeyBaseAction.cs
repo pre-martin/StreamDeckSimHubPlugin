@@ -12,7 +12,7 @@ namespace StreamDeckSimHub.Plugin.Actions;
 /// This action sends a key stroke to the active window and it can update its state from a SimHub property. Concrete implementations
 /// have to handle the conversion from SimHub property values into Stream Deck action states.
 /// </summary>
-public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>
+public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>, IPropertyChangedReceiver
 {
     private readonly SimHubConnection _simHubConnection;
 
@@ -29,17 +29,17 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>
 
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
     {
-        _simHubConnection.PropertyChangedEvent += PropertyChangedEvent;
-
         var settings = args.Payload.GetSettings<HotkeySettings>();
-        await SetSettings(settings);
+        Logger.LogInformation(
+            "OnWillAppear: Modifiers: Ctrl: {Ctrl}, Alt: {Alt}, Shift: {Shift}, Hotkey: {Hotkey}, SimHubProperty: {SimHubProperty}",
+            settings.Ctrl, settings.Alt, settings.Shift, settings.Hotkey, settings.SimHubProperty);
+        await SetSettings(settings, true);
         await base.OnWillAppear(args);
     }
 
     protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
     {
-        _simHubConnection.PropertyChangedEvent -= PropertyChangedEvent;
-        await _simHubConnection.Unsubscribe(_hotkeySettings.SimHubProperty);
+        await _simHubConnection.Unsubscribe(_hotkeySettings.SimHubProperty, this);
 
         await base.OnWillDisappear(args);
     }
@@ -47,22 +47,23 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>
     /// <summary>
     /// Called when the value of a SimHub property has changed.
     /// </summary>
-    private async void PropertyChangedEvent(object? sender, SimHubConnection.PropertyChangedEventArgs e)
+    public async void PropertyChanged(PropertyChangedArgs args)
     {
-        if (e.PropertyName == _hotkeySettings.SimHubProperty)
-        {
-            Logger.LogInformation("Property {PropertyName} changed to '{PropertyValue}'", e.PropertyName, e.PropertyValue);
-            _state = ValueToState(e.PropertyType, e.PropertyValue);
-            // see https://github.com/pre-martin/SimHubPropertyServer/blob/main/Property/SimHubProperty.cs, "TypeToString()"
-            await SetStateAsync(_state);
-        }
+        Logger.LogInformation("Property {PropertyName} changed to '{PropertyValue}'", args.PropertyName, args.PropertyValue);
+        _state = ValueToState(args.PropertyType, args.PropertyValue);
+        // see https://github.com/pre-martin/SimHubPropertyServer/blob/main/Property/SimHubProperty.cs, "TypeToString()"
+        await SetStateAsync(_state);
     }
 
     protected abstract int ValueToState(string propertyType, string? propertyValue);
 
     protected override async Task OnDidReceiveSettings(ActionEventArgs<ActionPayload> args, HotkeySettings settings)
     {
-        await SetSettings(settings);
+        Logger.LogInformation(
+            "OnDidReceiveSettings: Modifiers: Ctrl: {Ctrl}, Alt: {Alt}, Shift: {Shift}, Hotkey: {Hotkey}, SimHubProperty: {SimHubProperty}",
+            settings.Ctrl, settings.Alt, settings.Shift, settings.Hotkey, settings.SimHubProperty);
+
+        await SetSettings(settings, false);
         await base.OnDidReceiveSettings(args, settings);
     }
 
@@ -89,26 +90,22 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>
         await base.OnKeyUp(args);
     }
 
-    private async Task SetSettings(HotkeySettings ac)
+    private async Task SetSettings(HotkeySettings settings, bool forceSubscribe)
     {
-        Logger.LogInformation(
-            "SetSettings: Modifiers: Ctrl: {Ctrl}, Alt: {Alt}, Shift: {Shift}, Hotkey: {Hotkey}, SimHubProperty: {SimHubProperty}",
-            ac.Ctrl, ac.Alt, ac.Shift, ac.Hotkey, ac.SimHubProperty);
-
         // Unsubscribe previous SimHub property, if it was set and is different than the new one.
-        if (!string.IsNullOrEmpty(_hotkeySettings.SimHubProperty) && _hotkeySettings.SimHubProperty != ac.SimHubProperty)
+        if (!string.IsNullOrEmpty(_hotkeySettings.SimHubProperty) && _hotkeySettings.SimHubProperty != settings.SimHubProperty)
         {
-            await _simHubConnection.Unsubscribe(_hotkeySettings.SimHubProperty);
+            await _simHubConnection.Unsubscribe(_hotkeySettings.SimHubProperty, this);
         }
 
         this._vks = null;
         this._scs = null;
-        if (!string.IsNullOrEmpty(ac.Hotkey))
+        if (!string.IsNullOrEmpty(settings.Hotkey))
         {
-            var virtualKeyShort = KeyboardUtils.FindVirtualKey(ac.Hotkey);
+            var virtualKeyShort = KeyboardUtils.FindVirtualKey(settings.Hotkey);
             if (virtualKeyShort == null)
             {
-                Logger.LogError("Could not find VirtualKeyCode for hotkey '{Hotkey}'", ac.Hotkey);
+                Logger.LogError("Could not find VirtualKeyCode for hotkey '{Hotkey}'", settings.Hotkey);
                 return;
             }
 
@@ -116,7 +113,7 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>
                 KeyboardUtils.MapVirtualKey((uint)virtualKeyShort, KeyboardUtils.MapType.MAPVK_VK_TO_VSC);
             if (scanCodeShort == 0)
             {
-                Logger.LogError("Could not find ScanCode for hotkey '{Hotkey}'", ac.Hotkey);
+                Logger.LogError("Could not find ScanCode for hotkey '{Hotkey}'", settings.Hotkey);
                 return;
             }
 
@@ -125,11 +122,11 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>
         }
 
         // Subscribe SimHub property, if it is set and different than the previous one.
-        if (!string.IsNullOrEmpty(ac.SimHubProperty) && ac.SimHubProperty != _hotkeySettings.SimHubProperty)
+        if ((!string.IsNullOrEmpty(settings.SimHubProperty) && settings.SimHubProperty != _hotkeySettings.SimHubProperty) || forceSubscribe)
         {
-            await _simHubConnection.Subscribe(ac.SimHubProperty);
+            await _simHubConnection.Subscribe(settings.SimHubProperty, this);
         }
 
-        this._hotkeySettings = ac;
+        this._hotkeySettings = settings;
     }
 }
