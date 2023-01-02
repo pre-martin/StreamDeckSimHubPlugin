@@ -8,6 +8,31 @@ using NLog;
 
 namespace StreamDeckSimHub.Plugin.SimHub;
 
+
+/// <summary>
+/// Parameters of the event, that gets fired when a new property value was received from SimHub.
+/// </summary>
+public class PropertyChangedArgs
+{
+    public string PropertyName { get; init; } = string.Empty;
+    public PropertyType PropertyType { get; init; }
+    public IComparable? PropertyValue { get; init; }
+}
+
+/// <summary>
+/// This interface has to be implemented in order to receive events, when a new property value was received from SimHub.
+/// </summary>
+public interface IPropertyChangedReceiver
+{
+    /// <summary>
+    /// Gets called with the data about the new property value.
+    /// </summary>
+    /// <remarks>
+    /// Implementors should return fast. If more work has to be done, a Task should be started internally.
+    /// </remarks>
+    void PropertyChanged(PropertyChangedArgs args);
+}
+
 /// <summary>
 /// Manages the TCP connection to SimHub. The class automatically manages reconnects.
 /// </summary>
@@ -18,7 +43,9 @@ public class SimHubConnection
     private readonly PropertyParser _propertyParser;
     private TcpClient? _tcpClient;
     private long _connected;
-    private readonly HashSet<string> _subscriptions = new();
+    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+    // Mapping from SimHub property name to subscribers.
+    private readonly Dictionary<string, HashSet<IPropertyChangedReceiver>> _subscriptions = new();
 
     public SimHubConnection(PropertyParser propertyParser)
     {
@@ -30,19 +57,6 @@ public class SimHubConnection
         get => Interlocked.Read(ref _connected) == 1;
         set => Interlocked.Exchange(ref _connected, Convert.ToInt64(value));
     }
-
-
-    /// <summary>
-    /// Parameters of the event, that gets fired when a new property value was received from SimHub.
-    /// </summary>
-    public class PropertyChangedEventArgs : EventArgs
-    {
-        public string PropertyName { get; init; } = string.Empty;
-        public PropertyType PropertyType { get; init; }
-        public IComparable? PropertyValue { get; init; } = string.Empty;
-    }
-
-    public event EventHandler<PropertyChangedEventArgs>? PropertyChangedEvent;
 
     public async void Run()
     {
@@ -66,7 +80,7 @@ public class SimHubConnection
                     Logger.Info($"Established connection to {line}");
                     _tcpClient.ReceiveTimeout = 0;
                     Connected = true;
-                    foreach (var propertyName in _subscriptions)
+                    foreach (var propertyName in _subscriptions.Keys)
                     {
                         await SendSubscribe(propertyName);
                     }
@@ -91,37 +105,82 @@ public class SimHubConnection
         }
     }
 
-    internal async Task Subscribe(string propertyName)
+    internal async Task Subscribe(string propertyName, IPropertyChangedReceiver propertyChangedReceiver)
     {
-        if (_subscriptions.Contains(propertyName))
+        await _semaphore.WaitAsync();
+
+        try
         {
-            Logger.Info($"Already subscribed to {propertyName}, ignoring");
-            return;
+            if (_subscriptions.TryGetValue(propertyName, out var receivers))
+            {
+                // We already have a subscription for this property. So just add the new action to the existing set.
+                if (receivers.Contains(propertyChangedReceiver))
+                {
+                    Logger.Info($"Action is already subscribed to {propertyName}, ignoring subscribe request");
+                }
+                else
+                {
+                    receivers.Add(propertyChangedReceiver);
+                    Logger.Info($"Adding action to existing subscription list for {propertyName}. Has now {receivers.Count} subscribers");
+                }
+
+                return;
+            }
+
+            // We have no subscription for this property: Add it to the list.
+            _subscriptions.Add(propertyName, new HashSet<IPropertyChangedReceiver> { propertyChangedReceiver });
+        }
+        finally
+        {
+            _semaphore.Release();
         }
 
-        _subscriptions.Add(propertyName);
         if (Connected)
         {
             await SendSubscribe(propertyName);
         }
         else
         {
-            Logger.Info($"Queuing subscribe request for {propertyName}");
+            Logger.Info($"Queued subscribe request for {propertyName}");
         }
     }
 
-    internal async Task Unsubscribe(string propertyName)
+    internal async Task Unsubscribe(string propertyName, IPropertyChangedReceiver propertyChangedReceiver)
     {
-        var wasSubscribed = _subscriptions.Remove(propertyName);
-        if (!wasSubscribed) return;
+        await _semaphore.WaitAsync();
+
+        try
+        {
+            if (!_subscriptions.TryGetValue(propertyName, out var receivers))
+            {
+                Logger.Info($"Not subscribed to {propertyName}, ignoring unsubscribe request");
+                return;
+            }
+
+            var wasRemoved = receivers.Remove(propertyChangedReceiver);
+            if (!wasRemoved)
+            {
+                Logger.Info($"Action was not subscribed to {propertyName}, ignoring unsubscribe request");
+                return;
+            }
+            else
+            {
+                Logger.Info($"Removed action from existing subscription list for {propertyName}, remaining subscribers {receivers.Count}");
+            }
+
+            // If there are still subscriptions for this property: return
+            if (receivers.Count > 0) return;
+            // Otherwise remove the entry completely from the list.
+            _subscriptions.Remove(propertyName);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
 
         if (Connected)
         {
             await SendUnsubscribe(propertyName);
-        }
-        else
-        {
-            Logger.Info($"Queuing unsubscribe request for {propertyName}");
         }
     }
 
@@ -137,7 +196,7 @@ public class SimHubConnection
         await WriteToServer($"unsubscribe {propertyName}");
     }
 
-    private void ParseProperty(string line)
+    private async Task ParseProperty(string line)
     {
         var parserResult = _propertyParser.ParseLine(line);
         if (parserResult == null)
@@ -146,11 +205,31 @@ public class SimHubConnection
             return;
         }
 
-        PropertyChangedEvent?.Invoke(this,
-            new PropertyChangedEventArgs
+        var name = parserResult.Value.name;
+        var type = parserResult.Value.type;
+        var value = parserResult.Value.value;
+
+        await _semaphore.WaitAsync();
+        HashSet<IPropertyChangedReceiver>? receivers;
+        try
+        {
+            if (!_subscriptions.TryGetValue(name, out receivers))
             {
-                PropertyName = parserResult.Value.name, PropertyType = parserResult.Value.type, PropertyValue = parserResult.Value.value
-            });
+                // This should not happen.
+                Logger.Warn($"Received property value from SimHub, but we have no subscribers: {name}");
+                return;
+            }
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+
+        var args = new PropertyChangedArgs { PropertyName = name, PropertyType = type, PropertyValue = value };
+        foreach (var propertyChangedReceiver in receivers)
+        {
+            propertyChangedReceiver.PropertyChanged(args);
+        }
     }
 
     private async Task ReadFromServer()
@@ -162,10 +241,10 @@ public class SimHubConnection
             string? line;
             while ((line = await reader.ReadLineAsync()) != null)
             {
-                Logger.Info($"Received from server: {line}");
+                Logger.Debug($"Received from server: {line}");
                 if (line.StartsWith("Property "))
                 {
-                    ParseProperty(line);
+                    await ParseProperty(line);
                 }
             }
 

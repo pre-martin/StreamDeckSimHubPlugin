@@ -22,7 +22,7 @@ public class HotkeyAction : HotkeyBaseAction
         _propertyComparer = propertyComparer;
     }
 
-    protected override async Task SetSettings(HotkeySettings ac)
+    protected override async Task SetSettings(HotkeySettings ac, bool forceSubscribe)
     {
         _conditionExpression = _propertyComparer.Parse(ac.SimHubProperty);
         // The field "ac.SimHubProperty" may contain an expression, which is not understood by the base class. So we
@@ -35,7 +35,7 @@ public class HotkeyAction : HotkeyBaseAction
             Alt = ac.Alt,
             Shift = ac.Shift
         };
-        await base.SetSettings(acNew);
+        await base.SetSettings(acNew, forceSubscribe);
     }
 
     protected override int ValueToState(PropertyType propertyType, IComparable? propertyValue)
