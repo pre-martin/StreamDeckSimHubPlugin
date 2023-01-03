@@ -59,6 +59,15 @@ public class PropertyComparer
             return new ConditionExpression(expression, ConditionOperator.Gt, "0");
         }
 
+        if (matchedCondition.op == ConditionOperator.Between)
+        {
+            var values = parts[1].Split(";", StringSplitOptions.TrimEntries);
+            if (values.Length != 2)
+            {
+                _logger.LogWarning("Operator 'Between' requires two values separated by semicolon");
+            }
+        }
+
         return new ConditionExpression(parts[0], matchedCondition.op, parts[1]);
     }
 
@@ -78,7 +87,21 @@ public class PropertyComparer
         }
 
         var compareFunction = expression.Operator.CompareFunction();
-        var compareValue = propertyType.ParseLiberally(expression.CompareValue);
-        return compareValue != null && compareFunction.Invoke(propertyValue, compareValue);
+        if (expression.Operator != ConditionOperator.Between)
+        {
+            var compareValue = propertyType.ParseLiberally(expression.CompareValue);
+            return compareValue != null && compareFunction.Invoke(propertyValue, compareValue, null);
+        }
+
+        var values = expression.CompareValue.Split(";", StringSplitOptions.TrimEntries);
+        if (values.Length != 2)
+        {
+            // TODO show error
+            return false;
+        }
+
+        var compareValue1 = propertyType.ParseLiberally(values[0]);
+        var compareValue2 = propertyType.ParseLiberally(values[1]);
+        return compareValue1 != null && compareFunction.Invoke(propertyValue, compareValue1, compareValue2);
     }
 }

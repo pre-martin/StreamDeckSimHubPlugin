@@ -15,6 +15,7 @@ public class PropertyComparerEvaluateTests
     private readonly IComparable? _propValueZero = PropertyType.Integer.ParseFromSimHub("0");
     private readonly IComparable? _propValueOne = PropertyType.Integer.ParseFromSimHub("1");
     private readonly IComparable? _propValueTwo = PropertyType.Integer.ParseFromSimHub("2");
+    private readonly IComparable? _propValueThree = PropertyType.Integer.ParseFromSimHub("3");
     private readonly IComparable? _propValueLongZero = PropertyType.Long.ParseFromSimHub("0");
     private readonly IComparable? _propValueLongOne = PropertyType.Long.ParseFromSimHub("1");
     private readonly IComparable? _propValueLongTwo = PropertyType.Long.ParseFromSimHub("2");
@@ -118,5 +119,15 @@ public class PropertyComparerEvaluateTests
         var propValue3Dot4 = PropertyType.Double.ParseFromSimHub("3.4");
         Assert.That(_propertyComparer.Evaluate(PropertyType.Double, propValue5Dot9, ce), Is.True);
         Assert.That(_propertyComparer.Evaluate(PropertyType.Double, propValue3Dot4, ce), Is.False);
+    }
+
+    [Test]
+    public void IntegerPropBetweenIntegerValues()
+    {
+        var ce = _propertyComparer.Parse("acc.graphics.WiperLV~~1;2");
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, _propValueZero, ce), Is.False);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, _propValueOne, ce), Is.True);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, _propValueTwo, ce), Is.True);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, _propValueThree, ce), Is.False);
     }
 }

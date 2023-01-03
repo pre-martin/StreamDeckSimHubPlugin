@@ -63,6 +63,13 @@ The following conditions are supported:
 - `<=`
 - `<`
 - `!=` test for not equal
+- `~~` test for "between two values", which means ">= value1 and <= value2"
+
+The condition "between" requires two values, which have to be separated by a semicoolon, e.g.
+
+```
+acc.graphics.WiperLV~~1;2
+```
 
 The following table shows the comparison logic for different SimHub property types and comparison values (which are entered into the Stream Deck UI):
 
