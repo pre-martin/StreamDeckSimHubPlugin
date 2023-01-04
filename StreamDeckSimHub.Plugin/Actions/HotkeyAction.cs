@@ -1,8 +1,9 @@
 ﻿// Copyright (C) 2022 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
-using System.Globalization;
 using SharpDeck;
+using StreamDeckSimHub.Plugin.PropertyLogic;
+using StreamDeckSimHub.Plugin.SimHub;
 
 namespace StreamDeckSimHub.Plugin.Actions;
 
@@ -13,22 +14,38 @@ namespace StreamDeckSimHub.Plugin.Actions;
 [StreamDeckAction("net.planetrenner.simhub.hotkey")]
 public class HotkeyAction : HotkeyBaseAction
 {
-    public HotkeyAction(SimHubConnection simHubConnection) : base(simHubConnection)
+    private readonly PropertyComparer _propertyComparer;
+    private ConditionExpression? _conditionExpression;
+
+    public HotkeyAction(SimHubConnection simHubConnection, PropertyComparer propertyComparer) : base(simHubConnection)
     {
+        _propertyComparer = propertyComparer;
     }
 
-    protected override int ValueToState(string propertyType, string? propertyValue)
+    protected override async Task SetSettings(HotkeySettings ac, bool forceSubscribe)
     {
-        // see https://github.com/pre-martin/SimHubPropertyServer/blob/main/Property/SimHubProperty.cs, "TypeToString()"
-        switch (propertyType)
+        _conditionExpression = _propertyComparer.Parse(ac.SimHubProperty);
+        // The field "ac.SimHubProperty" may contain an expression, which is not understood by the base class. So we
+        // construct a new instance without expression.
+        var acNew = new HotkeySettings()
         {
-            case "boolean":
-                return propertyValue == "True" ? 1 : 0;
-            case "integer":
-            case "long":
-                return propertyValue != null && int.Parse(propertyValue, CultureInfo.InvariantCulture) > 0 ? 1 : 0;
-            default:
-                return 0;
+            Hotkey = ac.Hotkey,
+            SimHubProperty = _conditionExpression.Property,
+            Ctrl = ac.Ctrl,
+            Alt = ac.Alt,
+            Shift = ac.Shift
+        };
+        await base.SetSettings(acNew, forceSubscribe);
+    }
+
+    protected override int ValueToState(PropertyType propertyType, IComparable? propertyValue)
+    {
+        if (_conditionExpression == null)
+        {
+            return 0;
         }
+
+        var isActive = _propertyComparer.Evaluate(propertyType, propertyValue, _conditionExpression);
+        return isActive ? 1 : 0;
     }
 }

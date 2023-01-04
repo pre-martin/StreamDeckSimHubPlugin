@@ -1,8 +1,8 @@
 ﻿// Copyright (C) 2022 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
-using System.Globalization;
 using SharpDeck;
+using StreamDeckSimHub.Plugin.SimHub;
 
 namespace StreamDeckSimHub.Plugin.Actions;
 
@@ -17,16 +17,18 @@ public class Hotkey4StateAction : HotkeyBaseAction
     {
     }
 
-    protected override int ValueToState(string propertyType, string? propertyValue)
+    protected override int ValueToState(PropertyType propertyType, IComparable? propertyValue)
     {
-        // see https://github.com/pre-martin/SimHubPropertyServer/blob/main/Property/SimHubProperty.cs, "TypeToString()"
         switch (propertyType)
         {
-            case "boolean":
-                return propertyValue == "True" ? 1 : 0;
-            case "integer":
-            case "long":
-                return propertyValue != null ? int.Parse(propertyValue, CultureInfo.InvariantCulture) : 0;
+            case PropertyType.Boolean:
+                return propertyValue == null ? 0 : (bool)propertyValue ? 1 : 0;
+            case PropertyType.Integer:
+            case PropertyType.Long:
+                return propertyValue == null ? 0 : (int)propertyValue;
+            case PropertyType.Double:
+                // "double" as 4-state? for the moment, simply return 0.
+                return 0;
             default:
                 return 0;
         }

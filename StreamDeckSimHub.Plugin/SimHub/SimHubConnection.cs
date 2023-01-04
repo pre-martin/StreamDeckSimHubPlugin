@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using NLog;
 
-namespace StreamDeckSimHub.Plugin;
+namespace StreamDeckSimHub.Plugin.SimHub;
 
 
 /// <summary>
@@ -15,8 +15,8 @@ namespace StreamDeckSimHub.Plugin;
 public class PropertyChangedArgs
 {
     public string PropertyName { get; init; } = string.Empty;
-    public string PropertyType { get; init; } = string.Empty;
-    public string? PropertyValue { get; init; } = string.Empty;
+    public PropertyType PropertyType { get; init; }
+    public IComparable? PropertyValue { get; init; }
 }
 
 /// <summary>
@@ -40,11 +40,17 @@ public interface IPropertyChangedReceiver
 public class SimHubConnection
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+    private readonly PropertyParser _propertyParser;
     private TcpClient? _tcpClient;
     private long _connected;
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
     // Mapping from SimHub property name to subscribers.
     private readonly Dictionary<string, HashSet<IPropertyChangedReceiver>> _subscriptions = new();
+
+    public SimHubConnection(PropertyParser propertyParser)
+    {
+        _propertyParser = propertyParser;
+    }
 
     private bool Connected
     {
@@ -78,6 +84,7 @@ public class SimHubConnection
                     {
                         await SendSubscribe(propertyName);
                     }
+
                     await ReadFromServer();
                 }
             }
@@ -191,17 +198,16 @@ public class SimHubConnection
 
     private async Task ParseProperty(string line)
     {
-        var lineItems = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        if (lineItems.Length != 4)
+        var parserResult = _propertyParser.ParseLine(line);
+        if (parserResult == null)
         {
             Logger.Warn($"Could not parse property: {line}");
             return;
         }
 
-        var name = lineItems[1];
-        var type = lineItems[2];
-        var value = lineItems[3];
-        if (value == "(null)") value = null;
+        var name = parserResult.Value.name;
+        var type = parserResult.Value.type;
+        var value = parserResult.Value.value;
 
         await _semaphore.WaitAsync();
         HashSet<IPropertyChangedReceiver>? receivers;
@@ -241,6 +247,7 @@ public class SimHubConnection
                     await ParseProperty(line);
                 }
             }
+
             // "line == null": End of stream. Fall through to "CloseAndReconnect".
             Logger.Info("Server closed connection");
         }

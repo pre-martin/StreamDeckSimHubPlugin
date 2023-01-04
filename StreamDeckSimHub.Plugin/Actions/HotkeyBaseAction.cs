@@ -4,6 +4,7 @@
 using Microsoft.Extensions.Logging;
 using SharpDeck;
 using SharpDeck.Events.Received;
+using StreamDeckSimHub.Plugin.SimHub;
 using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.Actions;
@@ -49,13 +50,12 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>, IProp
     /// </summary>
     public async void PropertyChanged(PropertyChangedArgs args)
     {
-        Logger.LogInformation("Property {PropertyName} changed to '{PropertyValue}'", args.PropertyName, args.PropertyValue);
+        Logger.LogDebug("Property {PropertyName} changed to '{PropertyValue}'", args.PropertyName, args.PropertyValue);
         _state = ValueToState(args.PropertyType, args.PropertyValue);
-        // see https://github.com/pre-martin/SimHubPropertyServer/blob/main/Property/SimHubProperty.cs, "TypeToString()"
         await SetStateAsync(_state);
     }
 
-    protected abstract int ValueToState(string propertyType, string? propertyValue);
+    protected abstract int ValueToState(PropertyType propertyType, IComparable? propertyValue);
 
     protected override async Task OnDidReceiveSettings(ActionEventArgs<ActionPayload> args, HotkeySettings settings)
     {
@@ -83,14 +83,14 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>, IProp
         if (_hotkeySettings.Ctrl) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LCONTROL, Keyboard.ScanCodeShort.LCONTROL);
         if (_hotkeySettings.Alt) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LMENU, Keyboard.ScanCodeShort.LMENU);
         if (_hotkeySettings.Shift) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LSHIFT, Keyboard.ScanCodeShort.LSHIFT);
-        // Stream Deck always toggle the state for each keypress (at "key up", to be precise). So we have to set the
+        // Stream Deck always toggles the state for each keypress (at "key up", to be precise). So we have to set the
         // state again to the correct one, after Stream Deck has done its toggling stuff.
         await SetStateAsync(_state);
 
         await base.OnKeyUp(args);
     }
 
-    private async Task SetSettings(HotkeySettings settings, bool forceSubscribe)
+    protected virtual async Task SetSettings(HotkeySettings settings, bool forceSubscribe)
     {
         // Unsubscribe previous SimHub property, if it was set and is different than the new one.
         if (!string.IsNullOrEmpty(_hotkeySettings.SimHubProperty) && _hotkeySettings.SimHubProperty != settings.SimHubProperty)
