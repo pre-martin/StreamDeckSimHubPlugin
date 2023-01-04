@@ -50,7 +50,7 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>, IProp
     /// </summary>
     public async void PropertyChanged(PropertyChangedArgs args)
     {
-        Logger.LogInformation("Property {PropertyName} changed to '{PropertyValue}'", args.PropertyName, args.PropertyValue);
+        Logger.LogDebug("Property {PropertyName} changed to '{PropertyValue}'", args.PropertyName, args.PropertyValue);
         _state = ValueToState(args.PropertyType, args.PropertyValue);
         await SetStateAsync(_state);
     }
