@@ -1,6 +1,8 @@
 ﻿// Copyright (C) 2022 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using System.Globalization;
+
 namespace StreamDeckSimHub.Plugin.SimHub;
 
 /// <summary>
@@ -49,7 +51,7 @@ public static class PropertyTypeEx
             }
             case PropertyType.Double:
             {
-                var result = double.TryParse(propertyValue, out var doubleResult);
+                var result = double.TryParse(propertyValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var doubleResult);
                 return result ? doubleResult : 0.0d;
             }
             default:
