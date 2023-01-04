@@ -102,7 +102,7 @@ public static class PropertyTypeEx
             }
             case PropertyType.Double:
             {
-                var result = double.TryParse(propertyValue, out var doubleResult);
+                var result = double.TryParse(propertyValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var doubleResult);
                 return result ? doubleResult : 0.0d;
             }
             default:
