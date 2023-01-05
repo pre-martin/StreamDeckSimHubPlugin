@@ -1,7 +1,14 @@
 = Usage of the plugin
 :toc:
 :sectnums:
+ifdef::env-github[]
+:tip-caption: :bulb:
+endif::[]
+ifndef::env-github[]
+:tip-caption: 💡
+endif::[]
 
+TIP: Always read the *correct version* of the documentation, which matches the version of the plugin that you have installed. To do so, use the dropdown in the top left, which usually contains the value "main". Select the "tag" that matches your installed version.
 
 == Overview
 
