@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StreamDeckSimHub.Plugin", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFiles", "{E3F720A4-BDC4-4B7D-B604-BF323E7AB170}"
 	ProjectSection(SolutionItems) = preProject
-		README.md = README.md
+		README.adoc = README.adoc
 		release.bat = release.bat
 		deploy.bat = deploy.bat
 	EndProjectSection
