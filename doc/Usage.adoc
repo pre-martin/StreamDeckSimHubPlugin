@@ -62,7 +62,7 @@ image::Example-Engine.png[Engine]
 This allows a much finer grained logic for the button state. Enter the name of a SimHub property, a condition and a value. E.g.
 
 ----
-acc.graphics.gapBehind<=500
+acc.graphics.gapBehind>=-500
 ----
 
 In this example, the button would be in the state "on", if the gap behind is equal to or smaller than 500 milliseconds. It would be "off", if the gap behind is greater than 500 milliseconds. The field "Hotkey" could be empty in this example, so that the Stream Deck button could be used as an indicator only.
