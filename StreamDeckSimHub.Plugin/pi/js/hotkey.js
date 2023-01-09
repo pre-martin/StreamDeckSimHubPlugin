@@ -59,7 +59,7 @@ function debounce(func, timeout = 300) {
 const saveSettingsDelayed = debounce(() => saveSettings(), 500);
 
 function saveSettings() {
-    const settingIds = ['hotkey', 'ctrl', 'alt', 'shift', 'simhubProperty'];
+    const settingIds = ['hotkey', 'ctrl', 'alt', 'shift', 'simhubControl', 'simhubProperty'];
 
     let payload = {};
     for (const id of settingIds) {
