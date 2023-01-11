@@ -10,9 +10,11 @@ using StreamDeckSimHub.Plugin.Tools;
 namespace StreamDeckSimHub.Plugin.Actions;
 
 /// <summary>
-/// This action sends a key stroke to the active window and it can update its state from a SimHub property. Concrete implementations
-/// have to handle the conversion from SimHub property values into Stream Deck action states.
+/// This action sends a key stroke to the active window, it can send an input trigger and it can update its state from a SimHub property.
 /// </summary>
+/// <remarks>
+/// Concrete implementations have to handle the conversion from SimHub property values into Stream Deck action states.
+/// </remarks>
 public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>, IPropertyChangedReceiver
 {
     private readonly SimHubConnection _simHubConnection;

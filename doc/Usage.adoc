@@ -12,27 +12,48 @@ TIP: Always read the *correct version* of the documentation, which matches the v
 
 == Overview
 
-After the installation of the Plugin, a new category named "SimHub" will be available in Stream Deck. Use the actions of this category to get Stream Deck buttons, which will update their state from SimHub properties.
+After the installation of the Plugin, a new category named "SimHub" will be available in Stream Deck. Use the actions of this category to get Stream Deck buttons, which will interact with SimHub, e.g. update their state from SimHub properties.
 
 
 == Actions offered by this plugin
 
+[#hotkey]
 === Hotkey
 
-This action offers the same functionality as the built-in action "Hotkey": If the Stream Deck button is pressed, a keypress event will be sent to the active window. Please see the structure link:/StreamDeckSimHub.Plugin/Tools/Keyboard.cs[VirtualKeyShort] for supported key names. For alphanumeric keys (0-1, A-Z) the prefix `KEY_` can be omitted, so either `KEY_P` and `P` will have the same result. Some examples of valid values for the field "Hotkey" are:
+==== Description
 
-- `A` (will send the event for the key "A" to the active window)
-- `KEY_A` (same as above)
-- `SPACE` (will send an event for the space key)
-- `F11` (event for F11)
+This action offers the same functionality as the built-in action "Hotkey", but with some additional SimHub related features. The features are as follows:
 
-Modifiers like Ctrl, Alt and Shift have to be specified by using the corresponding checkbox.
+- Send a keystroke event to the active window (like the built-in "Hotkey")
+- Send an input trigger to SimHub
+- Bind the state of the button ("on" or "off") to the real state of a SimHub property
 
+This allows to interact with the simulation (by sending keystroke events to the simulation), to interact with SimHub (by sending input triggers to SimHub) and to visualize the correct state of properties, no matter if these properties have been modified by the button or some other means: The button will always display the correct state.
+
+The fields of this action are as follows:
+
+* *Hotkey* +
+  This optional field takes a key, which should be sent to the active window. +
+  Please see the structure link:/StreamDeckSimHub.Plugin/Tools/Keyboard.cs[VirtualKeyShort] for supported key names. For alphanumeric keys (0-1, A-Z) the prefix `KEY_` can be omitted, so either `KEY_P` and `P` will have the same result. +
+  Some examples of valid values for the field "Hotkey" are:
+  ** `A` (will send the event for the key "A" to the active window)
+  ** `KEY_A` (same as above)
+  ** `SPACE` (will send an event for the space key)
+  ** `F11` (event for F11)
+
++
 Please note, that not all entries in "VirtualKeyShort" make sense in the field "Hotkey".
 
-The added value for this action is in the field "SimHub Property": It allows to enter the name of a SimHub property or even a logical expression with a SimHub property:
+* *Modifiers* +
+  Modifiers like Ctrl, Alt and Shift have to be specified by using the corresponding checkbox.
+* *SimHub Control* +
+  This optional field may take a *unique* string. This string will be sent as an input trigger to SimHub, where it is used to identify this Stream Deck button. See the section <<#input>> below for details about input triggers.
+* *SimHub Property* +
+  This mandatory field allows to enter the name of a SimHub property or even a logical expression with a SimHub property. The SimHub property or the result of the logical expression will be used to set the state of the button to either "on" or "off". See the next section for details.
 
-==== Simple SimHub property
+==== Field "SimHub Property"
+
+===== Simple SimHub Property
 
 Enter the name of a SimHub property. E.g.
 
@@ -44,20 +65,10 @@ The value of this SimHub property will update the state of the button. See https
 
 The logic for the action state depending on the SimHub property value is as follows:
 
-- `boolean`: If the property value is `True`, the action will be in the "on" state, otherwise in the "off" state.
-- `integer` and `long`: If the property value is greater than zero, the action will be in the "on" state, otherwise in the "off" state.
+* `boolean`: If the property value is `True`, the action will be in the "on" state, otherwise in the "off" state.
+* `integer` and `long`: If the property value is greater than zero, the action will be in the "on" state, otherwise in the "off" state.
 
-Examples:
-
-- Button to toggle the Ignition in ACC (which is mapped to "Shift + I" by default):
-+
-image::Example-Ignition.png[Ignition]
-- Button to toggle the Engine in ACC (which is mapped to "S" by default):
-+
-image::Example-Engine.png[Engine]
-- Another useful button for ACC would be the Hotkey "Alt + L" with the SimHub property "gd.sdb.PitLimiterOn" to toggle the pit limiter.
-
-==== SimHub property with logical expression
+===== SimHub property with logical expression
 
 This allows a much finer grained logic for the button state. Enter the name of a SimHub property, a condition and a value. E.g.
 
@@ -83,38 +94,64 @@ The condition "between" requires two values, which have to be separated by a sem
 acc.graphics.WiperLV~~1;2
 ----
 
-The following table shows the comparison logic for different SimHub property types and comparison values (which are entered into the Stream Deck UI):
+The following table shows the comparison logic for different SimHub property types and comparison values (which are entered into the field "SimHub Property"):
 
 |===
 | SimHub property type | supported comparison values | evaluation rules
 
-| boolean              
-| "true", "false"             
-| should be self explanatory                 
+| boolean
+| "true", "false"
+| should be self explanatory
 
-|                      
-| any integer value           
+|
+| any integer value
 | comp. value == 0: "false" +
-  comp. value > 0: "true"       
+comp. value > 0: "true"
 
-| integer              
-| any integer value           
-| should be self explanatory                 
+| integer
+| any integer value
+| should be self explanatory
 
-|                      
-| "true", "false"             
+|
+| "true", "false"
 | prop. value == 1: "true" +
-  all other prop. values: "false"
+all other prop. values: "false"
 
-| long                 
-| same as "integer"           
-| same as integer                            
+| long
+| same as "integer"
+| same as integer
 
-| double               
-| any integer or floating     
-| should be self explanatory                 
+| double
+| any integer or floating
+| should be self explanatory
 
 |===
+
+So the following expressions are all valid:
+
+* SimHub property of type "boolean": +
+  `dcp.gd.IsLapValid==true` or `dcp.gd.IsLapValid==1` or just `dcp.gd.IsLapValid`
+* SimHub property of type "integer": +
+  `dcp.gd.SpotterCarLeft>0` or `dcp.gd.SpotterCarLeft==true` or just `dcp.gd.SpotterCarLeft`
+* Another "integer": +
+  `acc.physics.Gear~2;4`
+
+
+==== Examples
+
+* Button to toggle the Ignition in ACC (which is mapped to "Shift + I" by default):
++
+image::Example-Ignition.png[Ignition]
++
+In this example, the ignition is turned on in the game, so the button is in the "on" state (determined via SimHub by the property `dcp.gd.EngineIgnitionOn`).
+
+* Button to toggle the Engine in ACC (which is mapped to "S" by default):
++
+image::Example-Engine.png[Engine]
++
+In this example, the engine is turned off in the game, so the button is in the "off" state (determined via SimHub by the property `dcp.gd.EngineStarted`).
+
+* Another useful button for ACC would be the Hotkey "Alt + L" with the SimHub property `gd.sdb.PitLimiterOn` to toggle the pit limiter.
 
 
 === Hotkey 4-state
@@ -126,4 +163,34 @@ The difference is that this action can have up to four states. The logic for the
 - `boolean`: If the property value is `True`, the action will be in the state "1", otherwise in the state "0" state.
 - `integer` and `long`: The property value will directly set the state. The value "0" maps to the action state "0", "1" to the action state "1" and so on.
 
-Unfortunately, the Stream Deck UI support is very limited for actions which have more than two states. "Title" and icon can only be customized for the first two states. Maybe Stream Deck will enhance their UI one day to allow customization of all states. 
+Unfortunately, the Stream Deck UI support is very limited for actions which have more than two states. "Title" and icon can only be customized for the first two states. Maybe Stream Deck will enhance their UI one day to allow customization of all states.
+
+
+[#input]
+=== Input Trigger
+
+==== Description
+
+SimHub allows to trigger various actions by controller and/or keyboard inputs. For example:
+
+* Controls can be mapped to actions in the menu "Control and events"
+* Controls can be mapped to Bass Shaker effect groups and effects, in order to modify their gain value or to mute and unmute them.
+
+The action "Input Trigger" extends the available inputs to the use of Stream Deck buttons. It has only one field:
+
+* *SimHub Control* +
+  Simply enter a *unique* string into this field. This string will be used in SimHub to identify this Stream Deck button.
+
+==== Examples
+
+In the following example, there is a "ShakeIt Bass" effect group. The Stream Deck button is used to mute or unmute this effect group. The configuration in Stream Deck will look as follows:
+
+image::Example-TriggerInput-StreamDeck.png[Trigger Input]
+
+In SimHub, the assignment dialog ("Pick a control") has to be opened. After pressing the Stream Deck button, the assignment will be shown as follows:
+
+image::Example-TriggerInput-SimHub.png[Trigger Input - SimHub]
+
+The Stream Deck button can now be used to mute and unmute the effect group in SimHub.
+
+*Note*: This action is usually used inside of multi actions. For buttons with feedback, consider using the <<hotkey>> action. It offers significantly more features, including the field "SimHub Control".
