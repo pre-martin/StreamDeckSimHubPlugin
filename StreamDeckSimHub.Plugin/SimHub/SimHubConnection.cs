@@ -184,6 +184,14 @@ public class SimHubConnection
         }
     }
 
+    internal async Task SendTriggerInput(string inputName)
+    {
+        if (Connected)
+        {
+            await WriteToServer($"trigger-input {inputName}");
+        }
+    }
+
     private async Task SendSubscribe(string propertyName)
     {
         Logger.Info($"Sending subscribe for {propertyName}");

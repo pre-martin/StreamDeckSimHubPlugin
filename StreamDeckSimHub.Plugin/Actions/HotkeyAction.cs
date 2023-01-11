@@ -31,6 +31,7 @@ public class HotkeyAction : HotkeyBaseAction
         {
             Hotkey = ac.Hotkey,
             SimHubProperty = _conditionExpression.Property,
+            SimHubControl = ac.SimHubControl,
             Ctrl = ac.Ctrl,
             Alt = ac.Alt,
             Shift = ac.Shift

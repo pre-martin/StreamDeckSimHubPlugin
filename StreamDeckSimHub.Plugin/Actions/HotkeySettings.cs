@@ -10,6 +10,8 @@ public class HotkeySettings
 {
     public string Hotkey { get; set; } = string.Empty;
 
+    public string SimHubControl { get; set; } = string.Empty;
+
     public string SimHubProperty { get; set; } = string.Empty;
 
     public bool Ctrl { get; set; }
