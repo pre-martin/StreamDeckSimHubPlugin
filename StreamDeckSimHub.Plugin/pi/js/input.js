@@ -21,7 +21,7 @@ function loadSettings(settings) {
 const saveSettingsDelayed = debounce(() => saveSettings(), 500);
 
 function saveSettings() {
-    const settingIds = ['hotkey', 'ctrl', 'alt', 'shift', 'simhubControl', 'simhubProperty'];
+    const settingIds = ['simhubControl'];
 
     let payload = {};
     for (const id of settingIds) {
