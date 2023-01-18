@@ -8,7 +8,7 @@ echo.
 echo Building for configuration: %CONFIG%
 echo.
 
-dotnet publish StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c %CONFIG% -r win-x64 --self-contained
+dotnet publish StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c %CONFIG% -r win-x64
 
 if exist build rmdir /s /q build
 if exist build goto :endFailure
