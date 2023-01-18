@@ -41,6 +41,19 @@
       ],
       "Tooltip": "Hotkey with SimHub state (4 states)",
       "UUID": "net.planetrenner.simhub.hotkey4"
+    },
+    {
+      "Icon": "images/actions/input",
+      "Name": "Input Trigger",
+      "PropertyInspectorPath": "pi/input.html",
+      "States": [
+        {
+          "Image": "images/icons/input",
+          "Name": "Input"
+        }
+      ],
+      "Tooltip": "Input control for SimHub",
+      "UUID": "net.planetrenner.simhub.input"
     }
   ],
   "Author": "Martin Renner",

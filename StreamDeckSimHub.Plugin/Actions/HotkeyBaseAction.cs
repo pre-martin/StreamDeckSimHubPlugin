@@ -10,9 +10,11 @@ using StreamDeckSimHub.Plugin.Tools;
 namespace StreamDeckSimHub.Plugin.Actions;
 
 /// <summary>
-/// This action sends a key stroke to the active window and it can update its state from a SimHub property. Concrete implementations
-/// have to handle the conversion from SimHub property values into Stream Deck action states.
+/// This action sends a key stroke to the active window, it can send an input trigger and it can update its state from a SimHub property.
 /// </summary>
+/// <remarks>
+/// Concrete implementations have to handle the conversion from SimHub property values into Stream Deck action states.
+/// </remarks>
 public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>, IPropertyChangedReceiver
 {
     private readonly SimHubConnection _simHubConnection;
@@ -32,8 +34,9 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>, IProp
     {
         var settings = args.Payload.GetSettings<HotkeySettings>();
         Logger.LogInformation(
-            "OnWillAppear: Modifiers: Ctrl: {Ctrl}, Alt: {Alt}, Shift: {Shift}, Hotkey: {Hotkey}, SimHubProperty: {SimHubProperty}",
-            settings.Ctrl, settings.Alt, settings.Shift, settings.Hotkey, settings.SimHubProperty);
+            "OnWillAppear: Modifiers: Ctrl: {Ctrl}, Alt: {Alt}, Shift: {Shift}, Hotkey: {Hotkey}, SimHubControl: {SimHubControl}, SimHubProperty: {SimHubProperty}",
+            settings.Ctrl, settings.Alt, settings.Shift, settings.Hotkey, settings.SimHubControl,
+            settings.SimHubProperty);
         await SetSettings(settings, true);
         await base.OnWillAppear(args);
     }
@@ -60,8 +63,9 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>, IProp
     protected override async Task OnDidReceiveSettings(ActionEventArgs<ActionPayload> args, HotkeySettings settings)
     {
         Logger.LogInformation(
-            "OnDidReceiveSettings: Modifiers: Ctrl: {Ctrl}, Alt: {Alt}, Shift: {Shift}, Hotkey: {Hotkey}, SimHubProperty: {SimHubProperty}",
-            settings.Ctrl, settings.Alt, settings.Shift, settings.Hotkey, settings.SimHubProperty);
+            "OnDidReceiveSettings: Modifiers: Ctrl: {Ctrl}, Alt: {Alt}, Shift: {Shift}, Hotkey: {Hotkey}, SimHubControl: {SimHubControl}, SimHubProperty: {SimHubProperty}",
+            settings.Ctrl, settings.Alt, settings.Shift, settings.Hotkey, settings.SimHubControl,
+            settings.SimHubProperty);
 
         await SetSettings(settings, false);
         await base.OnDidReceiveSettings(args, settings);
@@ -69,10 +73,14 @@ public abstract class HotkeyBaseAction : StreamDeckAction<HotkeySettings>, IProp
 
     protected override async Task OnKeyDown(ActionEventArgs<KeyPayload> args)
     {
+        // Hotkey
         if (_hotkeySettings.Ctrl) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LCONTROL, Keyboard.ScanCodeShort.LCONTROL);
         if (_hotkeySettings.Alt) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LMENU, Keyboard.ScanCodeShort.LMENU);
         if (_hotkeySettings.Shift) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LSHIFT, Keyboard.ScanCodeShort.LSHIFT);
         if (_vks.HasValue && _scs.HasValue) Keyboard.KeyDown(_vks.Value, _scs.Value);
+        // SimHubControl
+        if (!string.IsNullOrWhiteSpace(_hotkeySettings.SimHubControl))
+            await _simHubConnection.SendTriggerInput(_hotkeySettings.SimHubControl);
 
         await base.OnKeyDown(args);
     }
