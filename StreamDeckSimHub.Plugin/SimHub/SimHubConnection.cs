@@ -77,7 +77,7 @@ public class SimHubConnection
                 var line = await new LineReader(_tcpClient.GetStream()).ReadLineAsync();
                 if (line != null && line.StartsWith("SimHub Property Server"))
                 {
-                    Logger.Info($"Established connection to {line}");
+                    Logger.Info($"Established connection to {Sanitize(line)}");
                     _tcpClient.ReceiveTimeout = 0;
                     Connected = true;
                     foreach (var propertyName in _subscriptions.Keys)
@@ -209,7 +209,7 @@ public class SimHubConnection
         var parserResult = _propertyParser.ParseLine(line);
         if (parserResult == null)
         {
-            Logger.Warn($"Could not parse property: {line}");
+            Logger.Warn($"Could not parse property: {Sanitize(line)}");
             return;
         }
 
@@ -249,7 +249,7 @@ public class SimHubConnection
             string? line;
             while ((line = await reader.ReadLineAsync()) != null)
             {
-                Logger.Debug($"Received from server: {line}");
+                Logger.Debug($"Received from server: {Sanitize(line)}");
                 if (line.StartsWith("Property "))
                 {
                     await ParseProperty(line);
@@ -287,6 +287,11 @@ public class SimHubConnection
             Logger.Warn($"Received IOException while writing data: {ioe.Message}");
             await CloseAndReconnect();
         }
+    }
+
+    private string? Sanitize(string? s)
+    {
+        return s?.Replace(Environment.NewLine, "");
     }
 
     private async Task CloseAndReconnect()
