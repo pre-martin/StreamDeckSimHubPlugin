@@ -12,7 +12,7 @@ namespace StreamDeckSimHub.Plugin.Actions;
 /// This action supports two states: "0" and "1".
 /// </summary>
 [StreamDeckAction("net.planetrenner.simhub.hotkey")]
-public class HotkeyAction : HotkeyBaseAction
+public class HotkeyAction : HotkeyBaseAction<HotkeyBaseActionSettings>
 {
     private readonly PropertyComparer _propertyComparer;
     private ConditionExpression? _conditionExpression;
@@ -22,16 +22,16 @@ public class HotkeyAction : HotkeyBaseAction
         _propertyComparer = propertyComparer;
     }
 
-    protected override async Task SetSettings(HotkeySettings ac, bool forceSubscribe)
+    protected override async Task SetSettings(HotkeyBaseActionSettings ac, bool forceSubscribe)
     {
         _conditionExpression = _propertyComparer.Parse(ac.SimHubProperty);
         // The field "ac.SimHubProperty" may contain an expression, which is not understood by the base class. So we
         // construct a new instance without expression.
-        var acNew = new HotkeySettings()
+        var acNew = new HotkeyBaseActionSettings()
         {
             Hotkey = ac.Hotkey,
-            SimHubProperty = _conditionExpression.Property,
             SimHubControl = ac.SimHubControl,
+            SimHubProperty = _conditionExpression.Property,
             Ctrl = ac.Ctrl,
             Alt = ac.Alt,
             Shift = ac.Shift

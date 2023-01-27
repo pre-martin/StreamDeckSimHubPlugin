@@ -11,9 +11,9 @@ namespace StreamDeckSimHub.Plugin.Actions;
 /// This action supports four states: "0", "1", "2" and "3".
 /// </summary>
 [StreamDeckAction("net.planetrenner.simhub.hotkey4")]
-public class Hotkey4StateAction : HotkeyBaseAction
+public class Hotkey4Action : HotkeyBaseAction<HotkeyBaseActionSettings>
 {
-    public Hotkey4StateAction(SimHubConnection simHubConnection) : base(simHubConnection)
+    public Hotkey4Action(SimHubConnection simHubConnection) : base(simHubConnection)
     {
     }
 

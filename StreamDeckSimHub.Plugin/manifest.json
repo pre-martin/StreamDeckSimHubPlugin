@@ -20,7 +20,7 @@
     {
       "Icon": "images/actions/hotkey4",
       "Name": "Hotkey 4-state",
-      "PropertyInspectorPath": "pi/hotkey.html",
+      "PropertyInspectorPath": "pi/hotkey4.html",
       "States": [
         {
           "Image": "images/icons/0",
