@@ -49,6 +49,12 @@
       <None Update="pi\js\hotkey.js">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="pi\js\hotkey4.js">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="pi\hotkey4.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="pi\js\utils.js">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
