@@ -13,7 +13,8 @@ public enum PropertyType
     Boolean,
     Integer,
     Long,
-    Double
+    Double,
+    Object
 }
 
 /// <summary>
@@ -54,6 +55,14 @@ public static class PropertyTypeEx
                 var result = double.TryParse(propertyValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var doubleResult);
                 return result ? doubleResult : 0.0d;
             }
+            case PropertyType.Object:
+            {
+                // Try to parse as double.
+                var result = double.TryParse(propertyValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var doubleResult);
+                if (result) return doubleResult;
+                // If not possible, return as string
+                return propertyValue;
+            }
             default:
                 throw new ArgumentOutOfRangeException(nameof(propertyType), propertyType, null);
         }
@@ -64,13 +73,8 @@ public static class PropertyTypeEx
     /// <remarks>
     /// This method should be used to parse user input.
     /// </remarks>
-    public static IComparable? ParseLiberally(this PropertyType propertyType, string? propertyValue)
+    public static IComparable ParseLiberally(this PropertyType propertyType, string propertyValue)
     {
-        if (propertyValue == null)
-        {
-            return null;
-        }
-
         switch (propertyType)
         {
             case PropertyType.Boolean:
@@ -104,6 +108,14 @@ public static class PropertyTypeEx
             {
                 var result = double.TryParse(propertyValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var doubleResult);
                 return result ? doubleResult : 0.0d;
+            }
+            case PropertyType.Object:
+            {
+                // Try to parse as double.
+                var result = double.TryParse(propertyValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var doubleResult);
+                if (result) return doubleResult;
+                // If not possible, return as string
+                return propertyValue;
             }
             default:
                 throw new ArgumentOutOfRangeException(nameof(propertyType), propertyType, null);

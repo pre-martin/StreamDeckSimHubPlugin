@@ -130,4 +130,42 @@ public class PropertyComparerEvaluateTests
         Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, _propValueTwo, ce), Is.True);
         Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, _propValueThree, ce), Is.False);
     }
+
+    [Test]
+    public void IntegerPropInvalidBetween()
+    {
+        var ce = _propertyComparer.Parse("acc.graphics.WiperLV~~1");
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, _propValueZero, ce), Is.False);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, _propValueOne, ce), Is.False);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, _propValueTwo, ce), Is.False);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, _propValueThree, ce), Is.False);
+    }
+
+    [Test]
+    public void ObjectProp()
+    {
+        var ce = _propertyComparer.Parse("DataCorePlugin.GameData.Gear>=3");
+        var propValue2 = PropertyType.Object.ParseFromSimHub("2");
+        var propValue3 = PropertyType.Object.ParseFromSimHub("3");
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Object, propValue2, ce), Is.False);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Object, propValue3, ce), Is.True);
+
+        var propValueN = PropertyType.Object.ParseFromSimHub("N");
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Object, propValueN, ce), Is.False);
+    }
+
+    [Test]
+    public void ObjectPropBetween()
+    {
+        var ce = _propertyComparer.Parse("DataCorePlugin.GameData.Gear~~3;4");
+        var propValue2 = PropertyType.Object.ParseFromSimHub("2");
+        var propValue3 = PropertyType.Object.ParseFromSimHub("3");
+        var propValue5 = PropertyType.Object.ParseFromSimHub("5");
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Object, propValue2, ce), Is.False);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Object, propValue3, ce), Is.True);
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Object, propValue5, ce), Is.False);
+
+        var propValueN = PropertyType.Object.ParseFromSimHub("N");
+        Assert.That(_propertyComparer.Evaluate(PropertyType.Object, propValueN, ce), Is.False);
+    }
 }

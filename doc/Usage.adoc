@@ -46,8 +46,10 @@ Please note, that not all entries in "VirtualKeyShort" make sense in the field "
   Modifiers like Ctrl, Alt and Shift have to be specified by using the corresponding checkbox.
 * *SimHub Control* +
   This optional field may take a *unique* string. This string will be sent as an input trigger to SimHub, where it is used to identify this Stream Deck button. See the section <<#input>> below for details about input triggers.
-* *SimHub Property* +
+* *SimHub Property (for state)* +
   This mandatory field allows to enter the name of a SimHub property or even a logical expression with a SimHub property. The SimHub property or the result of the logical expression will be used to set the state of the button to either "on" or "off". See the next section for details.
+* *SimHub Property (for title)* +
+  This optional field allows to specify a SimHub property, which will be displayed as the "Title" of the button. Be sure to leave the default Stream Deck field "Title" empty. However you can use all available formatting options of the default field "Title", like alignment, size, color etc.
 
 === Field "SimHub Property"
 
@@ -57,7 +59,7 @@ All properties, that are listed in SimHub under "Available properties" (around 2
 
 TIP: Be sure to read the documentation of the https://github.com/pre-martin/SimHubPropertyServer[SimHub Property Server plugin], especially the section about the available properties!
 
-TIP: "Generic" properties are received untyped as `object` (see SimHubPropertyServer plugin). This plugin tries to interpret them as a `double` value. If this is not possible, the value `0` will be used.
+TIP: "Generic" properties are received untyped as `object` (see SimHubPropertyServer plugin). This plugin tries to interpret them as a `double` value. If this is not possible, they are treated as strings.
 
 ==== Simple SimHub Property
 
@@ -132,6 +134,10 @@ all other prop. values: "false"
 | double
 | any integer or floating
 | should be self explanatory
+
+| object
+| anything
+| The types of the property value and the comparision value have to be the same, otherwise they are treated as "not equal". The plugin tries to interpret property values of type "object" as "double". If this is possible, the comparison value should be also of type "double", otherwise they are "not equal".
 
 |===
 
