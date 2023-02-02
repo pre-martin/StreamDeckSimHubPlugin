@@ -37,14 +37,14 @@ public class PropertyParserTests
         var result1 = _parser.ParseLine("Property DataCorePlugin.ExternalScript.BlinkingGear object  ");
         Assert.That(result1, Is.Not.Null);
         Assert.That(result1.Value.name, Is.EqualTo("DataCorePlugin.ExternalScript.BlinkingGear"));
-        Assert.That(result1.Value.type, Is.EqualTo(PropertyType.Double));
-        Assert.That(result1.Value.value, Is.EqualTo(0));
+        Assert.That(result1.Value.type, Is.EqualTo(PropertyType.Object));
+        Assert.That(result1.Value.value, Is.EqualTo(" "));
 
         var result2 = _parser.ParseLine("Property DataCorePlugin.ExternalScript.BlinkingGear object   ");
         Assert.That(result2, Is.Not.Null);
         Assert.That(result2.Value.name, Is.EqualTo("DataCorePlugin.ExternalScript.BlinkingGear"));
-        Assert.That(result2.Value.type, Is.EqualTo(PropertyType.Double));
-        Assert.That(result2.Value.value, Is.EqualTo(0));
+        Assert.That(result2.Value.type, Is.EqualTo(PropertyType.Object));
+        Assert.That(result2.Value.value, Is.EqualTo("  "));
 
     }
 }

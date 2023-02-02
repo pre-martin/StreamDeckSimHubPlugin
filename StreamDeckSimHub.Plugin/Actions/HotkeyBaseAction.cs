@@ -18,17 +18,16 @@ namespace StreamDeckSimHub.Plugin.Actions;
 public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>, IPropertyChangedReceiver
     where TSettings : HotkeyBaseActionSettings, new()
 {
-    private readonly SimHubConnection _simHubConnection;
-
-    private TSettings _hotkeySettings;
+    protected SimHubConnection SimHubConnection { get; }
+    protected TSettings HotkeySettings { get; private set; }
     private Keyboard.VirtualKeyShort? _vks;
     private Keyboard.ScanCodeShort? _scs;
     private int _state;
 
     protected HotkeyBaseAction(SimHubConnection simHubConnection)
     {
-        _hotkeySettings = new TSettings();
-        _simHubConnection = simHubConnection;
+        HotkeySettings = new TSettings();
+        SimHubConnection = simHubConnection;
     }
 
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
@@ -41,7 +40,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
 
     protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
     {
-        await _simHubConnection.Unsubscribe(_hotkeySettings.SimHubProperty, this);
+        await SimHubConnection.Unsubscribe(HotkeySettings.SimHubProperty, this);
 
         await base.OnWillDisappear(args);
     }
@@ -69,13 +68,13 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
     protected override async Task OnKeyDown(ActionEventArgs<KeyPayload> args)
     {
         // Hotkey
-        if (_hotkeySettings.Ctrl) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LCONTROL, Keyboard.ScanCodeShort.LCONTROL);
-        if (_hotkeySettings.Alt) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LMENU, Keyboard.ScanCodeShort.LMENU);
-        if (_hotkeySettings.Shift) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LSHIFT, Keyboard.ScanCodeShort.LSHIFT);
+        if (HotkeySettings.Ctrl) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LCONTROL, Keyboard.ScanCodeShort.LCONTROL);
+        if (HotkeySettings.Alt) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LMENU, Keyboard.ScanCodeShort.LMENU);
+        if (HotkeySettings.Shift) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LSHIFT, Keyboard.ScanCodeShort.LSHIFT);
         if (_vks.HasValue && _scs.HasValue) Keyboard.KeyDown(_vks.Value, _scs.Value);
         // SimHubControl
-        if (!string.IsNullOrWhiteSpace(_hotkeySettings.SimHubControl))
-            await _simHubConnection.SendTriggerInput(_hotkeySettings.SimHubControl);
+        if (!string.IsNullOrWhiteSpace(HotkeySettings.SimHubControl))
+            await SimHubConnection.SendTriggerInput(HotkeySettings.SimHubControl);
 
         await base.OnKeyDown(args);
     }
@@ -83,9 +82,9 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
     protected override async Task OnKeyUp(ActionEventArgs<KeyPayload> args)
     {
         if (_vks.HasValue && _scs.HasValue) Keyboard.KeyUp(_vks.Value, _scs.Value);
-        if (_hotkeySettings.Ctrl) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LCONTROL, Keyboard.ScanCodeShort.LCONTROL);
-        if (_hotkeySettings.Alt) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LMENU, Keyboard.ScanCodeShort.LMENU);
-        if (_hotkeySettings.Shift) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LSHIFT, Keyboard.ScanCodeShort.LSHIFT);
+        if (HotkeySettings.Ctrl) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LCONTROL, Keyboard.ScanCodeShort.LCONTROL);
+        if (HotkeySettings.Alt) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LMENU, Keyboard.ScanCodeShort.LMENU);
+        if (HotkeySettings.Shift) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LSHIFT, Keyboard.ScanCodeShort.LSHIFT);
         // Stream Deck always toggles the state for each keypress (at "key up", to be precise). So we have to set the
         // state again to the correct one, after Stream Deck has done its toggling stuff.
         await SetStateAsync(_state);
@@ -96,9 +95,9 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
     protected virtual async Task SetSettings(TSettings settings, bool forceSubscribe)
     {
         // Unsubscribe previous SimHub property, if it was set and is different than the new one.
-        if (!string.IsNullOrEmpty(_hotkeySettings.SimHubProperty) && _hotkeySettings.SimHubProperty != settings.SimHubProperty)
+        if (!string.IsNullOrEmpty(HotkeySettings.SimHubProperty) && HotkeySettings.SimHubProperty != settings.SimHubProperty)
         {
-            await _simHubConnection.Unsubscribe(_hotkeySettings.SimHubProperty, this);
+            await SimHubConnection.Unsubscribe(HotkeySettings.SimHubProperty, this);
         }
 
         this._vks = null;
@@ -125,11 +124,11 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
         }
 
         // Subscribe SimHub property, if it is set and different than the previous one.
-        if ((!string.IsNullOrEmpty(settings.SimHubProperty) && settings.SimHubProperty != _hotkeySettings.SimHubProperty) || forceSubscribe)
+        if (!string.IsNullOrEmpty(settings.SimHubProperty) && (settings.SimHubProperty != HotkeySettings.SimHubProperty || forceSubscribe))
         {
-            await _simHubConnection.Subscribe(settings.SimHubProperty, this);
+            await SimHubConnection.Subscribe(settings.SimHubProperty, this);
         }
 
-        this._hotkeySettings = settings;
+        this.HotkeySettings = settings;
     }
 }

@@ -32,7 +32,7 @@ public class PropertyParser
             "integer" => PropertyType.Integer,
             "long" => PropertyType.Long,
             "double" => PropertyType.Double,
-            "object" => PropertyType.Double,
+            "object" => PropertyType.Object,
             _ => PropertyType.Double // Should not happen. But best guess should always be "double".
         };
         var value = type.ParseFromSimHub(valueAsString);

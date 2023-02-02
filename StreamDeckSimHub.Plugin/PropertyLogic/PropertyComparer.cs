@@ -86,11 +86,20 @@ public class PropertyComparer
             return false;
         }
 
+        // When we arrive here with a SimHub property of type "object", it could be interpreted
+        // as "double" or "string" (see PropertyType.ParseFromSimHub and .ParseLiberally).
+        // Both values (property value and compare value) have to be of the same type, otherwise they are unequal.
+
         var compareFunction = expression.Operator.CompareFunction();
         if (expression.Operator != ConditionOperator.Between)
         {
             var compareValue = propertyType.ParseLiberally(expression.CompareValue);
-            return compareValue != null && compareFunction.Invoke(propertyValue, compareValue, null);
+            if (propertyValue.GetType() != compareValue.GetType())
+            {
+                _logger.LogDebug("Property value and compare value are of different types, returning 'false'");
+                return false;
+            }
+            return compareFunction.Invoke(propertyValue, compareValue, null);
         }
 
         var values = expression.CompareValue.Split(";", StringSplitOptions.TrimEntries);
@@ -102,6 +111,12 @@ public class PropertyComparer
 
         var compareValue1 = propertyType.ParseLiberally(values[0]);
         var compareValue2 = propertyType.ParseLiberally(values[1]);
-        return compareValue1 != null && compareFunction.Invoke(propertyValue, compareValue1, compareValue2);
+        if (propertyValue.GetType() != compareValue1.GetType() || propertyValue.GetType() != compareValue2.GetType())
+        {
+            _logger.LogDebug("Property value and compare value are of different types, returning 'false'");
+            return false;
+
+        }
+        return compareFunction.Invoke(propertyValue, compareValue1, compareValue2);
     }
 }
