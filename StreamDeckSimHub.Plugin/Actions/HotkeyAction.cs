@@ -26,7 +26,20 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
 
     protected override async Task SetSettings(HotkeyActionSettings ac, bool forceSubscribe)
     {
-        _conditionExpression = _propertyComparer.Parse(ac.SimHubProperty);
+        var newCondExpr = _propertyComparer.Parse(ac.SimHubProperty);
+        // If we have an existing condition and receive a new one, where the PropertyName was not changed (because this change will
+        // trigger a unsubscribe+subscribe), but the Operator or the CompareValue has changed, we have to recalculate the
+        // state of the action.
+        var recalc = _conditionExpression != null &&
+                     newCondExpr.Property == _conditionExpression.Property &&
+                     (newCondExpr.Operator != _conditionExpression.Operator ||
+                      newCondExpr.CompareValue != _conditionExpression.CompareValue);
+        _conditionExpression = newCondExpr;
+        if (recalc)
+        {
+            RefirePropertyChanged();
+        }
+
         // The field "ac.SimHubProperty" may contain an expression, which is not understood by the base class. So we
         // construct a new instance without expression.
         var acNew = new HotkeyActionSettings()
@@ -47,7 +60,7 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
         }
         // Subscribe SimHub "Title" property, if it is set and different than the previous one.
         if (!string.IsNullOrEmpty(ac.SimHubPropertyTitle) && (ac.SimHubPropertyTitle != HotkeySettings.SimHubPropertyTitle ||
-            forceSubscribe))
+                                                              forceSubscribe))
         {
             await SimHubConnection.Subscribe(ac.SimHubPropertyTitle, _titlePropertyChangedReceiver);
         }

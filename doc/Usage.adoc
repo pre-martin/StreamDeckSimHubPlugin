@@ -179,6 +179,8 @@ The difference is that this action can have up to four states. The logic for the
 - `boolean`: If the property value is `True`, the action will be in the state "1", otherwise in the state "0" state.
 - `integer` and `long`: The property value will directly set the state. The value "0" maps to the action state "0", "1" to the action state "1" and so on.
 
+Unlike the action "Hotkey", this action does not support expressions!
+
 Unfortunately, the Stream Deck UI support is very limited for actions which have more than two states. "Title" and icon can only be customized for the first two states. Maybe Stream Deck will enhance their UI one day to allow customization of all states.
 
 
