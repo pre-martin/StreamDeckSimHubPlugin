@@ -29,6 +29,9 @@ public class Hotkey4Action : HotkeyBaseAction<HotkeyBaseActionSettings>
             case PropertyType.Double:
                 // "double" as 4-state? for the moment, simply return 0.
                 return 0;
+            case PropertyType.Object:
+                // "object" as 4-state? for the moment, simply return 0.
+                return 0;
             default:
                 return 0;
         }
