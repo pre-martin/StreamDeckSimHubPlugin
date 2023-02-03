@@ -23,6 +23,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
     private Keyboard.VirtualKeyShort? _vks;
     private Keyboard.ScanCodeShort? _scs;
     private int _state;
+    private PropertyChangedArgs? _lastPropertyChangedEvent;
 
     protected HotkeyBaseAction(SimHubConnection simHubConnection)
     {
@@ -51,8 +52,20 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
     public async void PropertyChanged(PropertyChangedArgs args)
     {
         Logger.LogDebug("Property {PropertyName} changed to '{PropertyValue}'", args.PropertyName, args.PropertyValue);
+        _lastPropertyChangedEvent = args;
         _state = ValueToState(args.PropertyType, args.PropertyValue);
         await SetStateAsync(_state);
+    }
+
+    /// <summary>
+    /// Refires the last received PropertyChanged event, but only, if we already have received an event so far.
+    /// </summary>
+    protected void RefirePropertyChanged()
+    {
+        if (_lastPropertyChangedEvent != null)
+        {
+            PropertyChanged(_lastPropertyChangedEvent);
+        }
     }
 
     protected abstract int ValueToState(PropertyType propertyType, IComparable? propertyValue);
