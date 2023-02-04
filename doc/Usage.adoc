@@ -47,11 +47,14 @@ Please note, that not all entries in "VirtualKeyShort" make sense in the field "
 * *SimHub Control* +
   This optional field may take a *unique* string. This string will be sent as an input trigger to SimHub, where it is used to identify this Stream Deck button. See the section <<#input>> below for details about input triggers.
 * *SimHub Property (for state)* +
-  This optional field allows to enter the name of a SimHub property or even a logical expression with a SimHub property. The SimHub property or the result of the logical expression will be used to set the state of the button to either "on" or "off". See the next section for details.
+  This optional field allows to enter the name of a SimHub property or even a logical expression with a SimHub property. The SimHub property or the result of the logical expression will be used to set the state of the button to either "on" or "off". See the section <<#simHubPropertyForState>> for details.
 * *SimHub Property (for title)* +
   This optional field allows to specify a SimHub property, which will be displayed as the "Title" of the button. Be sure to leave the default Stream Deck field "Title" empty. However you can use all available formatting options of the default field "Title", like alignment, size, color etc.
+* *Display Format (for title)* +
+  Another optional field. If set, the SimHub property for the title will be formatted with this format string. If this field is empty, a default format is used. See the section <<#displayFormatForTitle>> for details.
 
-=== Field "SimHub Property"
+[#simHubPropertyForState]
+=== Field "SimHub Property (for state)"
 
 This field allows to bind the button to a SimHub property, which will be used to determine the state of the button.
 
@@ -153,6 +156,63 @@ So the following expressions are all valid:
   `DataCorePlugin.GameData.SpotterCarLeft>0` or just `DataCorePlugin.GameData.SpotterCarLeft`
 
 
+[#displayFormatForTitle]
+=== Field "Display Format (for title)"
+
+If this field is empty, the value of the SimHub property for the title will be displayed with the default formatter of that type. If this is not desired, a more extensive format can be specified here.
+
+The display format has this syntax:
+
+----
+[alignment][:formatString]
+----
+
+If the format is invalid, the default formatter of the type is used as a fallback.
+
+`alignment` is optional. It is a signed integer that indicates the total length of the title and whether it is right-aligned (a positive integer) or left-aligned (a negative integer)
+
+`:formatString` is optional. It has to start with `:` (colon) and it has to be a valid C# format string.
+
+Technically, the above syntax is the inner part of a C# format string. For details see:
+
+* https://learn.microsoft.com/en-us/dotnet/api/system.string.format?view=net-6.0#the-format-item
+* https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-numeric-format-strings
+* https://learn.microsoft.com/en-us/dotnet/standard/base-types/custom-numeric-format-strings
+
+Here are a few examples for the "Display Format" that should already cover a large number of cases. `_` is used in these examples to indicate a space in the generated output:
+
+Only alignment::
+
+* Display format `-3` will display the value left-aligned with a length of 3 digits:
+** Property value `1` is displayed as `1__`
+** Property value `34` is displayed as `34_`
+** Property value `250` is displayed as `250`
+* Display format `3` will display the value right-aligned with a length if 3 digits:
+** Property value `1` is displayed as `__1`
+** Property value `34` is displayed as `_34`
+** Property value `250` is displayed as `250`
+
+Only formatString::
+
+* Display format `:F0` will display the value as a fixed-point value without decimal digits:
+** `34.3333333` will be displayed as `34`
+** `34.55` will be displayed as `35`
+* Display format `:F1` will display the value as a fixed-point value with 1 decimal digit:
+** `34.3333333` will be displayed as `34.3`
+** `34.55` will be displayed as `34.6`
+
+Both::
+
+* Display format `3:F0` will display the value right-aligned with a length of 3 and without decimal digits:
+** `34.3333333` will be displayed as `_34`
+** `3.55` will be displayed as `__4`
+* Display format `4:F1` will display the value right-aligned with a length of 4 and with 1 decimal digit:
+** `3.55` will be displayed as `_3.6`
+** `31.55` will be displayed as `31.6`
+
+All characters are counted for the alignment - including decimal separator and decimal digits.
+
+
 === Examples
 
 * Button to toggle the Ignition in ACC (which is mapped to "Shift + I" by default):
@@ -166,6 +226,12 @@ In this example, the ignition is turned on in the game, so the button is in the 
 image::Example-Engine.png[Engine]
 +
 In this example, the engine is turned off in the game, so the button is in the "off" state (determined via SimHub by the property `dcp.gd.EngineStarted`).
+
+* Button without Hotkey functionality, but to display the brake bias:
++
+image::Example-BrakeBias.png[Brake Bias]
++
+The "generic" property `DataCorePlugin.GameData.BrakeBias` is uses as the title. Although the "typed" property `acc.physics.BrakeBias` would be better than the "generic" property, we cannot use the latter one, because ACC uses car-dependent offset values for the brake bias - SimHub, on the other hand, provides us with the corrected value.
 
 * Another useful button for ACC would be the Hotkey "Alt + L" with the SimHub property `gd.sdb.PitLimiterOn` to toggle the pit limiter.
 
