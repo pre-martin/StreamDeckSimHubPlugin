@@ -17,11 +17,13 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
     private readonly PropertyComparer _propertyComparer;
     private ConditionExpression? _conditionExpression;
     private readonly IPropertyChangedReceiver _titlePropertyChangedReceiver;
+    private string _titleFormat = "${0}";
+    private PropertyChangedArgs? _lastTitlePropertyChangedEvent;
 
     public HotkeyAction(SimHubConnection simHubConnection, PropertyComparer propertyComparer) : base(simHubConnection)
     {
         _propertyComparer = propertyComparer;
-        _titlePropertyChangedReceiver =  new TitlePropertyChanged(SetTitleProperty);
+        _titlePropertyChangedReceiver =  new TitlePropertyChangedReceiver(TitlePropertyChanged);
     }
 
     protected override async Task SetSettings(HotkeyActionSettings ac, bool forceSubscribe)
@@ -40,6 +42,17 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
             RefirePropertyChanged();
         }
 
+        string newTitleFormat;
+        if (string.IsNullOrEmpty(ac.TitleFormat)) newTitleFormat = "{0}";
+        else newTitleFormat = ac.TitleFormat.IndexOf(':') == 0 ? $"{{0{ac.TitleFormat}}}" : $"{{0,{ac.TitleFormat}}}";
+        // Redisplay the title if the format for the title has changed.
+        var recalcTitle = newTitleFormat != _titleFormat;
+        _titleFormat = newTitleFormat;
+        if (recalcTitle)
+        {
+            await RefireTitlePropertyChanged();
+        }
+
         // The field "ac.SimHubProperty" may contain an expression, which is not understood by the base class. So we
         // construct a new instance without expression.
         var acNew = new HotkeyActionSettings()
@@ -50,19 +63,19 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
             Ctrl = ac.Ctrl,
             Alt = ac.Alt,
             Shift = ac.Shift,
-            SimHubPropertyTitle = ac.SimHubPropertyTitle
+            TitleSimHubProperty = ac.TitleSimHubProperty
         };
 
         // Unsubscribe previous SimHub "Title" property, if it was set and is different than the new one.
-        if (!string.IsNullOrEmpty(HotkeySettings.SimHubPropertyTitle) && HotkeySettings.SimHubPropertyTitle != ac.SimHubPropertyTitle)
+        if (!string.IsNullOrEmpty(HotkeySettings.TitleSimHubProperty) && HotkeySettings.TitleSimHubProperty != ac.TitleSimHubProperty)
         {
-            await SimHubConnection.Unsubscribe(HotkeySettings.SimHubPropertyTitle, _titlePropertyChangedReceiver);
+            await SimHubConnection.Unsubscribe(HotkeySettings.TitleSimHubProperty, _titlePropertyChangedReceiver);
         }
         // Subscribe SimHub "Title" property, if it is set and different than the previous one.
-        if (!string.IsNullOrEmpty(ac.SimHubPropertyTitle) && (ac.SimHubPropertyTitle != HotkeySettings.SimHubPropertyTitle ||
+        if (!string.IsNullOrEmpty(ac.TitleSimHubProperty) && (ac.TitleSimHubProperty != HotkeySettings.TitleSimHubProperty ||
                                                               forceSubscribe))
         {
-            await SimHubConnection.Subscribe(ac.SimHubPropertyTitle, _titlePropertyChangedReceiver);
+            await SimHubConnection.Subscribe(ac.TitleSimHubProperty, _titlePropertyChangedReceiver);
         }
 
         await base.SetSettings(acNew, forceSubscribe);
@@ -79,23 +92,51 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
         return isActive ? 1 : 0;
     }
 
-    private async Task SetTitleProperty(IComparable? property)
+    private async Task TitlePropertyChanged(PropertyChangedArgs args)
     {
-        await SetTitleAsync(property == null ? "" : property.ToString());
+        _lastTitlePropertyChangedEvent = args;
+        await SetTitleProperty(args.PropertyValue);
     }
 
-    private class TitlePropertyChanged : IPropertyChangedReceiver
+    private async Task RefireTitlePropertyChanged()
     {
-        private readonly Func<IComparable?, Task> _action;
+        if (_lastTitlePropertyChangedEvent != null)
+        {
+            await TitlePropertyChanged(_lastTitlePropertyChangedEvent);
+        }
+    }
 
-        public TitlePropertyChanged(Func<IComparable?, Task> action)
+    private async Task SetTitleProperty(IComparable? property)
+    {
+        if (property == null)
+        {
+            await SetTitleAsync(string.Empty);
+        }
+        else
+        {
+            try
+            {
+                await SetTitleAsync(string.Format(_titleFormat, property));
+            }
+            catch (FormatException)
+            {
+                await SetTitleAsync(property.ToString());
+            }
+        }
+    }
+
+    private class TitlePropertyChangedReceiver : IPropertyChangedReceiver
+    {
+        private readonly Func<PropertyChangedArgs, Task> _action;
+
+        public TitlePropertyChangedReceiver(Func<PropertyChangedArgs, Task> action)
         {
             _action = action;
         }
 
         public async void PropertyChanged(PropertyChangedArgs args)
         {
-            await _action(args.PropertyValue);
+            await _action(args);
         }
     }
 }
