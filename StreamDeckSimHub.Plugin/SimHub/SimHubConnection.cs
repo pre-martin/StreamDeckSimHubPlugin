@@ -221,12 +221,15 @@ public class SimHubConnection
         HashSet<IPropertyChangedReceiver>? receivers;
         try
         {
-            if (!_subscriptions.TryGetValue(name, out receivers))
+            if (!_subscriptions.TryGetValue(name, out var localReceivers))
             {
                 // This should not happen.
                 Logger.Warn($"Received property value from SimHub, but we have no subscribers: {name}");
                 return;
             }
+
+            // Clone the list of receivers, as we are leaving the semaphore for dispatching.
+            receivers = new HashSet<IPropertyChangedReceiver>(localReceivers);
         }
         finally
         {
@@ -234,6 +237,7 @@ public class SimHubConnection
         }
 
         var args = new PropertyChangedArgs { PropertyName = name, PropertyType = type, PropertyValue = value };
+        Logger.Debug($"Dispatching PropertyChanged to {receivers.Count} receivers");
         foreach (var propertyChangedReceiver in receivers)
         {
             await propertyChangedReceiver.PropertyChanged(args);
