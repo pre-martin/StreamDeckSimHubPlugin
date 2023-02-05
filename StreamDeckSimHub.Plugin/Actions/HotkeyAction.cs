@@ -39,7 +39,7 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
         _conditionExpression = newCondExpr;
         if (recalc)
         {
-            RefirePropertyChanged();
+            await RefirePropertyChanged();
         }
 
         string newTitleFormat;
@@ -144,7 +144,7 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
             _action = action;
         }
 
-        public async void PropertyChanged(PropertyChangedArgs args)
+        public async Task PropertyChanged(PropertyChangedArgs args)
         {
             await _action(args);
         }

@@ -50,7 +50,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
     /// <summary>
     /// Called when the value of a SimHub property has changed.
     /// </summary>
-    public async void PropertyChanged(PropertyChangedArgs args)
+    public async Task PropertyChanged(PropertyChangedArgs args)
     {
         Logger.LogDebug("Property {PropertyName} changed to '{PropertyValue}'", args.PropertyName, args.PropertyValue);
         _lastPropertyChangedEvent = args;
@@ -61,11 +61,11 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
     /// <summary>
     /// Refires the last received PropertyChanged event, but only, if we already have received an event so far.
     /// </summary>
-    protected void RefirePropertyChanged()
+    protected async Task RefirePropertyChanged()
     {
         if (_lastPropertyChangedEvent != null)
         {
-            PropertyChanged(_lastPropertyChangedEvent);
+            await PropertyChanged(_lastPropertyChangedEvent);
         }
     }
 

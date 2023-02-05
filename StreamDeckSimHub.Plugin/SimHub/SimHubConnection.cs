@@ -30,7 +30,7 @@ public interface IPropertyChangedReceiver
     /// <remarks>
     /// Implementors should return fast. If more work has to be done, a Task should be started internally.
     /// </remarks>
-    void PropertyChanged(PropertyChangedArgs args);
+    Task PropertyChanged(PropertyChangedArgs args);
 }
 
 /// <summary>
@@ -236,7 +236,7 @@ public class SimHubConnection
         var args = new PropertyChangedArgs { PropertyName = name, PropertyType = type, PropertyValue = value };
         foreach (var propertyChangedReceiver in receivers)
         {
-            propertyChangedReceiver.PropertyChanged(args);
+            await propertyChangedReceiver.PropertyChanged(args);
         }
     }
 
