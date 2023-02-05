@@ -41,7 +41,8 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
 
     protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
     {
-        await SimHubConnection.Unsubscribe(HotkeySettings.SimHubProperty, this);
+        Logger.LogInformation("OnWillDisappear: {settings}", HotkeySettings);
+        await Unsubscribe();
 
         await base.OnWillDisappear(args);
     }
@@ -105,6 +106,10 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
         await base.OnKeyUp(args);
     }
 
+    /// <summary>
+    /// Configures this action with the given settings. This method is also responsible to subscribe the "SimHubProperty (for state)"
+    /// and to unsubscribe a previously used SimHub property from the SimHubConnection.
+    /// </summary>
     protected virtual async Task SetSettings(TSettings settings, bool forceSubscribe)
     {
         // Unsubscribe previous SimHub property, if it was set and is different than the new one.
@@ -143,5 +148,16 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
         }
 
         this.HotkeySettings = settings;
+    }
+
+    /// <summary>
+    /// This method has to unsubscribe all properties, which have been subscribed by this instance.
+    /// </summary>
+    protected virtual async Task Unsubscribe()
+    {
+        if (!string.IsNullOrEmpty(HotkeySettings.SimHubProperty))
+        {
+            await SimHubConnection.Unsubscribe(HotkeySettings.SimHubProperty, this);
+        }
     }
 }

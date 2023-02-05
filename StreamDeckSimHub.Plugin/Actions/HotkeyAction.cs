@@ -81,6 +81,16 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
         await base.SetSettings(acNew, forceSubscribe);
     }
 
+    protected override async Task Unsubscribe()
+    {
+        if (!string.IsNullOrEmpty(HotkeySettings.TitleSimHubProperty))
+        {
+            await SimHubConnection.Unsubscribe(HotkeySettings.TitleSimHubProperty, _titlePropertyChangedReceiver);
+        }
+
+        await base.Unsubscribe();
+    }
+
     protected override int ValueToState(PropertyType propertyType, IComparable? propertyValue)
     {
         if (_conditionExpression == null)
