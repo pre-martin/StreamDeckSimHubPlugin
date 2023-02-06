@@ -14,9 +14,21 @@ namespace StreamDeckSimHub.Plugin.SimHub;
 /// </summary>
 public class PropertyChangedArgs
 {
-    public string PropertyName { get; init; } = string.Empty;
-    public PropertyType PropertyType { get; init; }
-    public IComparable? PropertyValue { get; init; }
+    public PropertyChangedArgs(string propertyName, PropertyType propertyType, IComparable? propertyValue = null)
+    {
+        PropertyName = propertyName;
+        PropertyType = propertyType;
+        PropertyValue = propertyValue;
+    }
+
+    public string PropertyName { get; }
+    public PropertyType PropertyType { get; }
+    public IComparable? PropertyValue { get; }
+
+    public PropertyChangedArgs Clone()
+    {
+        return new PropertyChangedArgs(PropertyName, PropertyType, PropertyValue);
+    }
 }
 
 /// <summary>
@@ -34,6 +46,22 @@ public interface IPropertyChangedReceiver
 }
 
 /// <summary>
+/// Holds information about the current state of a property and its subscribed "changed" receivers.
+/// </summary>
+public class PropertyInformation
+{
+    public PropertyChangedArgs? CurrentPropertyChangedValue { get; set; }
+    public HashSet<IPropertyChangedReceiver> PropertyChangedReceivers { get; } = new();
+
+    public static PropertyInformation WithReceiver(IPropertyChangedReceiver receiver)
+    {
+        var propInfo = new PropertyInformation();
+        propInfo.PropertyChangedReceivers.Add(receiver);
+        return propInfo;
+    }
+}
+
+/// <summary>
 /// Manages the TCP connection to SimHub. The class automatically manages reconnects.
 /// </summary>
 /// <remarks>The plugin "SimHubPropertyServer" is required to be installed in SimHub.</remarks>
@@ -44,8 +72,8 @@ public class SimHubConnection
     private TcpClient? _tcpClient;
     private long _connected;
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
-    // Mapping from SimHub property name to subscribers.
-    private readonly Dictionary<string, HashSet<IPropertyChangedReceiver>> _subscriptions = new();
+    // Mapping from SimHub property name to PropertyInformation.
+    private readonly Dictionary<string, PropertyInformation> _subscriptions = new();
 
     public SimHubConnection(PropertyParser propertyParser)
     {
@@ -111,8 +139,9 @@ public class SimHubConnection
 
         try
         {
-            if (_subscriptions.TryGetValue(propertyName, out var receivers))
+            if (_subscriptions.TryGetValue(propertyName, out var propInfo))
             {
+                var receivers = propInfo.PropertyChangedReceivers;
                 // We already have a subscription for this property. So just add the new action to the existing set.
                 if (receivers.Contains(propertyChangedReceiver))
                 {
@@ -122,13 +151,17 @@ public class SimHubConnection
                 {
                     receivers.Add(propertyChangedReceiver);
                     Logger.Info($"Adding action to existing subscription list for {propertyName}. Has now {receivers.Count} subscribers");
+                    if (propInfo.CurrentPropertyChangedValue != null)
+                    {
+                        await propertyChangedReceiver.PropertyChanged(propInfo.CurrentPropertyChangedValue);
+                    }
                 }
 
                 return;
             }
 
             // We have no subscription for this property: Add it to the list.
-            _subscriptions.Add(propertyName, new HashSet<IPropertyChangedReceiver> { propertyChangedReceiver });
+            _subscriptions.Add(propertyName, PropertyInformation.WithReceiver(propertyChangedReceiver));
         }
         finally
         {
@@ -151,12 +184,13 @@ public class SimHubConnection
 
         try
         {
-            if (!_subscriptions.TryGetValue(propertyName, out var receivers))
+            if (!_subscriptions.TryGetValue(propertyName, out var propInfo))
             {
                 Logger.Info($"Not subscribed to {propertyName}, ignoring unsubscribe request");
                 return;
             }
 
+            var receivers = propInfo.PropertyChangedReceivers;
             var wasRemoved = receivers.Remove(propertyChangedReceiver);
             if (!wasRemoved)
             {
@@ -218,25 +252,29 @@ public class SimHubConnection
         var value = parserResult.Value.value;
 
         await _semaphore.WaitAsync();
+        PropertyChangedArgs args;
         HashSet<IPropertyChangedReceiver>? receivers;
         try
         {
-            if (!_subscriptions.TryGetValue(name, out var localReceivers))
+            if (!_subscriptions.TryGetValue(name, out var propInfo))
             {
-                // This should not happen.
+                // This could happen, if SimHub was running, we then unsubscribe (change pages or profiles) while SimHub is not running.
                 Logger.Warn($"Received property value from SimHub, but we have no subscribers: {name}");
                 return;
             }
 
-            // Clone the list of receivers, as we are leaving the semaphore for dispatching.
-            receivers = new HashSet<IPropertyChangedReceiver>(localReceivers);
+            // Save current property data for later usage.
+            propInfo.CurrentPropertyChangedValue = new PropertyChangedArgs(name, type, value);
+
+            // References for usage outside of semaphore. Clone the list of receivers to avoid concurrent modification.
+            args = propInfo.CurrentPropertyChangedValue.Clone();
+            receivers = new HashSet<IPropertyChangedReceiver>(propInfo.PropertyChangedReceivers);
         }
         finally
         {
             _semaphore.Release();
         }
 
-        var args = new PropertyChangedArgs { PropertyName = name, PropertyType = type, PropertyValue = value };
         Logger.Debug($"Dispatching PropertyChanged to {receivers.Count} receivers");
         foreach (var propertyChangedReceiver in receivers)
         {
