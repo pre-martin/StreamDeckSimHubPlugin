@@ -55,9 +55,6 @@
       <None Update="pi\hotkey4.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="pi\js\utils.js">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
       <None Update="images\actions\hotkey.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>

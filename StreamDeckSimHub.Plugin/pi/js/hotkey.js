@@ -1,7 +1,8 @@
 
-function connectElgatoStreamDeckSocket(inPort, inPropertyInspectorUUID, inRegisterEvent, inInfo, inActionInfo) {
-    connect(inPort, inPropertyInspectorUUID, inRegisterEvent, inInfo, inActionInfo)
-}
+
+$PI.onConnected(jsn => {
+    loadSettings(jsn.actionInfo.payload.settings);
+});
 
 function loadSettings(settings) {
     for (const id in settings) {
@@ -13,12 +14,12 @@ function loadSettings(settings) {
                 element.value = settings[id];
             }
         } catch (err) {
-            log('loadSettings failed for id ' + id + ': ' + err);
+            $PI.logMessage('loadSettings failed for id ' + id + ': ' + err);
         }
     }
 }
 
-const saveSettingsDelayed = debounce(() => saveSettings(), 500);
+const saveSettingsDelayed = Utils.debounce(500, () => saveSettings());
 
 function saveSettings() {
     const settingIds = ['hotkey', 'ctrl', 'alt', 'shift', 'simhubControl', 'simhubProperty', 'titleSimhubProperty', 'titleFormat'];
@@ -33,13 +34,5 @@ function saveSettings() {
         }
     }
 
-    if (websocket) {
-        const json = {
-            'event': 'setSettings',
-            'context': uuid,
-            'payload': payload
-        };
-        log('setSettings with payload:', payload);
-        websocket.send(JSON.stringify(json));
-    }
+    $PI.setSettings(payload);
 }
