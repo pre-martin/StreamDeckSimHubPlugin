@@ -2,6 +2,15 @@
 
 $PI.onConnected(jsn => {
     loadSettings(jsn.actionInfo.payload.settings);
+    $PI.onSendToPropertyInspector(jsn.actionInfo.action, jsn => {
+        if (jsn.payload?.message === 'shakeItBassStructure') {
+            console.log('Structure');
+            console.log(jsn.payload.profiles);
+        } else {
+            console.log('Received unknown message from plugin', jsn);
+            $PI.logMessage('Received unknown message from plugin');
+        }
+    });
 });
 
 function loadSettings(settings) {
@@ -35,4 +44,8 @@ function saveSettings() {
     }
 
     $PI.setSettings(payload);
+}
+
+function fetchShakeItBassStructure() {
+    $PI.sendToPlugin({ Event: 'fetchShakeItBassStructure' });
 }

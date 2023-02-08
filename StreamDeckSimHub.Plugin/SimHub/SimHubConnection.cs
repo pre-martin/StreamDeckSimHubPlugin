@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2022 Martin Renner
+﻿// Copyright (C) 2023 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Diagnostics;
@@ -62,16 +62,20 @@ public class PropertyInformation
 }
 
 /// <summary>
-/// Manages the TCP connection to SimHub. The class automatically manages reconnects.
+/// Manages the TCP connection to SimHub Property Server. The class automatically manages reconnects.
 /// </summary>
-/// <remarks>The plugin "SimHubPropertyServer" is required to be installed in SimHub.</remarks>
+/// <remarks>
+/// <p>The plugin "SimHubPropertyServer" is required to be installed in SimHub.</p>
+/// <p>This connection does not support multiplexing. Thus it is only used to receive "Property Changed" messages from the
+/// SimHub Property Server. Other receiving communication has to be handled in a different connection.</p>
+/// </remarks>
 public class SimHubConnection
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private readonly PropertyParser _propertyParser;
     private TcpClient? _tcpClient;
     private long _connected;
-    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+    private readonly SemaphoreSlim _semaphore = new(1);
     // Mapping from SimHub property name to PropertyInformation.
     private readonly Dictionary<string, PropertyInformation> _subscriptions = new();
 
@@ -98,15 +102,24 @@ public class SimHubConnection
 
         while (!Connected)
         {
-            _tcpClient = new TcpClient { ReceiveTimeout = (int)TimeSpan.FromSeconds(2).TotalMilliseconds };
+            _tcpClient = new TcpClient();
             try
             {
-                await _tcpClient.ConnectAsync("localhost", 18082).WaitAsync(TimeSpan.FromSeconds(4));
+                await _tcpClient.ConnectAsync("127.0.0.1", 18082).WaitAsync(TimeSpan.FromSeconds(4));
+            }
+            catch (Exception e)
+            {
+                Logger.Trace($"Connection could not be opened: {e.Message}");
+                await Task.Delay(TimeSpan.FromSeconds(4));
+                continue;
+            }
+
+            try
+            {
                 var line = await new LineReader(_tcpClient.GetStream()).ReadLineAsync();
                 if (line != null && line.StartsWith("SimHub Property Server"))
                 {
                     Logger.Info($"Established connection to {Sanitize(line)}");
-                    _tcpClient.ReceiveTimeout = 0;
                     Connected = true;
                     foreach (var propertyName in _subscriptions.Keys)
                     {
@@ -116,19 +129,14 @@ public class SimHubConnection
                     await ReadFromServer();
                 }
             }
-            catch (SocketException se)
+            catch (Exception e)
             {
-                Logger.Info($"Connection failed: {se.Message}");
-            }
-            catch (TimeoutException)
-            {
-                // Ignore exception and try again to connect.
+                Logger.Info($"Connection failed: {e.Message}");
             }
 
             if (!Connected)
             {
-                Logger.Trace("Connection could not be opened. Waiting and trying again...");
-                await Task.Delay(TimeSpan.FromSeconds(1));
+                await Task.Delay(TimeSpan.FromSeconds(4));
             }
         }
     }
@@ -220,10 +228,7 @@ public class SimHubConnection
 
     internal async Task SendTriggerInput(string inputName)
     {
-        if (Connected)
-        {
-            await WriteToServer($"trigger-input {inputName}");
-        }
+        await WriteToServer($"trigger-input {inputName}");
     }
 
     private async Task SendSubscribe(string propertyName)
