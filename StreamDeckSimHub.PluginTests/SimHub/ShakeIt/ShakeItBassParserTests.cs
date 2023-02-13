@@ -38,9 +38,9 @@ public class ShakeItBassParserTests
         Assert.That(profiles.Count, Is.EqualTo(2));
         Assert.That(profiles[0].Id, Is.EqualTo("id0"));
         Assert.That(profiles[0].Name, Is.EqualTo("My first Profile"));
-        Assert.That(profiles[0].EffectsContainer.Count, Is.EqualTo(1));
+        Assert.That(profiles[0].EffectsContainers.Count, Is.EqualTo(1));
 
-        var container0 = profiles[0].EffectsContainer[0] as GroupContainer;
+        var container0 = profiles[0].EffectsContainers[0] as GroupContainer;
         Assert.That(container0, Is.Not.Null);
         Assert.That(container0.Id, Is.EqualTo("id0-0"));
         Assert.That(container0.Name, Is.EqualTo("Container 0"));
@@ -82,10 +82,10 @@ public class ShakeItBassParserTests
 
         Assert.That(profiles[1].Id, Is.EqualTo("id1"));
         Assert.That(profiles[1].Name, Is.EqualTo("My second Profile"));
-        Assert.That(profiles[1].EffectsContainer.Count, Is.EqualTo(1));
+        Assert.That(profiles[1].EffectsContainers.Count, Is.EqualTo(1));
 
-        Assert.That(profiles[1].EffectsContainer[0].Id, Is.EqualTo("id1-0"));
-        Assert.That(profiles[1].EffectsContainer[0].Name, Is.EqualTo("Gear Shift"));
-        Assert.That(profiles[1].EffectsContainer[0] is GroupContainer, Is.False);
+        Assert.That(profiles[1].EffectsContainers[0].Id, Is.EqualTo("id1-0"));
+        Assert.That(profiles[1].EffectsContainers[0].Name, Is.EqualTo("Gear Shift"));
+        Assert.That(profiles[1].EffectsContainers[0] is GroupContainer, Is.False);
     }
 }

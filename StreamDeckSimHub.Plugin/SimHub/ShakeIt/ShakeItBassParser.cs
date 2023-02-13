@@ -38,16 +38,16 @@ public class ShakeItBassParser
             }
             case 0:
             {
-                // Depth 0 is always a profile, which consists of "depth", "guid" and "name"
-                var lineItems = trimmedLine.Split(new[] { ' ' }, 3);
-                if (lineItems.Length < 3)
+                // Depth 0 is always a profile, which consists of "depth", "guid", "type" and "name"
+                var lineItems = trimmedLine.Split(new[] { ' ' }, 4);
+                if (lineItems.Length < 4)
                 {
                     Logger.Warn($"Received invalid 'Profile' line, using placeholder profile: {Sanitize(line)}");
                     Profiles.Add(new Profile(Guid.NewGuid().ToString(), "Placeholder"));
                 }
                 else
                 {
-                    Profiles.Add(new Profile(lineItems[1], lineItems[2]));
+                    Profiles.Add(new Profile(lineItems[1], lineItems[3]));
                 }
 
                 _effectsStack.Clear();
@@ -72,7 +72,7 @@ public class ShakeItBassParser
                 var element = EffectOrGroup(lineItems[1], lineItems[2], lineItems[3]);
                 if (depth == 1)
                 {
-                    Profiles[^1].EffectsContainer.Add(element);
+                    Profiles[^1].EffectsContainers.Add(element);
                     _effectsStack.Push((depth, element));
                 }
                 else

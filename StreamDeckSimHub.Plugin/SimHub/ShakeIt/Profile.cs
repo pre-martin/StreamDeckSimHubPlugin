@@ -9,14 +9,16 @@ public class Profile
     {
         Id = id;
         Name = name;
+        Type = "Profile";
     }
 
     public string Id { get; }
     public string Name { get; }
-    public IList<EffectsContainerBase> EffectsContainer { get; } = new List<EffectsContainerBase>();
+    public string Type { get; }
+    public IList<EffectsContainerBase> EffectsContainers { get; } = new List<EffectsContainerBase>();
 
     public override string ToString()
     {
-        return $"Profile Id='{Id}' Name='{Name}' ({EffectsContainer.Count} children)";
+        return $"Profile Id='{Id}' Name='{Name}' ({EffectsContainers.Count} children)";
     }
 }

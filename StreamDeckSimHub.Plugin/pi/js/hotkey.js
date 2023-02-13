@@ -2,10 +2,10 @@
 
 $PI.onConnected(jsn => {
     loadSettings(jsn.actionInfo.payload.settings);
+
     $PI.onSendToPropertyInspector(jsn.actionInfo.action, jsn => {
         if (jsn.payload?.message === 'shakeItBassStructure') {
-            console.log('Structure');
-            console.log(jsn.payload.profiles);
+            showShakeItBassStructure(jsn.payload.profiles);
         } else {
             console.log('Received unknown message from plugin', jsn);
             $PI.logMessage('Received unknown message from plugin');
@@ -48,4 +48,11 @@ function saveSettings() {
 
 function fetchShakeItBassStructure() {
     $PI.sendToPlugin({ Event: 'fetchShakeItBassStructure' });
+}
+
+function showShakeItBassStructure(profiles) {
+    console.log('Showing ShakeIt Bass structure');
+    console.log(profiles);
+    window.sib = window.open('components/sib.html', 'SIB');
+    window.sib.profiles = profiles;
 }

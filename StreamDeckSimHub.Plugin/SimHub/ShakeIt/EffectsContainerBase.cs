@@ -9,10 +9,12 @@ public class EffectsContainerBase
     {
         Id = id;
         Name = name;
+        Type = "EffectsContainerBase";
     }
 
     public string Id { get; }
     public string Name { get; }
+    public string Type { get; }
 
     public override string ToString()
     {
