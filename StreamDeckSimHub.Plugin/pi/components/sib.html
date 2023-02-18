@@ -9,20 +9,20 @@
 <!-- Test with:
      "C:\Program Files (x86)\Google\Chrome\Application\chrome" --allow-file-access-from-files --allow-file-access --allow-cross-origin-auth-prompt
 -->
-<body>
+<body style="overflow-y: scroll">
 <div id="root"></div>
 
 <!--
 <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@mui/material@5.11.8/umd/material-ui.production.min.js" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/babel-standalone@6.26.0/babel.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.20.15/babel.min.js" crossorigin="anonymous"></script>
 -->
 <script src="../react/react.production.min.js"></script>
 <script src="../react/react-dom.production.min.js"></script>
 <script src="../react/material-ui.production.min.js"></script>
 <script src="../react/babel.min.js"></script>
 
-<script src="sib.jsx" type="text/babel"></script>
+<script src="sib.jsx" type="text/babel" data-presets="react" data-type="module"></script>
 </body>
 </html>

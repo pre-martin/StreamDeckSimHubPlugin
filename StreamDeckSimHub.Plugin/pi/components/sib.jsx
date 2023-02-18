@@ -11,6 +11,8 @@ const {
     ListItemButton,
     ListItemIcon,
     ListItemText,
+    Menu,
+    MenuItem,
     SvgIcon,
     ThemeProvider,
     Tooltip
@@ -69,34 +71,83 @@ const ContentCopy = () => {
     );
 }
 
-const Item = ({depth, item}) => {
+/**
+ * SVG icon "Add Circle Outline"
+ */
+const AddCircleOutline = () => {
+    // see https://unpkg.com/browse/@mui/icons-material@5.8.4/AddCircleOutline.js
     return (
-        <React.Fragment>
-            <ListItemText primary={item.name} sx={{pl: depth * 2}}/>
-            {item.type === 'EffectsContainerBase' ?
-                <Tooltip title='Copy guid to clipboard'>
-                    <IconButton onClick={(e) => {
-                        e.preventDefault();
-                    }}>
-                        <ContentCopy/>
+        <SvgIcon>
+            <path
+                d='M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z'/>
+        </SvgIcon>
+    );
+}
+
+/**
+ * Renders the container for a single item. If the item is of type "EffectsContainerBase", an action button will be rendered.
+ * The content has to be supplied as "children" elements.
+ */
+const Item = (props) => {
+    const {item} = props;
+    const sourceId = React.useContext(SourceIdContext);
+    const [menuAnchor, setMenuAnchor] = React.useState(null);
+    const menuOpen = Boolean(menuAnchor);
+
+    const showMenu = (event) => {
+        setMenuAnchor(event.currentTarget);
+    }
+
+    const closeMenu = () => {
+        setMenuAnchor(null);
+    }
+
+    const selectedMenuEntry = (property) => {
+        closeMenu();
+        window.opener.postMessage({
+            message: 'sibSelected',
+            sourceId: sourceId,
+            itemId: item.id,
+            itemName: item.name,
+            property: property
+        }, '*');
+        window.close();
+    }
+
+    return (
+        <ListItem disablePadding={true} secondaryAction={
+            item.type === 'EffectsContainerBase' ?
+                <React.Fragment>
+                    <IconButton onClick={showMenu}>
+                        <AddCircleOutline/>
                     </IconButton>
-                </Tooltip> : ''}
-        </React.Fragment>
+                    <Menu anchorEl={menuAnchor} open={menuOpen} onClose={closeMenu}>
+                        <MenuItem onClick={() => selectedMenuEntry('Gain')}>Gain</MenuItem>
+                        <MenuItem onClick={() => selectedMenuEntry('IsMuted')}>IsMuted</MenuItem>
+                    </Menu>
+                </React.Fragment>
+                : ''}
+        >
+            {props.children}
+        </ListItem>
     );
 }
 
 /**
  * Leaf item in the list, e.g. an item without any children.
- * As there is no "expand" icon at the end (see "TreeItem"), we render a placeholder, so that everything aligns well.
+ * As there is no "expand" icon (see "TreeItem"), we render a placeholder, so that everything aligns well.
  */
 const LeafItem = ({depth, item}) => {
     return (
-        <ListItemButton>
-            <Item depth={depth} item={item}/>
-            <Box sx={{width: '1em', fontSize: '1.178rem'}}/>
-        </ListItemButton>
-    )
+        <Item item={item}>
+            <ListItemButton sx={{pl: depth * 2}}>
+                <Box sx={{width: '1em', fontSize: '1.178rem'}}/>
+                <ListItemText primary={item.name}/>
+            </ListItemButton>
+        </Item>
+    );
 }
+
 
 /**
  * Tree item in the list, e.g. an item with children. The children will be rendered as collapsible nested list.
@@ -110,10 +161,12 @@ const TreeItem = ({depth, item}) => {
 
     return (
         <React.Fragment>
-            <ListItemButton onClick={handleClick}>
-                <Item depth={depth} item={item}/>
-                {open ? <ExpandLess/> : <ExpandMore/>}
-            </ListItemButton>
+            <Item item={item}>
+                <ListItemButton onClick={handleClick} sx={{pl: depth * 2}}>
+                    {open ? <ExpandLess/> : <ExpandMore/>}
+                    <ListItemText primary={item.name}/>
+                </ListItemButton>
+            </Item>
             <Collapse in={open} timeout='auto' unmountOnExit>
                 <List component='div'>
                     {item.effectsContainers.map((item, key) => (
@@ -135,38 +188,81 @@ const ListItemFactory = ({depth, item}) => {
 }
 
 const testData = [
-    {name: 'Profile 1', effectsContainers: [{name: 'RPM', type: 'EffectsContainerBase'}, {name: 'v2'}]},
-    {name: 'Profile 2', effectsContainers: [{name: 'Long name for submenu'}, {name: 'Another name'}, {name: 'Gear effects'}]},
-    {name: 'Profile 3', effectsContainers: [{name: 'Street effects'}, {name: 'Another name'}, {name: 'Gear effects'}]},
     {
-        id: '1',
-        name: 'Profile 4',
-        effectsContainers: [{
-            id: '2',
-            name: 'Group 1',
-            type: 'EffectsContainerBase',
-            effectsContainers: [
-                {id: '3', name: 'Deep 1', type: 'EffectsContainerBase'},
-                {id: '4', name: 'Deep 2', type: 'EffectsContainerBase'}
-            ]
-        }]
+        id: 'a', name: 'Profile 1', effectsContainers: [
+            {id: '11', name: 'RPM', type: 'EffectsContainerBase'},
+            {id: '22', name: 'v2', type: 'EffectsContainerBase'}
+        ]
+    },
+    {
+        id: 'b', name: 'Profile 2', effectsContainers: [
+            {id: '33', name: 'Long name for submenu', type: 'EffectsContainerBase'},
+            {id: '44', name: 'Another name', type: 'EffectsContainerBase'},
+            {id: '55', name: 'Gear effects', type: 'EffectsContainerBase'}
+        ]
+    },
+    {
+        id: 'c', name: 'Profile 3', effectsContainers: [
+            {id: '101', name: 'Street effects', type: 'EffectsContainerBase'},
+            {id: '102', name: 'Another name', type: 'EffectsContainerBase'},
+            {id: '103', name: 'Gear effects', type: 'EffectsContainerBase'}
+        ]
+    },
+    {
+        id: 'd', name: 'Profile 4', effectsContainers: [
+            {
+                id: '2', name: 'Group 1', type: 'EffectsContainerBase', effectsContainers: [
+                    {id: '3', name: 'Deep 1', type: 'EffectsContainerBase'},
+                    {id: '4', name: 'Deep 2', type: 'EffectsContainerBase'},
+                    {
+                        id: '5', name: 'Deep nested', type: 'EffectsContainerBase', effectsContainers: [
+                            {id: '6', name: 'This is very very deep', type: 'EffectsContainerBase'}
+                        ]
+                    }
+                ]
+            }]
     }
 ];
 
+const SourceIdContext = React.createContext('');
+
+const ShakeItBassProfiles = ({profiles}) => {
+    return (
+        <SourceIdContext.Provider value={sourceId}>
+            <List>
+                {profiles.map((profile, key) => <ListItemFactory key={key} depth={0} item={profile}/>)}
+            </List>
+        </SourceIdContext.Provider>
+    );
+}
+
+const NoProfiles = () => {
+    return (
+        <Box sx={{p: 4}}>
+            <h1>No profiles</h1>
+
+            <p>No profiles found in SimHub or connection to SimHub could not be established.</p>
+        </Box>
+    );
+}
+
 const App = (props) => {
     const [profiles, setProfiles] = React.useState(props.profiles);
+    const [sourceId, setSourceId] = React.useState(props.sourceId);
 
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline/>
-            <List>
-                {profiles.map((profile, key) => <ListItemFactory key={key} depth={0} item={profile}/>)}
-            </List>
+            {!profiles || profiles.length === 0 ? <NoProfiles/> :
+                <SourceIdContext.Provider value={sourceId}>
+                    <ShakeItBassProfiles profiles={profiles}/>
+                </SourceIdContext.Provider>}
         </ThemeProvider>
     );
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-    <App profiles={window.profiles ? window.profiles : testData}/>
+    <App profiles={window.profiles ? window.profiles : testData}
+         sourceId={window.sourceId ? window.sourceId : 'testSourceId'}/>
 );

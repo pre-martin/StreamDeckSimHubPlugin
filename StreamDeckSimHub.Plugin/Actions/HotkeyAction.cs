@@ -9,6 +9,14 @@ using StreamDeckSimHub.Plugin.SimHub;
 namespace StreamDeckSimHub.Plugin.Actions;
 
 /// <summary>
+/// Arguments sent from the Property Inspector for the event "fetchShakeItBassStructure".
+/// </summary>
+public class FetchShakeItBassStructureArgs
+{
+    public string SourceId { get; set; } = string.Empty;
+}
+
+/// <summary>
 /// This action sends a key stroke to the active window and it can update its state from a SimHub property.
 /// This action supports two states: "0" and "1".
 /// </summary>
@@ -36,10 +44,10 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
     /// from SimHub and sends the result through the event "shakeItBassStructure" back to the Property Inspector.
     /// </summary>
     [PropertyInspectorMethod("fetchShakeItBassStructure")]
-    public async Task FetchShakeItBassStructure()
+    public async Task FetchShakeItBassStructure(FetchShakeItBassStructureArgs args)
     {
         var profiles = await _shakeItStructureFetcher.FetchStructure();
-        await SendToPropertyInspectorAsync(new { message = "shakeItBassStructure", profiles });
+        await SendToPropertyInspectorAsync(new { message = "shakeItBassStructure", profiles, args.SourceId });
     }
 
     protected override async Task SetSettings(HotkeyActionSettings ac, bool forceSubscribe)

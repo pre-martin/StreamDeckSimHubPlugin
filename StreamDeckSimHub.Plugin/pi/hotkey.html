@@ -42,7 +42,7 @@
     </div>
     <div class="sdpi-item alignTop">
         <div class="sdpi-item-label empty"></div>
-        <button class="sdpi-item-value max20" onclick="fetchShakeItBassStructure()">L</button>
+        <button class="sdpi-item-value max20" onclick="fetchShakeItBassStructure('simhubProperty')" title="Open ShakeIt Bass selector">SIB</button>
     </div>
 
     <div class="sdpi-heading">Title</div>
@@ -50,6 +50,10 @@
     <div class="sdpi-item">
         <div class="sdpi-item-label">SimHub Property</div>
         <input class="sdpi-item-value" id="titleSimhubProperty" value="" placeholder="Enter property name" oninput="saveSettingsDelayed()">
+    </div>
+    <div class="sdpi-item alignTop">
+        <div class="sdpi-item-label empty"></div>
+        <button class="sdpi-item-value max20" onclick="fetchShakeItBassStructure('titleSimhubProperty')" title="Open ShakeIt Bass selector">SIB</button>
     </div>
     <div class="sdpi-item">
         <div class="sdpi-item-label">Display Format</div>
