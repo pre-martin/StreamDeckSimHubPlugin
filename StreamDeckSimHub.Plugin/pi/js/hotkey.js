@@ -36,12 +36,20 @@ function loadSettings(settings) {
             $PI.logMessage('loadSettings failed for id ' + id + ': ' + err);
         }
     }
+
+    resolvePropertyNameFromCache(document.getElementById('simhubProperty'));
+    resolvePropertyNameFromCache(document.getElementById('titleSimhubProperty'));
 }
 
 const saveSettingsDelayed = Utils.debounce(500, () => saveSettings());
 
 function saveSettings() {
-    const settingIds = ['hotkey', 'ctrl', 'alt', 'shift', 'simhubControl', 'simhubProperty', 'titleSimhubProperty', 'titleFormat'];
+    const settingIds = [
+        'hotkey', 'ctrl', 'alt', 'shift',
+        'simhubControl',
+        'simhubProperty', 'simhubPropertyClearNameCache',
+        'titleSimhubProperty', 'titleSimhubPropertyClearNameCache', 'titleFormat'
+    ];
 
     let payload = {};
     for (const id of settingIds) {
@@ -54,6 +62,43 @@ function saveSettings() {
     }
 
     $PI.setSettings(payload);
+}
+
+/**
+ * Should be called, when a field value changes, which could contain a "ShakeIt" Guid.
+ */
+const propertyFieldChanged = (source) => {
+    resolvePropertyNameFromCache(source);
+    saveSettingsDelayed();
+}
+
+/**
+ * This function assumes, that "source" is an input field with correlating "ClearName" and "ClearNameCache" elements.
+ *
+ * If the cache contains a hint from "cryptic property name -> clear name", and the input field contains the "cryptic property name",
+ * the "clear name" will be inserted into the "ClearName" element.
+ *
+ * @param source The input field with the SimHub property.
+ */
+const resolvePropertyNameFromCache = (source) => {
+    if (!source) return;
+    const sourceId = source.id;
+    const clearNameElement = document.getElementById(sourceId + 'ClearName');
+    const clearNameCacheElement = document.getElementById(sourceId + 'ClearNameCache');
+    if (!clearNameElement || !clearNameCacheElement) return;
+
+    clearNameElement.innerText = '';
+    if (clearNameCacheElement.value.length > 0) {
+        const cacheValue = clearNameCacheElement.value;
+        const separator = cacheValue.indexOf('=');
+        if (separator > 0 && separator < cacheValue.length + 1) {
+            const propName = cacheValue.substring(0, separator);
+            const propClearText = cacheValue.substring(separator + 1);
+            if (source.value.includes(propName)) {
+                clearNameElement.innerText = propClearText;
+            }
+        }
+    }
 }
 
 /**
@@ -78,19 +123,28 @@ function showShakeItBassStructure(profiles, sourceId) {
 }
 
 /**
- * A ShakeIt Bass element was selected. Insert it into the field specified by "sourceId".
+ * A ShakeIt Bass element was selected. Insert it into the field specified by "sourceId". If there is already a "sib" property
+ * in this field (e.g. used with an expression), we just replace the property and keep the expression.
  */
 function shakeItBassSelected(sourceId, itemId, itemName, property) {
-    const element = document.getElementById(sourceId);
-    if (!element) return;
+    const inputElement = document.getElementById(sourceId);
+    if (!inputElement) return;
 
+    // Put this data into the "clear name" cache:
+    const clearNameCacheElement = document.getElementById(sourceId + 'ClearNameCache');
+    if (clearNameCacheElement) {
+        clearNameCacheElement.value = `sib.${itemId}=${itemName}`;
+    }
+
+    // Fill/replace the property name in the input field
     const newProp = `sib.${itemId}.${property}`;
     const regex = /sib.[a-f0-9\-]+\.[a-z]+/i
-    if (regex.test(element.value)) {
-        element.value = element.value.replace(regex, newProp);
+    if (regex.test(inputElement.value)) {
+        inputElement.value = inputElement.value.replace(regex, newProp);
+    } else {
+        inputElement.value = newProp;
     }
-    else {
-        element.value = newProp;
-    }
-    element.dispatchEvent(new Event('input'));
+
+    // Trigger "input" event. This will also save the data in the clear name cache.
+    inputElement.dispatchEvent(new Event('input'));
 }
