@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2022 Martin Renner
+﻿// Copyright (C) 2023 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using Microsoft.Extensions.DependencyInjection;
@@ -31,5 +31,6 @@ void ConfigureServices(IServiceCollection serviceCollection)
 {
     serviceCollection.AddSingleton<PropertyParser>();
     serviceCollection.AddSingleton<SimHubConnection>();
+    serviceCollection.AddSingleton<ShakeItStructureFetcher>();
     serviceCollection.AddSingleton<PropertyComparer>();
 }

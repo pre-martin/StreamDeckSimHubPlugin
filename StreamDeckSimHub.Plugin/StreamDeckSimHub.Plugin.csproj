@@ -133,6 +133,24 @@
       <None Update="images\store\plugin@2x.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="pi\components\sib.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="pi\components\sib.jsx">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="pi\react\babel.min.js">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="pi\react\material-ui.production.min.js">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="pi\react\react-dom.production.min.js">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="pi\react\react.production.min.js">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
   
     <ItemGroup Label="PISample Libs">
@@ -190,6 +208,10 @@
       <None Update="pi\libs\js\utils.js">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+  
+    <ItemGroup Label="React Libararies">
+      <Folder Include="pi\react" />
     </ItemGroup>
 
 </Project>

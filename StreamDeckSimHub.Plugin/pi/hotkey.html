@@ -37,15 +37,29 @@
     <div class="sdpi-heading">State</div>
 
     <div class="sdpi-item">
-        <div class="sdpi-item-label">SimHub Property</div>
-        <input class="sdpi-item-value" id="simhubProperty" value="" placeholder="Enter property name" oninput="saveSettingsDelayed()">
+        <div class="sdpi-item-label" style="align-self: flex-start;">SimHub Property</div>
+        <div class="sdpi-item-value" style="display: flex; flex-direction: column;">
+            <input style="min-height: 26px;" id="simhubProperty" value="" placeholder="Enter property name" oninput="propertyFieldChanged(this)">
+            <label id="simhubPropertyClearName" style="font-size: 9pt;"></label>
+            <div style="display: flex; flex-direction: row;">
+                <button class="max20" style="margin-left: 0;" onclick="fetchShakeItBassStructure('simhubProperty')" title="Open ShakeIt Bass selector">SIB</button>
+            </div>
+            <input id="simhubPropertyClearNameCache" class="hidden" value=""/>
+        </div>
     </div>
 
     <div class="sdpi-heading">Title</div>
 
     <div class="sdpi-item">
-        <div class="sdpi-item-label">SimHub Property</div>
-        <input class="sdpi-item-value" id="titleSimhubProperty" value="" placeholder="Enter property name" oninput="saveSettingsDelayed()">
+        <div class="sdpi-item-label" style="align-self: flex-start;">SimHub Property</div>
+        <div class="sdpi-item-value" style="display: flex; flex-direction: column;">
+            <input style="min-height: 26px;" id="titleSimhubProperty" value="" placeholder="Enter property name" oninput="propertyFieldChanged(this)">
+            <label id="titleSimhubPropertyClearName" style="font-size: 9pt;"></label>
+            <div style="display: flex; flex-direction: row;">
+                <button class="max20" style="margin-left: 0;" onclick="fetchShakeItBassStructure('titleSimhubProperty')" title="Open ShakeIt Bass selector">SIB</button>
+            </div>
+            <input id="titleSimhubPropertyClearNameCache" class="hidden" value=""/>
+        </div>
     </div>
     <div class="sdpi-item">
         <div class="sdpi-item-label">Display Format</div>

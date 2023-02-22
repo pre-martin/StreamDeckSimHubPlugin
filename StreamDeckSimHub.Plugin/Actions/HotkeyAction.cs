@@ -1,11 +1,20 @@
-﻿// Copyright (C) 2022 Martin Renner
+﻿// Copyright (C) 2023 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using SharpDeck;
+using SharpDeck.PropertyInspectors;
 using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.SimHub;
 
 namespace StreamDeckSimHub.Plugin.Actions;
+
+/// <summary>
+/// Arguments sent from the Property Inspector for the event "fetchShakeItBassStructure".
+/// </summary>
+public class FetchShakeItBassStructureArgs
+{
+    public string SourceId { get; set; } = string.Empty;
+}
 
 /// <summary>
 /// This action sends a key stroke to the active window and it can update its state from a SimHub property.
@@ -15,15 +24,30 @@ namespace StreamDeckSimHub.Plugin.Actions;
 public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
 {
     private readonly PropertyComparer _propertyComparer;
+    private readonly ShakeItStructureFetcher _shakeItStructureFetcher;
     private ConditionExpression? _conditionExpression;
     private readonly IPropertyChangedReceiver _titlePropertyChangedReceiver;
     private string _titleFormat = "${0}";
     private PropertyChangedArgs? _lastTitlePropertyChangedEvent;
 
-    public HotkeyAction(SimHubConnection simHubConnection, PropertyComparer propertyComparer) : base(simHubConnection)
+    public HotkeyAction(
+        SimHubConnection simHubConnection, PropertyComparer propertyComparer, ShakeItStructureFetcher shakeItStructureFetcher
+    ) : base(simHubConnection)
     {
         _propertyComparer = propertyComparer;
-        _titlePropertyChangedReceiver =  new TitlePropertyChangedReceiver(TitlePropertyChanged);
+        _shakeItStructureFetcher = shakeItStructureFetcher;
+        _titlePropertyChangedReceiver = new TitlePropertyChangedReceiver(TitlePropertyChanged);
+    }
+
+    /// <summary>
+    /// Method to handle the event "lookupSimHubProperties" from the Property Inspector. Fetches the ShakeIt Bass structure
+    /// from SimHub and sends the result through the event "shakeItBassStructure" back to the Property Inspector.
+    /// </summary>
+    [PropertyInspectorMethod("fetchShakeItBassStructure")]
+    public async Task FetchShakeItBassStructure(FetchShakeItBassStructureArgs args)
+    {
+        var profiles = await _shakeItStructureFetcher.FetchStructure();
+        await SendToPropertyInspectorAsync(new { message = "shakeItBassStructure", profiles, args.SourceId });
     }
 
     protected override async Task SetSettings(HotkeyActionSettings ac, bool forceSubscribe)
