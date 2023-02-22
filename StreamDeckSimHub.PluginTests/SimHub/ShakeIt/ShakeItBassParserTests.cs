@@ -16,7 +16,7 @@ public class ShakeItBassParserTests
     public void ParseStructure()
     {
         var data = @"
-0: id0 My first Profile
+0: id0 Profile My first Profile
   1: id0-0 GroupContainer Container 0
     2: id0-0-0 EffectsContainerBase RPMS (for V8)
     2: id0-0-1 GroupContainer Container 0-0
@@ -25,7 +25,7 @@ public class ShakeItBassParserTests
       3: id0-0-2-0 GroupContainer Container 0-1-0
         4: id0-0-2-0-0 EffectsContainerBase Speed
     2: id0-0-3 EffectsContainerBase RPMS (for V6)
-0: id1 My second Profile
+0: id1 Profile My second Profile
   1: id1-0 EffectsContainerBase Gear Shift";
 
         var reader = new StringReader(data);
