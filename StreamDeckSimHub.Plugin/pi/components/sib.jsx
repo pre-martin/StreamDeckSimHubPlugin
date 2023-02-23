@@ -59,19 +59,6 @@ const ExpandLess = () => {
 }
 
 /**
- * SVG icon "Copy"
- */
-const ContentCopy = () => {
-    // see https://unpkg.com/browse/@mui/icons-material@5.8.4/ContentCopy.js
-    return (
-        <SvgIcon>
-            <path
-                d='M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z'/>
-        </SvgIcon>
-    );
-}
-
-/**
  * SVG icon "Add Circle Outline"
  */
 const AddCircleOutline = () => {
@@ -190,43 +177,6 @@ const ListItemFactory = ({depth, item}) => {
     return (<Component depth={depth} item={item}/>);
 }
 
-const testData = [
-    {
-        id: 'a', name: 'Profile 1', effectsContainers: [
-            {id: '11', name: 'RPM', type: 'EffectsContainerBase'},
-            {id: '22', name: 'v2', type: 'EffectsContainerBase'}
-        ]
-    },
-    {
-        id: 'b', name: 'Profile 2', effectsContainers: [
-            {id: '33', name: 'Long name for submenu', type: 'EffectsContainerBase'},
-            {id: '44', name: 'Another name', type: 'EffectsContainerBase'},
-            {id: '55', name: 'Gear effects', type: 'EffectsContainerBase'}
-        ]
-    },
-    {
-        id: 'c', name: 'Profile 3', effectsContainers: [
-            {id: '101', name: 'Street effects', type: 'EffectsContainerBase'},
-            {id: '102', name: 'Another name', type: 'EffectsContainerBase'},
-            {id: '103', name: 'Gear effects', type: 'EffectsContainerBase'}
-        ]
-    },
-    {
-        id: 'd', name: 'Profile 4', effectsContainers: [
-            {
-                id: '2', name: 'Group 1', type: 'EffectsContainerBase', effectsContainers: [
-                    {id: '3', name: 'Deep 1', type: 'EffectsContainerBase'},
-                    {id: '4', name: 'Deep 2', type: 'EffectsContainerBase'},
-                    {
-                        id: '5', name: 'Deep nested', type: 'EffectsContainerBase', effectsContainers: [
-                            {id: '6', name: 'This is very very deep', type: 'EffectsContainerBase'}
-                        ]
-                    }
-                ]
-            }]
-    }
-];
-
 const Context = React.createContext({sourceId: ''});
 
 const ShakeItBassProfiles = ({profiles}) => {
@@ -264,6 +214,6 @@ const App = (props) => {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-    <App profiles={window.profiles ? window.profiles : testData}
+    <App profiles={window.profiles ? window.profiles : []}
          sourceId={window.sourceId ? window.sourceId : 'testSourceId'}/>
 );
