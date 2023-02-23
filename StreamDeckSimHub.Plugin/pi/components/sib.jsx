@@ -90,7 +90,7 @@ const AddCircleOutline = () => {
  */
 const Item = (props) => {
     const {item} = props;
-    const sourceId = React.useContext(SourceIdContext);
+    const {sourceId} = React.useContext(Context);
     const [menuAnchor, setMenuAnchor] = React.useState(null);
     const menuOpen = Boolean(menuAnchor);
 
@@ -140,7 +140,7 @@ const Item = (props) => {
 const LeafItem = ({depth, item}) => {
     return (
         <Item item={item}>
-            <ListItemButton sx={{pl: depth * 2}}>
+            <ListItemButton sx={{pl: depth * 2}} selected={item.selected}>
                 <Box sx={{width: '1em', fontSize: '1.178rem'}}/>
                 <ListItemText primary={item.name}/>
             </ListItemButton>
@@ -153,16 +153,19 @@ const LeafItem = ({depth, item}) => {
  * Tree item in the list, e.g. an item with children. The children will be rendered as collapsible nested list.
  */
 const TreeItem = ({depth, item}) => {
-    const [open, setOpen] = React.useState(false);
+    const [open, setOpen] = React.useState(item.expanded);
 
     const handleClick = () => {
-        setOpen((prev) => !prev);
+        const newState = !open;
+        setOpen(newState);
+        // Persist the state also in the model. Otherwise it would fall back on each unmount/mount to the original "item.expanded" value.
+        item.expanded = newState;
     }
 
     return (
         <React.Fragment>
             <Item item={item}>
-                <ListItemButton onClick={handleClick} sx={{pl: depth * 2}}>
+                <ListItemButton onClick={handleClick} sx={{pl: depth * 2}} selected={item.selected}>
                     {open ? <ExpandLess/> : <ExpandMore/>}
                     <ListItemText primary={item.name}/>
                 </ListItemButton>
@@ -224,15 +227,13 @@ const testData = [
     }
 ];
 
-const SourceIdContext = React.createContext('');
+const Context = React.createContext({sourceId: ''});
 
 const ShakeItBassProfiles = ({profiles}) => {
     return (
-        <SourceIdContext.Provider value={sourceId}>
-            <List>
-                {profiles.map((profile, key) => <ListItemFactory key={key} depth={0} item={profile}/>)}
-            </List>
-        </SourceIdContext.Provider>
+        <List>
+            {profiles.map((profile, key) => <ListItemFactory key={key} depth={0} item={profile}/>)}
+        </List>
     );
 }
 
@@ -254,9 +255,9 @@ const App = (props) => {
         <ThemeProvider theme={theme}>
             <CssBaseline/>
             {!profiles || profiles.length === 0 ? <NoProfiles/> :
-                <SourceIdContext.Provider value={sourceId}>
+                <Context.Provider value={{sourceId: sourceId}}>
                     <ShakeItBassProfiles profiles={profiles}/>
-                </SourceIdContext.Provider>}
+                </Context.Provider>}
         </ThemeProvider>
     );
 }
