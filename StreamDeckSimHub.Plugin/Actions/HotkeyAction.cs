@@ -29,6 +29,7 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
     private readonly IPropertyChangedReceiver _titlePropertyChangedReceiver;
     private string _titleFormat = "${0}";
     private PropertyChangedArgs? _lastTitlePropertyChangedEvent;
+    private readonly FormatHelper _formatHelper = new();
 
     public HotkeyAction(
         SimHubConnection simHubConnection, PropertyComparer propertyComparer, ShakeItStructureFetcher shakeItStructureFetcher
@@ -66,9 +67,7 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
             await RefirePropertyChanged();
         }
 
-        string newTitleFormat;
-        if (string.IsNullOrEmpty(ac.TitleFormat)) newTitleFormat = "{0}";
-        else newTitleFormat = ac.TitleFormat.IndexOf(':') == 0 ? $"{{0{ac.TitleFormat}}}" : $"{{0,{ac.TitleFormat}}}";
+        var newTitleFormat = _formatHelper.CompleteFormatString(ac.TitleFormat);
         // Redisplay the title if the format for the title has changed.
         var recalcTitle = newTitleFormat != _titleFormat;
         _titleFormat = newTitleFormat;
@@ -95,6 +94,7 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
         {
             await SimHubConnection.Unsubscribe(HotkeySettings.TitleSimHubProperty, _titlePropertyChangedReceiver);
         }
+
         // Subscribe SimHub "Title" property, if it is set and different than the previous one.
         if (!string.IsNullOrEmpty(ac.TitleSimHubProperty) && (ac.TitleSimHubProperty != HotkeySettings.TitleSimHubProperty ||
                                                               forceSubscribe))
@@ -132,6 +132,9 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
         await SetTitleProperty(args.PropertyValue);
     }
 
+    /// <summary>
+    /// Refire the last "TitlePropertyChanged" event that was received from SimHub.
+    /// </summary>
     private async Task RefireTitlePropertyChanged()
     {
         if (_lastTitlePropertyChangedEvent != null)
