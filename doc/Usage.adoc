@@ -161,6 +161,10 @@ So the following expressions are all valid:
 
 If this field is empty, the value of the SimHub property for the title will be displayed with the default formatter of that type. If this is not desired, a more extensive format can be specified here.
 
+Two options are available: A "*simple format*" and a "*full format*". The main difference is, that the "simple format" only allows an alignment and a format string, whereas the "full format" allows a combination of static text plus the features of the "simple format".
+
+==== Simple Format
+
 The display format has this syntax:
 
 ----
@@ -211,6 +215,18 @@ Both::
 ** `31.55` will be displayed as `31.6`
 
 All characters are counted for the alignment - including decimal separator and decimal digits.
+
+==== Full Format
+
+The full format allows the same formatting features as the simple format, but the format can be combined with static text. The alignment and the format string have to be put into curly braces in order to be recognized. So a format in the full format may look like
+
+----
+Bias: {:F1}
+----
+
+Line breaks are also allowed, therefore a line break could be inserted in this example between `Bias:` and `{:F1}`, so that the entire content fits better on a button. In the same time, the colon can be omitted:
+
+image::Example-Multiline-Title.png[Multiline Title]
 
 
 === Examples
