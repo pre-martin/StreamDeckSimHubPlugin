@@ -12,7 +12,11 @@ This plugin depends on the https://github.com/pre-martin/SimHubPropertyServer[Si
 
 In the screenshot below, icons are green because they are "on" in the simulation or in SimHub.
 
-image::Teaser.png[Teaser]
+image::Teaser-1.png[Teaser 1]
+
+In this screenshot, TC, TCC and ABS are mapped to Stream Deck buttons. The current values are also displayed, as well as Brake Bias.
+
+image::Teaser-2.png[Teaser 2]
 
 
 == Installation
