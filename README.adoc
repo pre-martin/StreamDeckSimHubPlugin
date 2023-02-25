@@ -10,6 +10,10 @@ This means, that actions can be bound to SimHub properties. If the value of a bo
 
 This plugin depends on the https://github.com/pre-martin/SimHubPropertyServer[SimHub Property Server plugin], which has to be installed in SimHub.
 
+In the screenshot below, icons are green because they are "on" in the simulation or in SimHub.
+
+image::Teaser.png[Teaser]
+
 
 == Installation
 
