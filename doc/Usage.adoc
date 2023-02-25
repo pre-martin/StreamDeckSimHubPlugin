@@ -258,6 +258,10 @@ The "generic" property `DataCorePlugin.GameData.BrakeBias` is uses as the title.
 
 == Action "Hotkey 4-state"
 
+__Note:__
+
+__This action is deprecated as of version 1.6.x. The functionality can now be implemented with the regular "Hotkey". As long as Stream Deck has no better UI support for buttons with more than two states, this action won't receive any new features.__
+
 This action is the same as the "Hotkey" action: It sends a keystroke to the active window, and it can be connected to a SimHub property, which will update its state.
 
 The difference is that this action can have up to four states. The logic for the action state in dependency from the SimHub property value is as follows:
