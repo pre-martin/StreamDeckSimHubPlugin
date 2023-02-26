@@ -105,6 +105,8 @@ image::ShakeIt-Bass-Assign.png[Assign controls]
 image::ShakeIt-Bass-Assign-Mute.png[Assign mute control]
 . Repeat the assignment for "Increment gain" and "Decrement gain"
 
+The plugin supports long button press events. Just hold the Stream Deck button and the gain will increment or decrement gradually. If you set the step size in SimHub down to 1%, you will notice that SimHub stops after 80 steps. This is something that is built into SimHub and happens with other input plugins as well.
+
 === Bonus: Toggle whole Stream Deck column
 
 In the very first screenshot, you can see that my three "Audi" buttons are greyed out, because the effect group is muted. This can be achieved as follows:

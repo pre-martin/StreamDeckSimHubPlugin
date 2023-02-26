@@ -226,9 +226,14 @@ public class SimHubConnection
         }
     }
 
-    internal async Task SendTriggerInput(string inputName)
+    internal async Task SendTriggerInputPressed(string inputName)
     {
-        await WriteToServer($"trigger-input {inputName}");
+        await WriteToServer($"trigger-input-pressed {inputName}");
+    }
+
+    internal async Task SendTriggerInputReleased(string inputName)
+    {
+        await WriteToServer($"trigger-input-released {inputName}");
     }
 
     private async Task SendSubscribe(string propertyName)

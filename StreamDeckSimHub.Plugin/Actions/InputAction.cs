@@ -16,6 +16,7 @@ public class InputAction : StreamDeckAction<InputSettings>
 {
     private readonly SimHubConnection _simHubConnection;
     private InputSettings _inputSettings;
+    private bool _simHubTriggerActive;
 
     public InputAction(SimHubConnection simHubConnection)
     {
@@ -32,6 +33,19 @@ public class InputAction : StreamDeckAction<InputSettings>
         await base.OnWillAppear(args);
     }
 
+    protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
+    {
+        // Just to be sure that there are no dangling input triggers. Actually we should not reach this code.
+        if (_simHubTriggerActive)
+        {
+            Logger.LogWarning("SimHub trigger still active. Sending \"released\" command");
+            _simHubTriggerActive = false;
+            await _simHubConnection.SendTriggerInputReleased(_inputSettings.SimHubControl);
+        }
+
+        await base.OnWillDisappear(args);
+    }
+
     protected override async Task OnDidReceiveSettings(ActionEventArgs<ActionPayload> args, InputSettings settings)
     {
         Logger.LogInformation(
@@ -44,9 +58,23 @@ public class InputAction : StreamDeckAction<InputSettings>
     protected override async Task OnKeyDown(ActionEventArgs<KeyPayload> args)
     {
         if (!string.IsNullOrWhiteSpace(_inputSettings.SimHubControl))
-            await _simHubConnection.SendTriggerInput(_inputSettings.SimHubControl);
+        {
+            _simHubTriggerActive = true;
+            await _simHubConnection.SendTriggerInputPressed(_inputSettings.SimHubControl);
+        }
 
         await base.OnKeyDown(args);
+    }
+
+    protected override async Task OnKeyUp(ActionEventArgs<KeyPayload> args)
+    {
+        if (!string.IsNullOrWhiteSpace(_inputSettings.SimHubControl))
+        {
+            _simHubTriggerActive = false;
+            await _simHubConnection.SendTriggerInputReleased(_inputSettings.SimHubControl);
+        }
+
+        await base.OnKeyUp(args);
     }
 
     private void SetSettings(InputSettings settings)

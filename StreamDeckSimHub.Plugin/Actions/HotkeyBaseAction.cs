@@ -24,6 +24,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
     private Keyboard.ScanCodeShort? _scs;
     private int _state;
     private PropertyChangedArgs? _lastPropertyChangedEvent;
+    private bool _simHubTriggerActive;
 
     protected HotkeyBaseAction(SimHubConnection simHubConnection)
     {
@@ -43,6 +44,14 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
     {
         Logger.LogInformation("OnWillDisappear: {settings}", HotkeySettings);
         await Unsubscribe();
+
+        // Just to be sure that there are no dangling input triggers. Actually we should not reach this code.
+        if (_simHubTriggerActive)
+        {
+            Logger.LogWarning("SimHub trigger still active. Sending \"released\" command");
+            _simHubTriggerActive = false;
+            await SimHubConnection.SendTriggerInputReleased(HotkeySettings.SimHubControl);
+        }
 
         await base.OnWillDisappear(args);
     }
@@ -88,17 +97,29 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
         if (_vks.HasValue && _scs.HasValue) Keyboard.KeyDown(_vks.Value, _scs.Value);
         // SimHubControl
         if (!string.IsNullOrWhiteSpace(HotkeySettings.SimHubControl))
-            await SimHubConnection.SendTriggerInput(HotkeySettings.SimHubControl);
+        {
+            _simHubTriggerActive = true;
+            await SimHubConnection.SendTriggerInputPressed(HotkeySettings.SimHubControl);
+        }
 
         await base.OnKeyDown(args);
     }
 
     protected override async Task OnKeyUp(ActionEventArgs<KeyPayload> args)
     {
+        // Hotkey
         if (_vks.HasValue && _scs.HasValue) Keyboard.KeyUp(_vks.Value, _scs.Value);
         if (HotkeySettings.Ctrl) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LCONTROL, Keyboard.ScanCodeShort.LCONTROL);
         if (HotkeySettings.Alt) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LMENU, Keyboard.ScanCodeShort.LMENU);
         if (HotkeySettings.Shift) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LSHIFT, Keyboard.ScanCodeShort.LSHIFT);
+        // SimHubControl
+        if (!string.IsNullOrWhiteSpace(HotkeySettings.SimHubControl))
+        {
+            // Let's hope that nobody changed the settings since the "pressed" command...
+            _simHubTriggerActive = false;
+            await SimHubConnection.SendTriggerInputReleased(HotkeySettings.SimHubControl);
+        }
+
         // Stream Deck always toggles the state for each keypress (at "key up", to be precise). So we have to set the
         // state again to the correct one, after Stream Deck has done its toggling stuff.
         await SetStateAsync(_state);
