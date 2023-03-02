@@ -4,24 +4,15 @@
 namespace StreamDeckSimHub.Plugin.Actions;
 
 /// <summary>
-/// Settings for Hotkey Action, which are set in the Stream Deck UI.
+/// Settings for Hotkey Action. Extends the Hotkey with SimHub Control and SimHub Property.
 /// </summary>
-public class HotkeyBaseActionSettings
+public class HotkeyBaseActionSettings : HotkeySettings
 {
-    public string Hotkey { get; init; } = string.Empty;
-
     public string SimHubControl { get; init; } = string.Empty;
-
     public string SimHubProperty { get; init; } = string.Empty;
-
-    public bool Ctrl { get; init; }
-
-    public bool Alt { get; init; }
-
-    public bool Shift { get; init; }
 
     public override string ToString()
     {
-        return $"Ctrl: {Ctrl}, Alt: {Alt}, Shift: {Shift}, Hotkey: {Hotkey}, SimHubControl: {SimHubControl}, SimHubProperty: {SimHubProperty}";
+        return $"{base.ToString()}, SimHubControl: {SimHubControl}, SimHubProperty: {SimHubProperty}";
     }
 }

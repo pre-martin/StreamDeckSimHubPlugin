@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2022 Martin Renner
+﻿// Copyright (C) 2023 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using SharpDeck;
@@ -11,7 +11,7 @@ namespace StreamDeckSimHub.Plugin.Actions;
 /// This action supports four states: "0", "1", "2" and "3".
 /// </summary>
 [StreamDeckAction("net.planetrenner.simhub.hotkey4")]
-public class Hotkey4Action : HotkeyBaseAction<HotkeyBaseActionSettings>
+public class Hotkey4Action : HotkeyBaseAction<Hotkey4ActionSettings>
 {
     public Hotkey4Action(SimHubConnection simHubConnection) : base(simHubConnection)
     {

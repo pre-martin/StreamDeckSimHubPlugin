@@ -17,8 +17,8 @@ public class FetchShakeItBassStructureArgs
 }
 
 /// <summary>
-/// This action sends a key stroke to the active window and it can update its state from a SimHub property.
-/// This action supports two states: "0" and "1".
+/// Extends <c>HotkeyBaseAction</c> with expressions for the state of the Hotkey, ShakeIt features and a title that can be
+/// bound to a SimHub property.
 /// </summary>
 [StreamDeckAction("net.planetrenner.simhub.hotkey")]
 public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
@@ -37,7 +37,7 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
     {
         _propertyComparer = propertyComparer;
         _shakeItStructureFetcher = shakeItStructureFetcher;
-        _titlePropertyChangedReceiver = new TitlePropertyChangedReceiver(TitlePropertyChanged);
+        _titlePropertyChangedReceiver = new PropertyChangedDelegate(TitlePropertyChanged);
     }
 
     /// <summary>
@@ -159,21 +159,6 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
             {
                 await SetTitleAsync(property.ToString());
             }
-        }
-    }
-
-    private class TitlePropertyChangedReceiver : IPropertyChangedReceiver
-    {
-        private readonly Func<PropertyChangedArgs, Task> _action;
-
-        public TitlePropertyChangedReceiver(Func<PropertyChangedArgs, Task> action)
-        {
-            _action = action;
-        }
-
-        public async Task PropertyChanged(PropertyChangedArgs args)
-        {
-            await _action(args);
         }
     }
 }
