@@ -46,6 +46,24 @@ public interface IPropertyChangedReceiver
 }
 
 /// <summary>
+/// Helper class which implements a <c>IPropertyChangedReceiver</c> and delegates the event to a function.
+/// </summary>
+public class PropertyChangedDelegate : IPropertyChangedReceiver
+{
+    private readonly Func<PropertyChangedArgs, Task> _action;
+
+    public PropertyChangedDelegate(Func<PropertyChangedArgs, Task> action)
+    {
+        _action = action;
+    }
+
+    public async Task PropertyChanged(PropertyChangedArgs args)
+    {
+        await _action(args);
+    }
+}
+
+/// <summary>
 /// Holds information about the current state of a property and its subscribed "changed" receivers.
 /// </summary>
 public class PropertyInformation

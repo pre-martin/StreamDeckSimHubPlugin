@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2022 Martin Renner
+﻿// Copyright (C) 2023 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using Microsoft.Extensions.Logging;
@@ -10,19 +10,18 @@ using StreamDeckSimHub.Plugin.Tools;
 namespace StreamDeckSimHub.Plugin.Actions;
 
 /// <summary>
-/// This action sends a key stroke to the active window, it can send an input trigger and it can update its state from a SimHub property.
+/// Base functionality to send a key stroke to the active window, send an input trigger, and to update the state from a SimHub property.
 /// </summary>
 /// <remarks>
 /// Concrete implementations have to handle the conversion from SimHub property values into Stream Deck action states.
 /// </remarks>
-public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>, IPropertyChangedReceiver
-    where TSettings : HotkeyBaseActionSettings, new()
+public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> where TSettings : HotkeyBaseActionSettings, new()
 {
     protected SimHubConnection SimHubConnection { get; }
     protected TSettings HotkeySettings { get; private set; }
-    private Keyboard.VirtualKeyShort? _vks;
-    private Keyboard.ScanCodeShort? _scs;
+    private KeyboardUtils.Hotkey? _hotkey;
     private int _state;
+    private readonly IPropertyChangedReceiver _propertyChangedReceiver;
     private PropertyChangedArgs? _lastPropertyChangedEvent;
     private bool _simHubTriggerActive;
 
@@ -30,6 +29,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
     {
         HotkeySettings = new TSettings();
         SimHubConnection = simHubConnection;
+        _propertyChangedReceiver = new PropertyChangedDelegate(PropertyChanged);
     }
 
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
@@ -59,7 +59,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
     /// <summary>
     /// Called when the value of a SimHub property has changed.
     /// </summary>
-    public async Task PropertyChanged(PropertyChangedArgs args)
+    private async Task PropertyChanged(PropertyChangedArgs args)
     {
         Logger.LogDebug("Property {PropertyName} changed to '{PropertyValue}'", args.PropertyName, args.PropertyValue);
         _lastPropertyChangedEvent = args;
@@ -91,10 +91,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
     protected override async Task OnKeyDown(ActionEventArgs<KeyPayload> args)
     {
         // Hotkey
-        if (HotkeySettings.Ctrl) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LCONTROL, Keyboard.ScanCodeShort.LCONTROL);
-        if (HotkeySettings.Alt) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LMENU, Keyboard.ScanCodeShort.LMENU);
-        if (HotkeySettings.Shift) Keyboard.KeyDown(Keyboard.VirtualKeyShort.LSHIFT, Keyboard.ScanCodeShort.LSHIFT);
-        if (_vks.HasValue && _scs.HasValue) Keyboard.KeyDown(_vks.Value, _scs.Value);
+        KeyboardUtils.KeyDown(_hotkey);
         // SimHubControl
         if (!string.IsNullOrWhiteSpace(HotkeySettings.SimHubControl))
         {
@@ -108,10 +105,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
     protected override async Task OnKeyUp(ActionEventArgs<KeyPayload> args)
     {
         // Hotkey
-        if (_vks.HasValue && _scs.HasValue) Keyboard.KeyUp(_vks.Value, _scs.Value);
-        if (HotkeySettings.Ctrl) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LCONTROL, Keyboard.ScanCodeShort.LCONTROL);
-        if (HotkeySettings.Alt) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LMENU, Keyboard.ScanCodeShort.LMENU);
-        if (HotkeySettings.Shift) Keyboard.KeyUp(Keyboard.VirtualKeyShort.LSHIFT, Keyboard.ScanCodeShort.LSHIFT);
+        KeyboardUtils.KeyUp(_hotkey);
         // SimHubControl
         if (!string.IsNullOrWhiteSpace(HotkeySettings.SimHubControl))
         {
@@ -136,36 +130,15 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
         // Unsubscribe previous SimHub property, if it was set and is different than the new one.
         if (!string.IsNullOrEmpty(HotkeySettings.SimHubProperty) && HotkeySettings.SimHubProperty != settings.SimHubProperty)
         {
-            await SimHubConnection.Unsubscribe(HotkeySettings.SimHubProperty, this);
+            await SimHubConnection.Unsubscribe(HotkeySettings.SimHubProperty, _propertyChangedReceiver);
         }
 
-        this._vks = null;
-        this._scs = null;
-        if (!string.IsNullOrEmpty(settings.Hotkey))
-        {
-            var virtualKeyShort = KeyboardUtils.FindVirtualKey(settings.Hotkey);
-            if (virtualKeyShort == null)
-            {
-                Logger.LogError("Could not find VirtualKeyCode for hotkey '{Hotkey}'", settings.Hotkey);
-                return;
-            }
-
-            var scanCodeShort =
-                KeyboardUtils.MapVirtualKey((uint)virtualKeyShort, KeyboardUtils.MapType.MAPVK_VK_TO_VSC);
-            if (scanCodeShort == 0)
-            {
-                Logger.LogError("Could not find ScanCode for hotkey '{Hotkey}'", settings.Hotkey);
-                return;
-            }
-
-            this._vks = virtualKeyShort;
-            this._scs = (Keyboard.ScanCodeShort)scanCodeShort;
-        }
+        _hotkey = KeyboardUtils.CreateHotkey(settings.Ctrl, settings.Alt, settings.Shift, settings.Hotkey);
 
         // Subscribe SimHub property, if it is set and different than the previous one.
         if (!string.IsNullOrEmpty(settings.SimHubProperty) && (settings.SimHubProperty != HotkeySettings.SimHubProperty || forceSubscribe))
         {
-            await SimHubConnection.Subscribe(settings.SimHubProperty, this);
+            await SimHubConnection.Subscribe(settings.SimHubProperty, _propertyChangedReceiver);
         }
 
         this.HotkeySettings = settings;
@@ -178,7 +151,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings>,
     {
         if (!string.IsNullOrEmpty(HotkeySettings.SimHubProperty))
         {
-            await SimHubConnection.Unsubscribe(HotkeySettings.SimHubProperty, this);
+            await SimHubConnection.Unsubscribe(HotkeySettings.SimHubProperty, _propertyChangedReceiver);
         }
     }
 }
