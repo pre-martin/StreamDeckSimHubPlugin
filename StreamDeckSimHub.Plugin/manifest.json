@@ -54,6 +54,25 @@
       ],
       "Tooltip": "Input control for SimHub",
       "UUID": "net.planetrenner.simhub.input"
+    },
+    {
+      "Controllers": [
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$A1"
+      },
+      "Icon": "images/actions/dial",
+      "Name": "Dial",
+      "PropertyInspectorPath": "pi/dial.html",
+      "States": [
+        {
+          "Image": "images/icons/dial",
+          "Name": "Dial"
+        }
+      ],
+      "Tooltip": "Dial button",
+      "UUID": "net.planetrenner.simhub.dial"
     }
   ],
   "Author": "Martin Renner",

@@ -18,7 +18,7 @@
         <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
         <PackageReference Include="NLog" Version="5.1.0" />
         <PackageReference Include="NLog.Extensions.Logging" Version="5.2.0" />
-        <PackageReference Include="SharpDeck" Version="6.0.1" />
+        <PackageReference Include="SharpDeck" Version="7.0.0-beta1" />
     </ItemGroup>
 
     <Target Name="CustomAfterPublish" AfterTargets="Publish" DependsOnTargets="GetBuildVersion">
@@ -55,16 +55,28 @@
       <None Update="pi\hotkey4.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="pi\dial.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="pi\js\dial.js">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="images\actions\dial.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="images\actions\dial@2x.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="images\actions\hotkey.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="images\actions\hotkey@2x.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="images\actions\hotkey4.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="images\actions\hotkey4@2x.png">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="images\actions\hotkey@2x.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="images\actions\input.png">
@@ -107,6 +119,12 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="images\icons\3@2x.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="images\icons\dial.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="images\icons\dial@2x.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="images\icons\input.png">
@@ -152,7 +170,7 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
-  
+
     <ItemGroup Label="PISample Libs">
       <None Update="pi\libs\assets\caret.svg">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -209,7 +227,7 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
-  
+
     <ItemGroup Label="React Libararies">
       <Folder Include="pi\react" />
     </ItemGroup>

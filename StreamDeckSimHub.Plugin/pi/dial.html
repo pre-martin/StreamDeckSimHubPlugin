@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name=viewport
+          content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
+    <meta name=apple-mobile-web-app-capable content=yes>
+    <meta name=apple-mobile-web-app-status-bar-style content=black>
+    <title>net.planetrenner.simhub.dialPI</title>
+    <link rel="stylesheet" href="libs/css/sdpi.css">
+</head>
+
+<body>
+
+<div class="sdpi-wrapper">
+
+    <div class="sdpi-heading">Rotate CCW</div>
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">Hotkey</div>
+        <input class="sdpi-item-value" id="hotkeyLeft" value="" placeholder="Enter hotkey" oninput="saveSettings()">
+    </div>
+    <div type="checkbox" class="sdpi-item">
+        <div class="sdpi-item-label">Modifiers</div>
+        <div class="sdpi-item-value">
+            <input id="ctrlLeft" type="checkbox" value="ctrl" oninput="saveSettings()">
+            <label for="ctrlLeft" class="sdpi-item-label"><span></span>Ctrl</label>
+            <input id="altLeft" type="checkbox" value="alt" oninput="saveSettings()">
+            <label for="altLeft" class="sdpi-item-label"><span></span>Alt</label>
+            <input id="shiftLeft" type="checkbox" value="shift" oninput="saveSettings()">
+            <label for="shiftLeft" class="sdpi-item-label"><span></span>Shift</label>
+        </div>
+    </div>
+
+    <div class="sdpi-heading">Rotate CW</div>
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">Hotkey</div>
+        <input class="sdpi-item-value" id="hotkeyRight" value="" placeholder="Enter hotkey" oninput="saveSettings()">
+    </div>
+    <div type="checkbox" class="sdpi-item">
+        <div class="sdpi-item-label">Modifiers</div>
+        <div class="sdpi-item-value">
+            <input id="ctrlRight" type="checkbox" value="ctrl" oninput="saveSettings()">
+            <label for="ctrlRight" class="sdpi-item-label"><span></span>Ctrl</label>
+            <input id="altRight" type="checkbox" value="alt" oninput="saveSettings()">
+            <label for="altRight" class="sdpi-item-label"><span></span>Alt</label>
+            <input id="shiftRight" type="checkbox" value="shift" oninput="saveSettings()">
+            <label for="shiftRight" class="sdpi-item-label"><span></span>Shift</label>
+        </div>
+    </div>
+
+    <div class="sdpi-heading">Press</div>
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">Hotkey</div>
+        <input class="sdpi-item-value" id="hotkey" value="" placeholder="Enter hotkey" oninput="saveSettings()">
+    </div>
+    <div type="checkbox" class="sdpi-item">
+        <div class="sdpi-item-label">Modifiers</div>
+        <div class="sdpi-item-value">
+            <input id="ctrl" type="checkbox" value="ctrl" oninput="saveSettings()">
+            <label for="ctrl" class="sdpi-item-label"><span></span>Ctrl</label>
+            <input id="alt" type="checkbox" value="alt" oninput="saveSettings()">
+            <label for="alt" class="sdpi-item-label"><span></span>Alt</label>
+            <input id="shift" type="checkbox" value="shift" oninput="saveSettings()">
+            <label for="shift" class="sdpi-item-label"><span></span>Shift</label>
+        </div>
+    </div>
+
+    <div class="sdpi-heading">Display</div>
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">SimHub Property</div>
+        <input class="sdpi-item-value" id="displaySimhubProperty" value="" placeholder="Enter property name" oninput="saveSettingsDelayed()">
+    </div>
+</div>
+
+</body>
+</html>

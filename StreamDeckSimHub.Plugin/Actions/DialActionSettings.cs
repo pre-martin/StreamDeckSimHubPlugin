@@ -1,0 +1,31 @@
+﻿// Copyright (C) 2023 Martin Renner
+// LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
+
+namespace StreamDeckSimHub.Plugin.Actions;
+
+public class DialActionSettings : HotkeySettings
+{
+    public string HotkeyLeft { get; init; } = string.Empty;
+
+    public bool CtrlLeft { get; init; }
+
+    public bool AltLeft { get; init; }
+
+    public bool ShiftLeft { get; init; }
+
+    public string HotkeyRight { get; init;  } = string.Empty;
+
+    public bool CtrlRight { get; init; }
+
+    public bool AltRight { get; init; }
+
+    public bool ShiftRight { get; init; }
+
+    public string DisplaySimHubProperty { get; init; } = string.Empty;
+
+    public override string ToString()
+    {
+        return $"{base.ToString()}, Left: {HotkeyString(HotkeyLeft, CtrlLeft, AltLeft, ShiftLeft)}, Right: {HotkeyString(HotkeyRight, CtrlRight, AltRight, ShiftRight)}, DisplaySimHubProperty: {DisplaySimHubProperty}";
+    }
+
+}
