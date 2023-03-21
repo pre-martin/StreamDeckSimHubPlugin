@@ -9,9 +9,9 @@ using StreamDeckSimHub.Plugin.SimHub;
 namespace StreamDeckSimHub.Plugin.Actions;
 
 /// <summary>
-/// Arguments sent from the Property Inspector for the event "fetchShakeItBassStructure".
+/// Arguments sent from the Property Inspector for the event "fetchShakeItBassStructure" and "fetchShakeItMotorsStructure".
 /// </summary>
-public class FetchShakeItBassStructureArgs
+public class FetchShakeItStructureArgs
 {
     public string SourceId { get; set; } = string.Empty;
 }
@@ -41,14 +41,25 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
     }
 
     /// <summary>
-    /// Method to handle the event "lookupSimHubProperties" from the Property Inspector. Fetches the ShakeIt Bass structure
+    /// Method to handle the event "fetchShakeItBassStructure" from the Property Inspector. Fetches the ShakeIt Bass structure
     /// from SimHub and sends the result through the event "shakeItBassStructure" back to the Property Inspector.
     /// </summary>
     [PropertyInspectorMethod("fetchShakeItBassStructure")]
-    public async Task FetchShakeItBassStructure(FetchShakeItBassStructureArgs args)
+    public async Task FetchShakeItBassStructure(FetchShakeItStructureArgs args)
     {
-        var profiles = await _shakeItStructureFetcher.FetchStructure();
+        var profiles = await _shakeItStructureFetcher.FetchBassStructure();
         await SendToPropertyInspectorAsync(new { message = "shakeItBassStructure", profiles, args.SourceId });
+    }
+
+    /// <summary>
+    /// Method to handle the event "fetchShakeItMotorsStructure" from the Property Inspector. Fetches the ShakeIt Motors structure
+    /// from SimHub and sends the result through the event "shakeItMotorsStructure" back to the Property Inspector.
+    /// </summary>
+    [PropertyInspectorMethod("fetchShakeItMotorsStructure")]
+    public async Task FetchShakeItMotorsStructure(FetchShakeItStructureArgs args)
+    {
+        var profiles = await _shakeItStructureFetcher.FetchMotorsStructure();
+        await SendToPropertyInspectorAsync(new { message = "shakeItMotorsStructure", profiles, args.SourceId });
     }
 
     protected override async Task SetSettings(HotkeyActionSettings ac, bool forceSubscribe)
