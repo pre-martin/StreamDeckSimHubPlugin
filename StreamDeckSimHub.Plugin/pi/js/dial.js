@@ -2,6 +2,8 @@ $PI.onConnected(jsn => {
     loadSettings(jsn.actionInfo.payload.settings);
 });
 
+const saveSettingsDelayed = Utils.debounce(500, () => saveSettings());
+
 function loadSettings(settings) {
     for (const id in settings) {
         try {
