@@ -11,7 +11,7 @@ endif::[]
 TIP: Always read the *correct version* of the documentation, which matches the version of the plugin that you have installed. To do so, use the dropdown in the top left, which usually contains the value "main". Select the "tag" that matches your installed version.
 
 
-== Button SIB
+== Button "SIB"
 
 This button allows easy access to ShakeIt Bass properties from SimHub. It requires that SimHub is running on the same PC, because ShakeIt profiles are read online from SimHub.
 
@@ -22,6 +22,10 @@ After selecting one of these two properties, the ShakeIt browser closes and inse
 This label is only updated after selecting a property from the ShakeIt browser. If you either rename the element in SimHub or copy&paste the property name from one input field to another one, the label is not updated. In this case, simply open the ShakeIt browser again by pressing the "SIB" button, the current element is already preselected, and select its "Gain" or "IsMuted" property again. This causes the label to be updated.
 
 After selecting a property in the ShakeIt browser, only the property name will be replaced in the input field. If you have a condition in the input field (like `sib.abcd-efgh.IsMuted==false`), **only the property name will replaced**, the condition will stay intact.
+
+== Button "SIM"
+
+Same as "SIB", but for ShakeIt Motors. See above for details.
 
 == Unique GUIDs are IMPORTANT!
 

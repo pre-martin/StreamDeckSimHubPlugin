@@ -17,10 +17,23 @@ public class ShakeItStructureFetcher
     /// <summary>
     /// Fetches the ShakeIt Bass structure from the SimHub Property Server.
     /// </summary>
-    public async Task<IList<Profile>> FetchStructure()
+    public async Task<IList<Profile>> FetchBassStructure()
     {
-        Logger.Info($"Requesting ShakeIt Bass structure");
-        var shakeItBassParser = new ShakeItBassParser();
+        return await FetchStructure("shakeit-bass-structure", "Bass");
+    }
+
+    /// <summary>
+    /// Fetches the ShakeIt Motors structure from the SimHub Property Server.
+    /// </summary>
+    public async Task<IList<Profile>> FetchMotorsStructure()
+    {
+        return await FetchStructure("shakeit-motors-structure", "Motors");
+    }
+
+    private async Task<IList<Profile>> FetchStructure(string command, string loggingName)
+    {
+        Logger.Info($"Requesting ShakeIt {loggingName} structure");
+        var shakeItParser = new ShakeItParser();
 
         using var tcpClient = new TcpClient();
         try
@@ -41,13 +54,13 @@ public class ShakeItStructureFetcher
             if (line != null && line.StartsWith("SimHub Property Server"))
             {
                 Logger.Info("Connected to SimHub Property Server");
-                await WriteLine(writer, "shakeit-bass-structure");
+                await WriteLine(writer, command);
 
                 var receivedHeader = false;
                 var receivedEnd = false;
                 while ((line = await reader.ReadLineAsync().WaitAsync(TimeSpan.FromSeconds(4)).ConfigureAwait(false)) != null)
                 {
-                    if (line.StartsWith("ShakeIt Bass structure"))
+                    if (line.StartsWith("ShakeIt Bass structure") || line.StartsWith("ShakeIt Motors structure"))
                     {
                         receivedHeader = true;
                     }
@@ -58,7 +71,7 @@ public class ShakeItStructureFetcher
                     }
                     else if (receivedHeader)
                     {
-                        shakeItBassParser.ParseLine(line);
+                        shakeItParser.ParseLine(line);
                     }
                     else
                     {
@@ -70,18 +83,18 @@ public class ShakeItStructureFetcher
 
                 if (!receivedEnd)
                 {
-                    Logger.Warn("ShakeIt Bass structure was not received. Aborting.");
+                    Logger.Warn("ShakeIt {loggingName} structure was not received. Aborting.");
                     return new List<Profile>();
                 }
 
-                var profiles = shakeItBassParser.Profiles;
-                Logger.Info($"Successfully parsed ShakeIt Bass structure with {profiles.Count} profiles");
+                var profiles = shakeItParser.Profiles;
+                Logger.Info($"Successfully parsed ShakeIt {loggingName} structure with {profiles.Count} profiles");
                 return profiles;
             }
         }
         catch (Exception e)
         {
-            Logger.Error($"Exception while fetching ShakeIt Bass structure: {e.Message}");
+            Logger.Error($"Exception while fetching ShakeIt {loggingName} structure: {e.Message}");
         }
 
         return new List<Profile>();

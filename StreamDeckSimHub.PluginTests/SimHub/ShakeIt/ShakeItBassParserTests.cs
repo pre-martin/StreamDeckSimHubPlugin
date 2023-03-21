@@ -4,12 +4,12 @@ namespace StreamDeckSimHub.PluginTests.SimHub.ShakeIt;
 
 public class ShakeItBassParserTests
 {
-    private ShakeItBassParser _parser = null!;
+    private ShakeItParser _parser = null!;
 
     [SetUp]
     public void Init()
     {
-        _parser = new ShakeItBassParser();
+        _parser = new ShakeItParser();
     }
 
     [Test]
