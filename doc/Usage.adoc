@@ -228,9 +228,9 @@ Line breaks are also allowed, therefore a line break could be inserted in this e
 
 image::Example-Multiline-Title.png[Multiline Title]
 
-=== Button SIB
+=== Buttons "SIB" and "SIM"
 
-Everywhere, where a SimHub property can be used, there is also a button labeled "SIB". This button is related to "ShakeIt Bass" properties from SimHub and is described in the separate document link:ShakeIt.adoc[ShakeIt.adoc]
+Everywhere, where a SimHub property can be used, there are also buttons labeled "SIB" and "SIM". These buttons are related to "ShakeIt Bass" and "ShakeIt Motors" properties from SimHub and are described in the separate document link:ShakeIt.adoc[ShakeIt.adoc]
 
 
 === Examples
