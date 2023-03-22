@@ -104,6 +104,9 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
         if (!string.IsNullOrEmpty(HotkeySettings.TitleSimHubProperty) && HotkeySettings.TitleSimHubProperty != ac.TitleSimHubProperty)
         {
             await SimHubConnection.Unsubscribe(HotkeySettings.TitleSimHubProperty, _titlePropertyChangedReceiver);
+            // In case of the new "Title" property being invalid or empty, we remove the old title value.
+            _lastTitlePropertyChangedEvent = null;
+            await SetTitleProperty(null);
         }
 
         // Subscribe SimHub "Title" property, if it is set and different than the previous one.
