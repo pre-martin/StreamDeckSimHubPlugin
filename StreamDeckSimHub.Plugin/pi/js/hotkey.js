@@ -126,8 +126,8 @@ function fetchShakeItMotorsStructure(sourceId) {
 }
 
 
-const sibPropRegex = /sib.[a-f0-9\-]+\.[a-z]+/i
-const simPropRegex = /sim.[a-f0-9\-]+\.[a-z]+/i
+const sibPropRegex = /sib\.([a-f0-9\-]+)\.([a-z]+)/i
+const simPropRegex = /sim\.([a-f0-9\-]+)\.([a-z]+)/i
 
 /**
  * Shows the given ShakeIt Bass or ShakeIt Motors structure in a new window. 'prefix' is either 'sib' or 'sim'.
@@ -143,16 +143,28 @@ function showShakeItStructure(prefix, profiles, sourceId) {
 
     // If there is already a ShakeIt property in the field, we will read its Guid. This will mark the element as "selected" in
     // the SIB browser. All parent elements of the "selected" element are expanded.
+    let guid = null;
+    let propertyName = null;
     const inputElement = document.getElementById(sourceId);
-    if (inputElement && (
-        (prefix === 'sib' && sibPropRegex.test(inputElement.value)) ||
-        (prefix === 'sim' && simPropRegex.test(inputElement.value))
-    )) {
-        const guid = inputElement.value.substring(`${prefix}.`.length, `${prefix}.`.length + 36);
+    if (inputElement) {
+        const prefixLength = `${prefix}.`.length;
 
-        // Create two new fields for each element:
-        // - selected: If the Guid of the element is equal to the Guid in the input field
-        // - expanded: If a child is "selected", the current element has to be "expanded". If the child is "expanded", the current too.
+        const matchSib = inputElement.value.match(sibPropRegex);
+        const matchSim = inputElement.value.match(simPropRegex);
+        if (prefix === 'sib' && matchSib) {
+            guid = matchSib[1];
+            propertyName = matchSib[2];
+        }
+        if (prefix === 'sim' && matchSim) {
+            guid = matchSim[1];
+            propertyName = matchSim[2];
+        }
+    }
+    if (guid != null && propertyName != null) {
+        // Create three new fields for each element:
+        // - selected    : true, if the Guid of the element is equal to the Guid in the input field
+        // - selectedName: If "selected", the name of the selected property.
+        // - expanded    : true, if a child is "selected", the current element has to be "expanded". If the child is "expanded", the current too.
         // This is done with a depth-first recursion.
         const loop = (element) => {
             let anyChildSelected = false;
@@ -169,6 +181,7 @@ function showShakeItStructure(prefix, profiles, sourceId) {
                 });
             }
             element.selected = element.id === guid;
+            element.selectedName = element.selected ? propertyName.toLowerCase() : '';
             element.expanded = anyChildSelected;
         };
         profiles.forEach(profile => loop(profile));
@@ -191,7 +204,7 @@ function shakeItSelected(sourceId, prefix, itemId, itemName, property) {
     // Put this data into the "clear name" cache
     const clearNameCacheElement = document.getElementById(sourceId + 'ClearNameCache');
     if (clearNameCacheElement) {
-        clearNameCacheElement.value = `${prefix}.${itemId}=${itemName}`;
+        clearNameCacheElement.value = `${prefix}.${itemId}=${itemName}.${property}`;
     }
 
     // Fill/replace the property name in the input field
