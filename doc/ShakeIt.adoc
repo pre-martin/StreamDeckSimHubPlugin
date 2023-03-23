@@ -55,7 +55,7 @@ To display the muted state with the red or green icon:
 .. Open the ShakeIt browser by clicking on the button "SIB"
 .. Navigate to the effect group ("Audi" in my case)
 .. Click on the "+" icon and select "IsMuted"
-. The label just between the button and the input field should now contain the hint "Audi" (or whatever name your group has)
+. The label just between the button and the input field should now contain the hint "Audi.IsMuted" (or whatever name your group has)
 . The state is now inverted: red for unmuted and green for muted. To fix that:
 .. Go into the field "SimHub Property (state)". It contains the value `sib.a-long-guid.IsMuted`
 .. Scroll all the way to the right (e.g. press "End" on your keyboard)
@@ -66,7 +66,7 @@ To display the current gain on the button:
 
 . "SimHub Property (title)":
 .. Open again the ShakeIt browser, select again the effect group, but this time select "Gain" instead of "IsMuted"
-. Again, the label just between the button and the input field should contain the hint "Audi"
+. Again, the label just between the button and the input field should contain the hint "Audi.Gain"
 . Also, the button should already display the gain value. Maybe with way too much decimal places
 . Enter `Audi {:F0}%` into the field "Display Format". Press enter or return on your keyboard right after the word `Audi`
 . The text on the button is now very small
