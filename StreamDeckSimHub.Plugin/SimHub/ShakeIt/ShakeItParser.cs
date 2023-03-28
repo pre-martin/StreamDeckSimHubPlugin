@@ -6,10 +6,10 @@ using NLog;
 namespace StreamDeckSimHub.Plugin.SimHub.ShakeIt;
 
 /// <summary>
-/// Parses the ShakeIt Bass structure from SimHub.
+/// Parses the ShakeIt Bass and ShakeIt Motors structure from SimHub.
 /// </summary>
 /// <remarks>The class is stateful.</remarks>
-public class ShakeItBassParser
+public class ShakeItParser
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private readonly Stack<(int depth, EffectsContainerBase effect)> _effectsStack = new();

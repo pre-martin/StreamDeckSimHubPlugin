@@ -6,8 +6,8 @@ $PI.onConnected(jsn => {
     window.addEventListener('message', (event) => {
         // We do not check the origin, because this data is not confidential and we are in a trusted environment.
         console.log('Received message (from child window):', event.data);
-        if (event.data.message === 'sibSelected') {
-            shakeItBassSelected(event.data.sourceId, event.data.itemId, event.data.itemName, event.data.property);
+        if (event.data.message === 'shakeItSelected') {
+            shakeItSelected(event.data.sourceId, event.data.prefix, event.data.itemId, event.data.itemName, event.data.property);
         }
     });
 
@@ -15,7 +15,10 @@ $PI.onConnected(jsn => {
     // Handler for events that are sent from the plugin to this Property Inspector.
     $PI.onSendToPropertyInspector(jsn.actionInfo.action, jsn => {
         if (jsn.payload?.message === 'shakeItBassStructure') {
-            showShakeItBassStructure(jsn.payload.profiles, jsn.payload.sourceId);
+            showShakeItStructure('sib', jsn.payload.profiles, jsn.payload.sourceId);
+        }
+        else if (jsn.payload?.message === 'shakeItMotorsStructure') {
+            showShakeItStructure('sim', jsn.payload.profiles, jsn.payload.sourceId);
         } else {
             console.log('Received unknown message from plugin', jsn);
             $PI.logMessage('Received unknown message from plugin');
@@ -113,13 +116,24 @@ function fetchShakeItBassStructure(sourceId) {
     $PI.sendToPlugin({Event: 'fetchShakeItBassStructure', SourceId: sourceId});
 }
 
-const sibPropRegex = /sib.[a-f0-9\-]+\.[a-z]+/i
+/**
+ * Request the plugin to load the ShakeIt Motors structure (and show it afterwards, which is triggered via an event from the plugin).
+ * We send "sourceId" all the way down, so that we know at the end, which UI element triggered the request.
+ * @param sourceId The source element, which shall be updated, when an element was selected later on.
+ */
+function fetchShakeItMotorsStructure(sourceId) {
+    $PI.sendToPlugin({Event: 'fetchShakeItMotorsStructure', SourceId: sourceId});
+}
+
+
+const sibPropRegex = /sib\.([a-f0-9\-]+)\.([a-z]+)/i
+const simPropRegex = /sim\.([a-f0-9\-]+)\.([a-z]+)/i
 
 /**
- * Shows the given ShakeIt Bass structure in a new window.
+ * Shows the given ShakeIt Bass or ShakeIt Motors structure in a new window. 'prefix' is either 'sib' or 'sim'.
  */
-function showShakeItBassStructure(profiles, sourceId) {
-    console.log('Showing ShakeIt Bass structure for element ' + sourceId + ':');
+function showShakeItStructure(prefix, profiles, sourceId) {
+    console.log('Showing ShakeIt structure (prefix: ' + prefix + ') for element ' + sourceId + ':');
     console.log(profiles);
 
     // If there is already a window open: close it.
@@ -129,13 +143,28 @@ function showShakeItBassStructure(profiles, sourceId) {
 
     // If there is already a ShakeIt property in the field, we will read its Guid. This will mark the element as "selected" in
     // the SIB browser. All parent elements of the "selected" element are expanded.
+    let guid = null;
+    let propertyName = null;
     const inputElement = document.getElementById(sourceId);
-    if (inputElement && sibPropRegex.test(inputElement.value)) {
-        const guid = inputElement.value.substring("sib.".length, "sib.".length + 36);
+    if (inputElement) {
+        const prefixLength = `${prefix}.`.length;
 
-        // Create two new fields for each element:
-        // - selected: If the Guid of the element is equal to the Guid in the input field
-        // - expanded: If a child is "selected", the current element has to be "expanded". If the child is "expanded", the current too.
+        const matchSib = inputElement.value.match(sibPropRegex);
+        const matchSim = inputElement.value.match(simPropRegex);
+        if (prefix === 'sib' && matchSib) {
+            guid = matchSib[1];
+            propertyName = matchSib[2];
+        }
+        if (prefix === 'sim' && matchSim) {
+            guid = matchSim[1];
+            propertyName = matchSim[2];
+        }
+    }
+    if (guid != null && propertyName != null) {
+        // Create three new fields for each element:
+        // - selected    : true, if the Guid of the element is equal to the Guid in the input field
+        // - selectedName: If "selected", the name of the selected property.
+        // - expanded    : true, if a child is "selected", the current element has to be "expanded". If the child is "expanded", the current too.
         // This is done with a depth-first recursion.
         const loop = (element) => {
             let anyChildSelected = false;
@@ -152,6 +181,7 @@ function showShakeItBassStructure(profiles, sourceId) {
                 });
             }
             element.selected = element.id === guid;
+            element.selectedName = element.selected ? propertyName.toLowerCase() : '';
             element.expanded = anyChildSelected;
         };
         profiles.forEach(profile => loop(profile));
@@ -160,26 +190,29 @@ function showShakeItBassStructure(profiles, sourceId) {
     window.sib = window.open('components/sib.html', 'SIB');
     window.sib.profiles = profiles;
     window.sib.sourceId = sourceId;
+    window.sib.prefix = prefix;
 }
 
 /**
  * A ShakeIt Bass element was selected. Insert it into the field specified by "sourceId". If there is already a "sib" property
  * in this field (e.g. used with an expression), we just replace the property and keep the expression.
  */
-function shakeItBassSelected(sourceId, itemId, itemName, property) {
+function shakeItSelected(sourceId, prefix, itemId, itemName, property) {
     const inputElement = document.getElementById(sourceId);
     if (!inputElement) return;
 
     // Put this data into the "clear name" cache
     const clearNameCacheElement = document.getElementById(sourceId + 'ClearNameCache');
     if (clearNameCacheElement) {
-        clearNameCacheElement.value = `sib.${itemId}=${itemName}`;
+        clearNameCacheElement.value = `${prefix}.${itemId}=${itemName}.${property}`;
     }
 
     // Fill/replace the property name in the input field
-    const newProp = `sib.${itemId}.${property}`;
-    if (sibPropRegex.test(inputElement.value)) {
+    const newProp = `${prefix}.${itemId}.${property}`;
+    if (prefix === 'sib' && sibPropRegex.test(inputElement.value)) {
         inputElement.value = inputElement.value.replace(sibPropRegex, newProp);
+    } else if (prefix === 'sim' && simPropRegex.test(inputElement.value)) {
+        inputElement.value = inputElement.value.replace(simPropRegex, newProp);
     } else {
         inputElement.value = newProp;
     }

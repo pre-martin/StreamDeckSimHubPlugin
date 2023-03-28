@@ -1,5 +1,16 @@
 = Stream Deck SimHub Plugin
 :toc:
+:sectnums:
+ifdef::env-github[]
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+ifndef::env-github[]
+:tip-caption: 💡
+:warning-caption: ⚠️
+endif::[]
+
+TIP: Always read the *correct version* of the documentation, which matches the version of the plugin that you have installed. To do so, use the dropdown in the top left, which usually contains the value "main". Select the "tag" that matches your installed version.
 
 
 == About
@@ -20,6 +31,8 @@ image::Teaser-2.png[Teaser 2]
 
 
 == Installation
+
+WARNING: To download, do not use the green button! Instead click on "Releases" on the right side and download the file with extension `streamDeckPlugin`.
 
 Be sure to have the SimHub Property Server plugin installed into SimHub (see above). When updating this plugin, be sure to also check the SimHub Property Server plugin for updates.
 

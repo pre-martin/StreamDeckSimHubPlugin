@@ -72,12 +72,14 @@ const AddCircleOutline = () => {
 }
 
 /**
- * Renders the container for a single item. If the item is of type "EffectsContainerBase", an action button will be rendered.
- * The content has to be supplied as "children" elements.
+ * Renders the container for a single item. If the item is of type "EffectsContainerBase", an action button will be rendered which
+ * opens a context menu with the available properties "Gain" and "IsMuted".
+ *
+ * The content of the item container has to be supplied as "children" elements.
  */
 const Item = (props) => {
     const {item} = props;
-    const {sourceId} = React.useContext(Context);
+    const {sourceId, prefix} = React.useContext(Context);
     const [menuAnchor, setMenuAnchor] = React.useState(null);
     const menuOpen = Boolean(menuAnchor);
 
@@ -92,8 +94,9 @@ const Item = (props) => {
     const selectedMenuEntry = (property) => {
         closeMenu();
         window.opener.postMessage({
-            message: 'sibSelected',
+            message: 'shakeItSelected',
             sourceId: sourceId,
+            prefix: prefix,
             itemId: item.id,
             itemName: item.name,
             property: property
@@ -109,8 +112,8 @@ const Item = (props) => {
                         <AddCircleOutline/>
                     </IconButton>
                     <Menu anchorEl={menuAnchor} open={menuOpen} onClose={closeMenu}>
-                        <MenuItem onClick={() => selectedMenuEntry('Gain')}>Gain</MenuItem>
-                        <MenuItem onClick={() => selectedMenuEntry('IsMuted')}>IsMuted</MenuItem>
+                        <MenuItem onClick={() => selectedMenuEntry('Gain')} selected={item.selectedName === 'gain'}>Gain</MenuItem>
+                        <MenuItem onClick={() => selectedMenuEntry('IsMuted')} selected={item.selectedName === 'ismuted'}>IsMuted</MenuItem>
                     </Menu>
                 </React.Fragment>
                 : ''}
@@ -177,9 +180,9 @@ const ListItemFactory = ({depth, item}) => {
     return (<Component depth={depth} item={item}/>);
 }
 
-const Context = React.createContext({sourceId: ''});
+const Context = React.createContext({sourceId: '', prefix: ''});
 
-const ShakeItBassProfiles = ({profiles}) => {
+const ShakeItProfiles = ({profiles}) => {
     return (
         <List>
             {profiles.map((profile, key) => <ListItemFactory key={key} depth={0} item={profile}/>)}
@@ -197,16 +200,24 @@ const NoProfiles = () => {
     );
 }
 
+/**
+ * Displays ShakeIt profiles.
+ *
+ * @param props.profiles: An array with the ShakeIt profiles.
+ * @param props.sourceId: This attribute will be sent back with the event, when an entry was selected.
+ * @param props.prefix: This attribute will be sent back with the event, when an entry was selected.
+ */
 const App = (props) => {
     const [profiles, setProfiles] = React.useState(props.profiles);
     const [sourceId, setSourceId] = React.useState(props.sourceId);
+    const [prefix, setPrefix] = React.useState(props.prefix);
 
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline/>
             {!profiles || profiles.length === 0 ? <NoProfiles/> :
-                <Context.Provider value={{sourceId: sourceId}}>
-                    <ShakeItBassProfiles profiles={profiles}/>
+                <Context.Provider value={{sourceId: sourceId, prefix: prefix}}>
+                    <ShakeItProfiles profiles={profiles}/>
                 </Context.Provider>}
         </ThemeProvider>
     );
@@ -215,5 +226,6 @@ const App = (props) => {
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
     <App profiles={window.profiles ? window.profiles : []}
-         sourceId={window.sourceId ? window.sourceId : 'testSourceId'}/>
+         sourceId={window.sourceId ? window.sourceId : 'testSourceId'}
+         prefix={window.prefix ? window.prefix : 'sib'}/>
 );
