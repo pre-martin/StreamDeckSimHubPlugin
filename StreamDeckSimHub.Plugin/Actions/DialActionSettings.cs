@@ -25,7 +25,7 @@ public class DialActionSettings : HotkeySettings
 
     public override string ToString()
     {
-        return $"{base.ToString()}, Left: {HotkeyString(HotkeyLeft, CtrlLeft, AltLeft, ShiftLeft)}, Right: {HotkeyString(HotkeyRight, CtrlRight, AltRight, ShiftRight)}, DisplaySimHubProperty: {DisplaySimHubProperty}";
+        return $"Press: {base.ToString()}, Left: {HotkeyString(HotkeyLeft, CtrlLeft, AltLeft, ShiftLeft)}, Right: {HotkeyString(HotkeyRight, CtrlRight, AltRight, ShiftRight)}, DisplaySimHubProperty: {DisplaySimHubProperty}";
     }
 
 }

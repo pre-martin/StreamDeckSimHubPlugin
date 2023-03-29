@@ -29,7 +29,7 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
     {
         var settings = args.Payload.GetSettings<DialActionSettings>();
-        Logger.LogInformation("OnWillAppear: {settings}", settings);
+        Logger.LogInformation("OnWillAppear ({coords}): {settings}", args.Payload.Coordinates, settings);
         await SetSettings(settings, true);
 
         await base.OnWillAppear(args);
@@ -37,7 +37,7 @@ public class DialAction : StreamDeckAction<DialActionSettings>
 
     protected override async Task OnDidReceiveSettings(ActionEventArgs<ActionPayload> args, DialActionSettings settings)
     {
-        Logger.LogInformation("OnDidReceiveSettings: {settings}", settings);
+        Logger.LogInformation("OnDidReceiveSettings ({coords}): {settings}", args.Payload.Coordinates, settings);
 
         await SetSettings(settings, false);
         await base.OnDidReceiveSettings(args, settings);
@@ -45,7 +45,8 @@ public class DialAction : StreamDeckAction<DialActionSettings>
 
     protected override Task OnDialRotate(ActionEventArgs<DialRotatePayload> args)
     {
-        Logger.LogInformation("OnDialRotate: Ticks: {ticks}, Pressed {pressed}", args.Payload.Ticks, args.Payload.Pressed);
+        Logger.LogInformation("OnDialRotate ({coords}): Ticks: {ticks}, Pressed {pressed}", args.Payload.Coordinates, args.Payload.Ticks,
+            args.Payload.Pressed);
         if (args.Payload.Ticks < 0)
         {
             KeyboardUtils.KeyDown(_hotkeyLeft);
@@ -57,12 +58,12 @@ public class DialAction : StreamDeckAction<DialActionSettings>
             KeyboardUtils.KeyUp(_hotkeyRight);
         }
 
-        return base.OnDialRotate(args);
+        return Task.CompletedTask;
     }
 
     protected override Task OnDialPress(ActionEventArgs<DialPayload> args)
     {
-        Logger.LogInformation("OnDialPress: Pressed {pressed}", args.Payload.Pressed);
+        Logger.LogInformation("OnDialPress ({coords}): Pressed {pressed}", args.Payload.Coordinates, args.Payload.Pressed);
 
         if (args.Payload.Pressed)
         {
@@ -73,7 +74,7 @@ public class DialAction : StreamDeckAction<DialActionSettings>
             KeyboardUtils.KeyUp(_hotkey);
         }
 
-        return base.OnDialPress(args);
+        return Task.CompletedTask;
     }
 
     private async Task SetSettings(DialActionSettings settings, bool forceSubscribe)
