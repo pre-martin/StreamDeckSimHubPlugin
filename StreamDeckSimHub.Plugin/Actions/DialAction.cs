@@ -43,22 +43,22 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         await base.OnDidReceiveSettings(args, settings);
     }
 
-    protected override Task OnDialRotate(ActionEventArgs<DialRotatePayload> args)
+    protected override async Task OnDialRotate(ActionEventArgs<DialRotatePayload> args)
     {
         Logger.LogInformation("OnDialRotate ({coords}): Ticks: {ticks}, Pressed {pressed}", args.Payload.Coordinates, args.Payload.Ticks,
             args.Payload.Pressed);
         if (args.Payload.Ticks < 0)
         {
             KeyboardUtils.KeyDown(_hotkeyLeft);
+            await Task.Delay(TimeSpan.FromMilliseconds(50));
             KeyboardUtils.KeyUp(_hotkeyLeft);
         }
         else if (args.Payload.Ticks > 0)
         {
             KeyboardUtils.KeyDown(_hotkeyRight);
+            await Task.Delay(TimeSpan.FromMilliseconds(50));
             KeyboardUtils.KeyUp(_hotkeyRight);
         }
-
-        return Task.CompletedTask;
     }
 
     protected override Task OnDialPress(ActionEventArgs<DialPayload> args)
