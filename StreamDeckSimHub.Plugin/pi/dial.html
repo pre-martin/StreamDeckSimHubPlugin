@@ -9,6 +9,7 @@
     <meta name=apple-mobile-web-app-status-bar-style content=black>
     <title>net.planetrenner.simhub.dialPI</title>
     <link rel="stylesheet" href="libs/css/sdpi.css">
+    <link rel="stylesheet" href="css/pi.css">
 </head>
 
 <body>
@@ -19,11 +20,8 @@
 
     <div class="sdpi-item">
         <div class="sdpi-item-label">Hotkey</div>
-        <input class="sdpi-item-value" id="hotkeyLeft" value="" placeholder="Enter hotkey" oninput="saveSettings()">
-    </div>
-    <div type="checkbox" class="sdpi-item">
-        <div class="sdpi-item-label">Modifiers</div>
-        <div class="sdpi-item-value">
+        <div class="sdpi-item-value hotkey-field">
+            <input class="sdpi-item-value" id="hotkeyLeft" value="" placeholder="Enter hotkey" oninput="saveSettings()">
             <input id="ctrlLeft" type="checkbox" value="ctrl" oninput="saveSettings()">
             <label for="ctrlLeft" class="sdpi-item-label"><span></span>Ctrl</label>
             <input id="altLeft" type="checkbox" value="alt" oninput="saveSettings()">
@@ -37,11 +35,8 @@
 
     <div class="sdpi-item">
         <div class="sdpi-item-label">Hotkey</div>
-        <input class="sdpi-item-value" id="hotkeyRight" value="" placeholder="Enter hotkey" oninput="saveSettings()">
-    </div>
-    <div type="checkbox" class="sdpi-item">
-        <div class="sdpi-item-label">Modifiers</div>
-        <div class="sdpi-item-value">
+        <div class="sdpi-item-value hotkey-field">
+            <input class="sdpi-item-value" id="hotkeyRight" value="" placeholder="Enter hotkey" oninput="saveSettings()">
             <input id="ctrlRight" type="checkbox" value="ctrl" oninput="saveSettings()">
             <label for="ctrlRight" class="sdpi-item-label"><span></span>Ctrl</label>
             <input id="altRight" type="checkbox" value="alt" oninput="saveSettings()">
@@ -55,11 +50,8 @@
 
     <div class="sdpi-item">
         <div class="sdpi-item-label">Hotkey</div>
-        <input class="sdpi-item-value" id="hotkey" value="" placeholder="Enter hotkey" oninput="saveSettings()">
-    </div>
-    <div type="checkbox" class="sdpi-item">
-        <div class="sdpi-item-label">Modifiers</div>
-        <div class="sdpi-item-value">
+        <div class="sdpi-item-value hotkey-field">
+            <input class="sdpi-item-value" id="hotkey" value="" placeholder="Enter hotkey" oninput="saveSettings()">
             <input id="ctrl" type="checkbox" value="ctrl" oninput="saveSettings()">
             <label for="ctrl" class="sdpi-item-label"><span></span>Ctrl</label>
             <input id="alt" type="checkbox" value="alt" oninput="saveSettings()">

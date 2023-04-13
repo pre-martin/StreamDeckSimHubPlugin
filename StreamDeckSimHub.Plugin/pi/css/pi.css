@@ -1,0 +1,21 @@
+﻿
+.hotkey-field {
+    /* Avoid double margin of "sdpi-item-value" and "input.sdpi-item-value" by removing it */
+    margin-left: auto;
+}
+
+.hotkey-field > input {
+    /* Limit text field size */
+    width: 6em;
+    /* Reset min-width from sdpi.css */
+    min-width: auto;
+    /* Set height which would have been set by sdpi.css ".sdpi-item>*:not(.sdpi-item-label):not(meter):not(details):not(canvas)" */
+    min-height: 26px;
+    /* Reduce margin on right side from ".sdpi-item-value" */
+    margin-right: 7px;
+}
+
+.hotkey-field > input[type="checkbox"]+label {
+    /* Reset min-width which was set from sdpi.css "input[type="checkbox"]+label" */
+    margin-right: auto;
+}

@@ -157,6 +157,9 @@
       <None Update="pi\components\sib.jsx">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="pi\css\pi.css">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="pi\react\babel.min.js">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
