@@ -57,7 +57,7 @@
     },
     {
       "Controllers": [
-        "Encoder"
+        "Encoder", "Keypad"
       ],
       "Encoder": {
         "layout": "$A1"

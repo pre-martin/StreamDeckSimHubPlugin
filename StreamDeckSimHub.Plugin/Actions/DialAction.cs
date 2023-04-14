@@ -61,6 +61,11 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         }
     }
 
+    protected override Task OnKeyPress(ActionEventArgs<KeyPayload> args)
+    {
+        return OnDialRotate(new ActionEventArgs<DialRotatePayload> { Payload = new DialRotatePayload {Coordinates = args.Payload.Coordinates, Ticks = 1}});
+    }
+
     protected override Task OnDialPress(ActionEventArgs<DialPayload> args)
     {
         Logger.LogInformation("OnDialPress ({coords}): Pressed {pressed}", args.Payload.Coordinates, args.Payload.Pressed);
