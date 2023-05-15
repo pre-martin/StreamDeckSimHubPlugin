@@ -50,36 +50,57 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         if (args.Payload.Ticks < 0)
         {
             KeyboardUtils.KeyDown(_hotkeyLeft);
+            if (!string.IsNullOrWhiteSpace(_settings.SimHubControlLeft))
+            {
+                await _simHubConnection.SendTriggerInputPressed(_settings.SimHubControlLeft);
+            }
+
             await Task.Delay(TimeSpan.FromMilliseconds(50));
+
             KeyboardUtils.KeyUp(_hotkeyLeft);
+            if (!string.IsNullOrWhiteSpace(_settings.SimHubControlLeft))
+            {
+                await _simHubConnection.SendTriggerInputReleased(_settings.SimHubControlLeft);
+            }
         }
         else if (args.Payload.Ticks > 0)
         {
             KeyboardUtils.KeyDown(_hotkeyRight);
+            if (!string.IsNullOrWhiteSpace(_settings.SimHubControlRight))
+            {
+                await _simHubConnection.SendTriggerInputPressed(_settings.SimHubControlRight);
+            }
+
             await Task.Delay(TimeSpan.FromMilliseconds(50));
+
             KeyboardUtils.KeyUp(_hotkeyRight);
+            if (!string.IsNullOrWhiteSpace(_settings.SimHubControlRight))
+            {
+                await _simHubConnection.SendTriggerInputReleased(_settings.SimHubControlRight);
+            }
         }
     }
 
-    protected override Task OnKeyPress(ActionEventArgs<KeyPayload> args)
-    {
-        return OnDialRotate(new ActionEventArgs<DialRotatePayload> { Payload = new DialRotatePayload {Coordinates = args.Payload.Coordinates, Ticks = 1}});
-    }
-
-    protected override Task OnDialPress(ActionEventArgs<DialPayload> args)
+    protected override async Task OnDialPress(ActionEventArgs<DialPayload> args)
     {
         Logger.LogInformation("OnDialPress ({coords}): Pressed {pressed}", args.Payload.Coordinates, args.Payload.Pressed);
 
         if (args.Payload.Pressed)
         {
             KeyboardUtils.KeyDown(_hotkey);
+            if (!string.IsNullOrWhiteSpace(_settings.SimHubControl))
+            {
+                await _simHubConnection.SendTriggerInputPressed(_settings.SimHubControl);
+            }
         }
         else
         {
             KeyboardUtils.KeyUp(_hotkey);
+            if (!string.IsNullOrWhiteSpace(_settings.SimHubControl))
+            {
+                await _simHubConnection.SendTriggerInputReleased(_settings.SimHubControl);
+            }
         }
-
-        return Task.CompletedTask;
     }
 
     private async Task SetSettings(DialActionSettings settings, bool forceSubscribe)

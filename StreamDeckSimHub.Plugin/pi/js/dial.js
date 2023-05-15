@@ -24,9 +24,9 @@ function loadSettings(settings) {
 
 function saveSettings() {
     const settingIds = [
-        'hotkeyLeft', 'ctrlLeft', 'altLeft', 'shiftLeft',
-        'hotkeyRight', 'ctrlRight', 'altRight', 'shiftRight',
-        'hotkey', 'ctrl', 'alt', 'shift',
+        'hotkeyLeft', 'ctrlLeft', 'altLeft', 'shiftLeft', 'simhubControlLeft',
+        'hotkeyRight', 'ctrlRight', 'altRight', 'shiftRight', 'simhubControlRight',
+        'hotkey', 'ctrl', 'alt', 'shift', 'simhubControl',
         'displaySimhubProperty'
     ];
 

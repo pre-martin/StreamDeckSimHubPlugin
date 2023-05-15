@@ -5,6 +5,8 @@ namespace StreamDeckSimHub.Plugin.Actions;
 
 public class DialActionSettings : HotkeySettings
 {
+    public string SimHubControl { get; init; } = string.Empty;
+
     public string HotkeyLeft { get; init; } = string.Empty;
 
     public bool CtrlLeft { get; init; }
@@ -12,6 +14,8 @@ public class DialActionSettings : HotkeySettings
     public bool AltLeft { get; init; }
 
     public bool ShiftLeft { get; init; }
+
+    public string SimHubControlLeft { get; init; } = string.Empty;
 
     public string HotkeyRight { get; init;  } = string.Empty;
 
@@ -21,11 +25,13 @@ public class DialActionSettings : HotkeySettings
 
     public bool ShiftRight { get; init; }
 
+    public string SimHubControlRight { get; init; } = string.Empty;
+
     public string DisplaySimHubProperty { get; init; } = string.Empty;
 
     public override string ToString()
     {
-        return $"Press: {base.ToString()}, Left: {HotkeyString(HotkeyLeft, CtrlLeft, AltLeft, ShiftLeft)}, Right: {HotkeyString(HotkeyRight, CtrlRight, AltRight, ShiftRight)}, DisplaySimHubProperty: {DisplaySimHubProperty}";
+        return $"Press: {base.ToString()}, SimHubControl: {SimHubControl}, Left: {HotkeyString(HotkeyLeft, CtrlLeft, AltLeft, ShiftLeft)}, SimHubControlLeft: {SimHubControlLeft}, Right: {HotkeyString(HotkeyRight, CtrlRight, AltRight, ShiftRight)}, SimHubControlRight: {SimHubControlRight}, DisplaySimHubProperty: {DisplaySimHubProperty}";
     }
 
 }
