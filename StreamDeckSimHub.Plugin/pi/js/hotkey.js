@@ -113,7 +113,7 @@ const resolvePropertyNameFromCache = (source) => {
  * @param sourceId The source element, which shall be updated, when an element was selected later on.
  */
 function fetchShakeItBassStructure(sourceId) {
-    $PI.sendToPlugin({Event: 'fetchShakeItBassStructure', SourceId: sourceId});
+    $PI.sendToPlugin({Event: 'fetchShakeItBassStructure', parameters: {args: {SourceId: sourceId}}});
 }
 
 /**
@@ -122,7 +122,7 @@ function fetchShakeItBassStructure(sourceId) {
  * @param sourceId The source element, which shall be updated, when an element was selected later on.
  */
 function fetchShakeItMotorsStructure(sourceId) {
-    $PI.sendToPlugin({Event: 'fetchShakeItMotorsStructure', SourceId: sourceId});
+    $PI.sendToPlugin({Event: 'fetchShakeItMotorsStructure', parameters: {args: {SourceId: sourceId}}});
 }
 
 
