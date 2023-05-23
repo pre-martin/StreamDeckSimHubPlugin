@@ -52,7 +52,7 @@ function saveSettings() {
         'hotkeyLeft', 'ctrlLeft', 'altLeft', 'shiftLeft', 'simhubControlLeft',
         'hotkeyRight', 'ctrlRight', 'altRight', 'shiftRight', 'simhubControlRight',
         'hotkey', 'ctrl', 'alt', 'shift', 'simhubControl',
-        'displaySimhubProperty', 'displaySimhubPropertyClearNameCache'
+        'displaySimhubProperty', 'displaySimhubPropertyClearNameCache', 'displayFormat'
     ];
 
     let payload = {};

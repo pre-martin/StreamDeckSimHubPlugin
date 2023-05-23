@@ -6,6 +6,7 @@ using SharpDeck;
 using SharpDeck.Events.Received;
 using SharpDeck.Layouts;
 using SharpDeck.PropertyInspectors;
+using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.SimHub;
 using StreamDeckSimHub.Plugin.Tools;
 
@@ -19,8 +20,11 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     private KeyboardUtils.Hotkey? _hotkey;
     private KeyboardUtils.Hotkey? _hotkeyLeft;
     private KeyboardUtils.Hotkey? _hotkeyRight;
-    private readonly IPropertyChangedReceiver _displayPropertyChangedReceiver;
     private readonly ShakeItStructureFetcher _shakeItStructureFetcher;
+    private readonly IPropertyChangedReceiver _displayPropertyChangedReceiver;
+    private string _displayFormat = "${0}";
+    private PropertyChangedArgs? _lastDisplayPropertyChangedEvent;
+    private readonly FormatHelper _formatHelper = new();
 
     public DialAction(SimHubConnection simHubConnection, ShakeItStructureFetcher shakeItStructureFetcher)
     {
@@ -130,10 +134,22 @@ public class DialAction : StreamDeckAction<DialActionSettings>
 
     private async Task SetSettings(DialActionSettings settings, bool forceSubscribe)
     {
-        // Unsubscribe previous SimHub property, if it was set and is different than the new one.
+        var newDisplayFormat = _formatHelper.CompleteFormatString(settings.DisplayFormat);
+        // Redisplay the title if the format for the title has changed.
+        var recalcDisplay = newDisplayFormat != _displayFormat;
+        _displayFormat = newDisplayFormat;
+        if (recalcDisplay)
+        {
+            await RefireDisplayPropertyChanged();
+        }
+
+        // Unsubscribe previous SimHub "Display" property, if it was set and is different than the new one.
         if (!string.IsNullOrEmpty(_settings.DisplaySimHubProperty) && _settings.DisplaySimHubProperty != settings.DisplaySimHubProperty)
         {
             await _simHubConnection.Unsubscribe(_settings.DisplaySimHubProperty, _displayPropertyChangedReceiver);
+            // In case of the new "Display" property being invalid or empty, we remove the old title value.
+            _lastDisplayPropertyChangedEvent = null;
+            await SetDisplayProperty(null);
         }
 
         _hotkey = KeyboardUtils.CreateHotkey(settings.Ctrl, settings.Alt, settings.Shift, settings.Hotkey);
@@ -150,9 +166,33 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         _settings = settings;
     }
 
+    /// <summary>
+    /// Refire the last "DisplayPropertyChanged" event that was received from SimHub.
+    /// </summary>
+    private async Task RefireDisplayPropertyChanged()
+    {
+        if (_lastDisplayPropertyChangedEvent != null)
+        {
+            await DisplayPropertyChanged(_lastDisplayPropertyChangedEvent);
+        }
+    }
+
     private async Task DisplayPropertyChanged(PropertyChangedArgs args)
     {
-        Logger.LogDebug("DisplayProperty {PropertyName} changed to '{PropertyValue}'", args.PropertyName, args.PropertyValue);
-        await SetFeedbackAsync(new LayoutA1 { Value = args.PropertyValue == null ? string.Empty : args.PropertyValue.ToString() });
+        _lastDisplayPropertyChangedEvent = args;
+        await SetDisplayProperty(args.PropertyValue);
+    }
+
+    private async Task SetDisplayProperty(IComparable? property)
+    {
+        var value = property ?? string.Empty;
+        try
+        {
+            await SetFeedbackAsync(new LayoutA1 { Value = string.Format(_displayFormat, value) });
+        }
+        catch (FormatException)
+        {
+            await SetFeedbackAsync(new LayoutA1 { Value = value.ToString() });
+        }
     }
 }
