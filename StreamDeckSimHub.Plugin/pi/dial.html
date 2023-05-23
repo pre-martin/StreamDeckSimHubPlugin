@@ -77,7 +77,15 @@
 
     <div class="sdpi-item">
         <div class="sdpi-item-label">SimHub Property</div>
-        <input class="sdpi-item-value" id="displaySimhubProperty" value="" placeholder="Enter property name" oninput="saveSettingsDelayed()">
+        <div class="sdpi-item-value" style="display: flex; flex-direction: column;">
+            <input style="min-height: 26px;" id="displaySimhubProperty" value="" placeholder="Enter property name" oninput="propertyFieldChanged(this)">
+            <label id="displaySimhubPropertyClearName" style="font-size: 9pt;"></label>
+            <div style="display: flex; flex-direction: row;">
+                <button class="max20" style="margin-left: 0;" onclick="fetchShakeItBassStructure('displaySimhubProperty')" title="Open ShakeIt Bass selector">SIB</button>
+                <button class="max20" style="margin-left: 0;" onclick="fetchShakeItMotorsStructure('displaySimhubProperty')" title="Open ShakeIt Motors selector">SIM</button>
+            </div>
+            <input id="displaySimhubPropertyClearNameCache" class="hidden" value=""/>
+        </div>
     </div>
 </div>
 
@@ -86,6 +94,7 @@
 <script src="libs/js/api.js"></script>
 <script src="libs/js/property-inspector.js"></script>
 <script src="libs/js/utils.js"></script>
+<script src="js/shakeit.js"></script>
 <script src="js/dial.js"></script>
 
 </body>

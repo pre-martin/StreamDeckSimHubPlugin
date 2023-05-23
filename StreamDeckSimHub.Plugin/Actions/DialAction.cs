@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using SharpDeck;
 using SharpDeck.Events.Received;
 using SharpDeck.Layouts;
+using SharpDeck.PropertyInspectors;
 using StreamDeckSimHub.Plugin.SimHub;
 using StreamDeckSimHub.Plugin.Tools;
 
@@ -19,11 +20,35 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     private KeyboardUtils.Hotkey? _hotkeyLeft;
     private KeyboardUtils.Hotkey? _hotkeyRight;
     private readonly IPropertyChangedReceiver _displayPropertyChangedReceiver;
+    private readonly ShakeItStructureFetcher _shakeItStructureFetcher;
 
-    public DialAction(SimHubConnection simHubConnection)
+    public DialAction(SimHubConnection simHubConnection, ShakeItStructureFetcher shakeItStructureFetcher)
     {
         _simHubConnection = simHubConnection;
+        _shakeItStructureFetcher = shakeItStructureFetcher;
         _displayPropertyChangedReceiver = new PropertyChangedDelegate(DisplayPropertyChanged);
+    }
+
+    /// <summary>
+    /// Method to handle the event "fetchShakeItBassStructure" from the Property Inspector. Fetches the ShakeIt Bass structure
+    /// from SimHub and sends the result through the event "shakeItBassStructure" back to the Property Inspector.
+    /// </summary>
+    [PropertyInspectorMethod("fetchShakeItBassStructure")]
+    public async Task FetchShakeItBassStructure(FetchShakeItStructureArgs args)
+    {
+        var profiles = await _shakeItStructureFetcher.FetchBassStructure();
+        await SendToPropertyInspectorAsync(new { message = "shakeItBassStructure", profiles, args.SourceId });
+    }
+
+    /// <summary>
+    /// Method to handle the event "fetchShakeItMotorsStructure" from the Property Inspector. Fetches the ShakeIt Motors structure
+    /// from SimHub and sends the result through the event "shakeItMotorsStructure" back to the Property Inspector.
+    /// </summary>
+    [PropertyInspectorMethod("fetchShakeItMotorsStructure")]
+    public async Task FetchShakeItMotorsStructure(FetchShakeItStructureArgs args)
+    {
+        var profiles = await _shakeItStructureFetcher.FetchMotorsStructure();
+        await SendToPropertyInspectorAsync(new { message = "shakeItMotorsStructure", profiles, args.SourceId });
     }
 
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
