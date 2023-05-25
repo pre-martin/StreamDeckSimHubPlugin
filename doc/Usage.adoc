@@ -22,9 +22,10 @@ After the installation of the Plugin, a new category named "SimHub" will be avai
 
 This action offers the same functionality as the built-in action "Hotkey", but with some additional SimHub related features. The features are as follows:
 
-- Send a keystroke event to the active window (like the built-in "Hotkey")
-- Send an input trigger to SimHub
-- Bind the state of the button ("on" or "off") to the real state of a SimHub property
+* Send a keystroke event to the active window (like the built-in "Hotkey")
+* Send an input trigger to SimHub
+* Bind the state of the button ("on" or "off") to the real state of a SimHub property
+* Show the value of a SimHub property on the button
 
 This allows to interact with the simulation (by sending keystroke events to the simulation), to interact with SimHub (by sending input triggers to SimHub) and to visualize the correct state of properties, no matter if these properties have been modified by the button or some other means: The button will always display the correct state.
 
@@ -302,3 +303,30 @@ image::Example-TriggerInput-SimHub.png[Trigger Input - SimHub]
 The Stream Deck button can now be used to mute and unmute the effect group in SimHub.
 
 *Note*: This action is usually used inside of multi actions. For buttons with feedback, consider using the <<hotkey>> action. It offers significantly more features, including the field "SimHub Control".
+
+
+[#dial]
+== Action "Dial" (Stream Deck + only)
+
+=== Description
+
+This action is very similar to the "Hotkey" action, with the difference that the "Dial" action can be used for the rotary encoders of the Stream Deck +. The features are as follows:
+
+* Send a keystroke event to the active window, if a rotary knob is rotated or pressed.
+* Send an input trigger to SimHub, if a rotary knob is rotated or pressed.
+* Show the value of a SimHub property on the display
+
+The fields of this action are as follows:
+
+* *Hotkey (Rotate counterclockwise)* +
+  This optional field takes a key, which should be sent to the active window, when the rotary knob is turned counterclockwise. Please see the description of the <<hotkey>> for details.
+* *SimHub Control (Rotate counterclockwise)* +
+  This optional field may take a *unique* string. This string will be sent as an input trigger to SimHub, when die rotary knob is turned counterclockwise. Again, see <<hotkey>> for details.
+* *Hotkey* and *SimHub Control* (*Rotate clockwise*) +
+  Same as above, but for clockwise rotation of the knob.
+* *Hotkey* and *SimHub Control* (*Press*) +
+  Same as above, but when the rotary knob is pressed.
+* *SimHub Property (for display)* +
+  This optional field allows to specify a SimHub property, which will be shown in the display of the rotary knob. The setion <<hotkey>> contains extensive documentation on the use of SimHub properties.
+* *Display Format (for display)* +
+  Another optional field. If set, the SimHub property shown on the display will be formatted with this format string. Again, see <<hotkey>> for extensive documentation of the format string.
