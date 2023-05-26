@@ -71,7 +71,7 @@
           "Name": "Dial"
         }
       ],
-      "Tooltip": "Dial button",
+      "Tooltip": "Dial with SimHub state",
       "UUID": "net.planetrenner.simhub.dial"
     }
   ],
