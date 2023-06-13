@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name=viewport
+          content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
+    <meta name=apple-mobile-web-app-capable content=yes>
+    <meta name=apple-mobile-web-app-status-bar-style content=black>
+    <title>net.planetrenner.simhub.dialPI</title>
+    <link rel="stylesheet" href="libs/css/sdpi.css">
+    <link rel="stylesheet" href="css/pi.css">
+</head>
+
+<body>
+
+<div class="sdpi-wrapper">
+
+    <div class="sdpi-heading">Rotate CCW</div>
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">Hotkey</div>
+        <div class="sdpi-item-value hotkey-field">
+            <input class="sdpi-item-value" id="hotkeyLeft" value="" placeholder="Enter hotkey" oninput="saveSettings()">
+            <input id="ctrlLeft" type="checkbox" value="ctrl" oninput="saveSettings()">
+            <label for="ctrlLeft" class="sdpi-item-label"><span></span>Ctrl</label>
+            <input id="altLeft" type="checkbox" value="alt" oninput="saveSettings()">
+            <label for="altLeft" class="sdpi-item-label"><span></span>Alt</label>
+            <input id="shiftLeft" type="checkbox" value="shift" oninput="saveSettings()">
+            <label for="shiftLeft" class="sdpi-item-label"><span></span>Shift</label>
+        </div>
+    </div>
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">SimHub Control</div>
+        <input class="sdpi-item-value" id="simhubControlLeft" value="" placeholder="Enter unique control name" oninput="saveSettingsDelayed()">
+    </div>
+
+    <div class="sdpi-heading">Rotate CW</div>
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">Hotkey</div>
+        <div class="sdpi-item-value hotkey-field">
+            <input class="sdpi-item-value" id="hotkeyRight" value="" placeholder="Enter hotkey" oninput="saveSettings()">
+            <input id="ctrlRight" type="checkbox" value="ctrl" oninput="saveSettings()">
+            <label for="ctrlRight" class="sdpi-item-label"><span></span>Ctrl</label>
+            <input id="altRight" type="checkbox" value="alt" oninput="saveSettings()">
+            <label for="altRight" class="sdpi-item-label"><span></span>Alt</label>
+            <input id="shiftRight" type="checkbox" value="shift" oninput="saveSettings()">
+            <label for="shiftRight" class="sdpi-item-label"><span></span>Shift</label>
+        </div>
+    </div>
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">SimHub Control</div>
+        <input class="sdpi-item-value" id="simhubControlRight" value="" placeholder="Enter unique control name" oninput="saveSettingsDelayed()">
+    </div>
+
+    <div class="sdpi-heading">Press</div>
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">Hotkey</div>
+        <div class="sdpi-item-value hotkey-field">
+            <input class="sdpi-item-value" id="hotkey" value="" placeholder="Enter hotkey" oninput="saveSettings()">
+            <input id="ctrl" type="checkbox" value="ctrl" oninput="saveSettings()">
+            <label for="ctrl" class="sdpi-item-label"><span></span>Ctrl</label>
+            <input id="alt" type="checkbox" value="alt" oninput="saveSettings()">
+            <label for="alt" class="sdpi-item-label"><span></span>Alt</label>
+            <input id="shift" type="checkbox" value="shift" oninput="saveSettings()">
+            <label for="shift" class="sdpi-item-label"><span></span>Shift</label>
+        </div>
+    </div>
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">SimHub Control</div>
+        <input class="sdpi-item-value" id="simhubControl" value="" placeholder="Enter unique control name" oninput="saveSettingsDelayed()">
+    </div>
+
+    <div class="sdpi-heading">Display</div>
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">SimHub Property</div>
+        <div class="sdpi-item-value" style="display: flex; flex-direction: column;">
+            <input style="min-height: 26px;" id="displaySimhubProperty" value="" placeholder="Enter property name" oninput="propertyFieldChanged(this)">
+            <label id="displaySimhubPropertyClearName" style="font-size: 9pt;"></label>
+            <div style="display: flex; flex-direction: row;">
+                <button class="max20" style="margin-left: 0;" onclick="fetchShakeItBassStructure('displaySimhubProperty')" title="Open ShakeIt Bass selector">SIB</button>
+                <button class="max20" style="margin-left: 0;" onclick="fetchShakeItMotorsStructure('displaySimhubProperty')" title="Open ShakeIt Motors selector">SIM</button>
+            </div>
+            <input id="displaySimhubPropertyClearNameCache" class="hidden" value=""/>
+        </div>
+    </div>
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">Display Format</div>
+        <span class="sdpi-item-value textarea" >
+            <textarea id="displayFormat" rows="2" style="min-height: 2em;" placeholder="Format like '[alignment][:formatString]'" oninput="saveSettingsDelayed()"></textarea>
+        </span>
+    </div>
+</div>
+
+<script src="libs/js/constants.js"></script>
+<script src="libs/js/events.js"></script>
+<script src="libs/js/api.js"></script>
+<script src="libs/js/property-inspector.js"></script>
+<script src="libs/js/utils.js"></script>
+<script src="js/shakeit.js"></script>
+<script src="js/dial.js"></script>
+
+</body>
+</html>

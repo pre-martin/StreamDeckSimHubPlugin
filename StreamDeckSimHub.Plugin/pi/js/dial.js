@@ -1,7 +1,6 @@
 $PI.onConnected(jsn => {
     loadSettings(jsn.actionInfo.payload.settings);
 
-
     // Event handler that handles the events from our child window (sib.html).
     window.addEventListener('message', (event) => {
         // We do not check the origin, because this data is not confidential and we are in a trusted environment.
@@ -43,18 +42,17 @@ function loadSettings(settings) {
         }
     }
 
-    $ShakeIt.resolvePropertyNameFromCache(document.getElementById('simhubProperty'));
-    $ShakeIt.resolvePropertyNameFromCache(document.getElementById('titleSimhubProperty'));
+    $ShakeIt.resolvePropertyNameFromCache(document.getElementById('displaySimhubProperty'));
 }
 
 const saveSettingsDelayed = Utils.debounce(500, () => saveSettings());
 
 function saveSettings() {
     const settingIds = [
-        'hotkey', 'ctrl', 'alt', 'shift',
-        'simhubControl',
-        'simhubProperty', 'simhubPropertyClearNameCache',
-        'titleSimhubProperty', 'titleSimhubPropertyClearNameCache', 'titleFormat'
+        'hotkeyLeft', 'ctrlLeft', 'altLeft', 'shiftLeft', 'simhubControlLeft',
+        'hotkeyRight', 'ctrlRight', 'altRight', 'shiftRight', 'simhubControlRight',
+        'hotkey', 'ctrl', 'alt', 'shift', 'simhubControl',
+        'displaySimhubProperty', 'displaySimhubPropertyClearNameCache', 'displayFormat'
     ];
 
     let payload = {};
