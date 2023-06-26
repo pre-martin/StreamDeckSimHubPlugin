@@ -132,9 +132,10 @@ public class SimHubConnection
                 continue;
             }
 
+            Logger.Debug("Connected to SimHub, waiting for handshake...");
             try
             {
-                var line = await new LineReader(_tcpClient.GetStream()).ReadLineAsync();
+                var line = await new LineReader(_tcpClient.GetStream()).ReadLineAsync().WaitAsync(TimeSpan.FromSeconds(2));
                 if (line != null && line.StartsWith("SimHub Property Server"))
                 {
                     Logger.Info($"Established connection to {Sanitize(line)}");
@@ -340,10 +341,11 @@ public class SimHubConnection
 
     private async Task WriteToServer(string line)
     {
+        Logger.Debug($"WriteToServer: {line}");
         if (!Connected || _tcpClient == null || !_tcpClient.Connected)
         {
             Logger.Warn(
-                $"Cannot send to server (connected: {Connected}, tcpClient: {_tcpClient != null}, tcpClient.Connected: {_tcpClient?.Connected}");
+                $"Cannot send to server (connected: {Connected}, tcpClient: {_tcpClient != null}, tcpClient.Connected: {_tcpClient?.Connected})");
             return;
         }
 
