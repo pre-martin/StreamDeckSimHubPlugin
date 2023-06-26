@@ -35,14 +35,14 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
     {
         var settings = args.Payload.GetSettings<TSettings>();
-        Logger.LogInformation("OnWillAppear: {settings}", settings);
+        Logger.LogInformation("OnWillAppear ({coords}): {settings}", args.Payload.Coordinates, settings);
         await SetSettings(settings, true);
         await base.OnWillAppear(args);
     }
 
     protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
     {
-        Logger.LogInformation("OnWillDisappear: {settings}", HotkeySettings);
+        Logger.LogInformation("OnWillDisappear ({coords}): {settings}", args.Payload.Coordinates, HotkeySettings);
         await Unsubscribe();
 
         // Just to be sure that there are no dangling input triggers. Actually we should not reach this code.
@@ -82,7 +82,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
 
     protected override async Task OnDidReceiveSettings(ActionEventArgs<ActionPayload> args, TSettings settings)
     {
-        Logger.LogInformation("OnDidReceiveSettings: {settings}", settings);
+        Logger.LogInformation("OnDidReceiveSettings ({coords}): {settings}", args.Payload.Coordinates, settings);
 
         await SetSettings(settings, false);
         await base.OnDidReceiveSettings(args, settings);

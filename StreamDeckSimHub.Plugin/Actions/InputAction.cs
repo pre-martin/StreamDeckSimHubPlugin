@@ -28,13 +28,14 @@ public class InputAction : StreamDeckAction<InputSettings>
     {
         var settings = args.Payload.GetSettings<InputSettings>();
         Logger.LogInformation(
-            "OnWillAppear: SimHubControl: {SimHubControl}", settings.SimHubControl);
+            "OnWillAppear ({coords}): SimHubControl: {SimHubControl}", args.Payload.Coordinates, settings.SimHubControl);
         SetSettings(settings);
         await base.OnWillAppear(args);
     }
 
     protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
     {
+        Logger.LogInformation("OnWillDisappear ({coords})", args.Payload.Coordinates);
         // Just to be sure that there are no dangling input triggers. Actually we should not reach this code.
         if (_simHubTriggerActive)
         {
@@ -49,7 +50,7 @@ public class InputAction : StreamDeckAction<InputSettings>
     protected override async Task OnDidReceiveSettings(ActionEventArgs<ActionPayload> args, InputSettings settings)
     {
         Logger.LogInformation(
-            "OnDidReceiveSettings: SimHubControl: {SimHubControl}", settings.SimHubControl);
+            "OnDidReceiveSettings ({coords}): SimHubControl: {SimHubControl}", args.Payload.Coordinates, settings.SimHubControl);
 
         SetSettings(settings);
         await base.OnDidReceiveSettings(args, settings);
