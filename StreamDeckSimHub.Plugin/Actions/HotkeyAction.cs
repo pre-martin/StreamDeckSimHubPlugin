@@ -1,6 +1,7 @@
 ﻿// Copyright (C) 2023 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using Newtonsoft.Json;
 using SharpDeck;
 using SharpDeck.PropertyInspectors;
 using StreamDeckSimHub.Plugin.PropertyLogic;
@@ -89,16 +90,9 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
 
         // The field "ac.SimHubProperty" may contain an expression, which is not understood by the base class. So we
         // construct a new instance without expression.
-        var acNew = new HotkeyActionSettings()
-        {
-            Hotkey = ac.Hotkey,
-            SimHubControl = ac.SimHubControl,
-            SimHubProperty = _conditionExpression.Property,
-            Ctrl = ac.Ctrl,
-            Alt = ac.Alt,
-            Shift = ac.Shift,
-            TitleSimHubProperty = ac.TitleSimHubProperty
-        };
+        var acSerialized = JsonConvert.SerializeObject(ac);
+        var acNew = JsonConvert.DeserializeObject<HotkeyActionSettings>(acSerialized);
+        acNew!.SimHubProperty = _conditionExpression.Property;
 
         // Unsubscribe previous SimHub "Title" property, if it was set and is different than the new one.
         if (!string.IsNullOrEmpty(HotkeySettings.TitleSimHubProperty) && HotkeySettings.TitleSimHubProperty != ac.TitleSimHubProperty)
