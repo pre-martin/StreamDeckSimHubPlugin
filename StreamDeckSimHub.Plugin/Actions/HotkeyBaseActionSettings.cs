@@ -9,7 +9,7 @@ namespace StreamDeckSimHub.Plugin.Actions;
 public class HotkeyBaseActionSettings : HotkeySettings
 {
     public string SimHubControl { get; init; } = string.Empty;
-    public string SimHubProperty { get; init; } = string.Empty;
+    public string SimHubProperty { get; set; } = string.Empty;
 
     public override string ToString()
     {
