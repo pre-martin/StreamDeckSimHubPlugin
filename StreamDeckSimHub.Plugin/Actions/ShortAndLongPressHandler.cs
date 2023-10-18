@@ -49,7 +49,7 @@ public class ShortAndLongPressHandler
                     await Task.Delay(LongPressTimeSpan, _cancellationTokenSource.Token);
                     await me.TryHandlePress(OnLongPress);
                 }
-                catch (TaskCanceledException e)
+                catch (TaskCanceledException)
                 {
                     // That is what we expect if a short press was faster
                 }
