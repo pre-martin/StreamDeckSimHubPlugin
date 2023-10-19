@@ -57,6 +57,27 @@ public class ShortAndLongPressHandlerTests
         cb.AssertAndReset(true, false);
     }
 
+    [Test]
+    public async Task TestLongLong()
+    {
+        // Long+Long to test that the delay timer works several times
+
+        var cb = new CallbackHolder();
+        var handler = new ShortAndLongPressHandler(_timeSpan, cb.OnShortPress, cb.OnLongPress);
+
+        await handler.KeyDown(new ActionEventArgs<KeyPayload>());
+        await Task.Delay(_timeSpanLonger);
+        await handler.KeyUp();
+
+        cb.AssertAndReset(false, true);
+
+        await handler.KeyDown(new ActionEventArgs<KeyPayload>());
+        await Task.Delay(_timeSpanLonger);
+        await handler.KeyUp();
+
+        cb.AssertAndReset(false, true);
+    }
+
     private class CallbackHolder
     {
         private bool _shortWasCalled;
