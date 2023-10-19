@@ -2,6 +2,7 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.Concurrent;
+using NLog;
 using SharpDeck.Events.Received;
 
 namespace StreamDeckSimHub.Plugin.Actions;
@@ -18,7 +19,7 @@ public class ShortAndLongPressHandler
     private TimeSpan LongPressTimeSpan { get; }
     private Func<ActionEventArgs<KeyPayload>, Task> OnShortPress { get; }
     private Func<ActionEventArgs<KeyPayload>, Task> OnLongPress { get; }
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private CancellationTokenSource? _cancellationTokenSource;
 
     public ShortAndLongPressHandler(
         Func<ActionEventArgs<KeyPayload>, Task> onShortPress,
@@ -46,10 +47,11 @@ public class ShortAndLongPressHandler
                 try
                 {
                     var me = this;
+                    _cancellationTokenSource = new();
                     await Task.Delay(LongPressTimeSpan, _cancellationTokenSource.Token);
                     await me.TryHandlePress(OnLongPress);
                 }
-                catch (TaskCanceledException)
+                catch (TaskCanceledException e)
                 {
                     // That is what we expect if a short press was faster
                 }
@@ -68,7 +70,7 @@ public class ShortAndLongPressHandler
     {
         if (KeyPressStack.TryPop(out var result))
         {
-            _cancellationTokenSource.Cancel();
+            _cancellationTokenSource?.Cancel();
             await handler(result);
         }
     }
