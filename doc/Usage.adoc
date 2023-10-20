@@ -20,16 +20,19 @@ After the installation of the Plugin, a new category named "SimHub" will be avai
 
 === Description
 
-This action offers the same functionality as the built-in action "Hotkey", but with some additional SimHub related features. The features are as follows:
+This action offers the same functionality as the built-in action "Hotkey", but with some additional - mostly SimHub related - features. The features are as follows:
 
 * Send a keystroke event to the active window (like the built-in "Hotkey")
 * Send an input trigger to SimHub
+* Allow different keystrokes and SimHub triggers for short and long button presses
 * Bind the state of the button ("on" or "off") to the real state of a SimHub property
 * Show the value of a SimHub property on the button
 
 This allows to interact with the simulation (by sending keystroke events to the simulation), to interact with SimHub (by sending input triggers to SimHub) and to visualize the correct state of properties, no matter if these properties have been modified by the button or some other means: The button will always display the correct state.
 
 The fields of this action are as follows:
+
+Section Keypress::
 
 * *Hotkey* +
   This optional field takes a key, which should be sent to the active window. +
@@ -39,7 +42,6 @@ The fields of this action are as follows:
   ** `KEY_A` (same as above)
   ** `SPACE` (will send an event for the space key)
   ** `F11` (event for F11)
-
 +
 Please note, that not all entries in "VirtualKeyShort" make sense in the field "Hotkey".
 
@@ -47,12 +49,56 @@ Please note, that not all entries in "VirtualKeyShort" make sense in the field "
   Modifiers like Ctrl, Alt and Shift have to be specified by using the corresponding checkbox.
 * *SimHub Control* +
   This optional field may take a *unique* string. This string will be sent as an input trigger to SimHub, where it is used to identify this Stream Deck button. See the section <<#input>> below for details about input triggers.
+
+Section Long Keypress::
+
+* This section is basically the same as "Keypress", but it enables a special mode, in which a short press on a Stream Deck key triggers a different action than a long press. See the section <<#longKeypress>> for details.
+
+Section State::
+
 * *SimHub Property (for state)* +
   This optional field allows to enter the name of a SimHub property or even a logical expression with a SimHub property. The SimHub property or the result of the logical expression will be used to set the state of the button to either "on" or "off". See the section <<#simHubPropertyForState>> for details.
+
+Section Title::
+
 * *SimHub Property (for title)* +
   This optional field allows to specify a SimHub property, which will be displayed as the "Title" of the button. Be sure to leave the default Stream Deck field "Title" empty. However you can use all available formatting options of the default field "Title", like alignment, size, color etc.
 * *Display Format (for title)* +
   Another optional field. If set, the SimHub property for the title will be formatted with this format string. If this field is empty, a default format is used. See the section <<#displayFormatForTitle>> for details.
+
+[#longKeypress]
+=== Section "Long Keypress"
+
+==== Description
+
+If this section is enabled with the checkbox, the Stream Deck key will behave differently depending on whether it is pressed for a short or a longer period of time. This can be used if there are not enough keys available on the Stream Deck
+
+==== Behavior if disabled
+
+When this feature is *disabled*, the Stream Deck key behaves as follows: When the key is pressed, the plugin sends immediately the hotkey with its modifiers as a "KeyDown" event to Windows. When the Stream Deck key is released, the plugin sends a "KeyUp" event to Windows. This is the same behavior as holding down a key on the keyboard for a long time. For example, if the active window is an editor, the pressed key is repeated until it is released.
+
+*Important:* The "KeyDown" event is sent immediately when the key is pressed.
+
+==== Behavior if enabled
+
+The plugin has to detect whether the Stream Deck key was pressed for a short or long time. Unfortunately, this only works if the key has been pressed for a certain time.
+
+Therefore, the Stream Deck key now behaves as follows:
+
+When the key is pressed, nothing happens at first. If the key is released again before "Long Time Span" milliseconds have elapsed, this is interpreted as a "short keystroke". The plugin sends a "KeyDown" event and "Short Hold Time" milliseconds later a "KeyUp" event to Windows. So for the application it looks like a key was pressed and hold for "Short Hold Time" milliseconds.
+
+If "Long Time Span" milliseconds have elapsed and the key is still held down, this is interpreted as a "long keystroke". The plugin sends a "KeyDown" event to Windows and a "KeyUp" event, as soon as the key is released.
+
+*Important:* The first "KeyDown" event is only sent, when either the Stream Deck key is released before "Long Time Span" or if "Long Time Span" milliseconds have elapsed. Thus the target application will not react immediately, when the key is pressed.
+
+==== Parameters
+
+* *Short Hold Time* +
+How long will the "short" keypress be hold down. I.e. the time between the "KeyDown" event and the "KeyUp" event. Set to 50 ms by default. +
+Should not be too short, otherwise some applications will have problems to detect that a key was pressed. If this is the case, the value can be increased to 100 ms.
+* *Long Time Span* +
+After how many milliseconds of holding down the Stream Deck key, it will be recognized as a "long" keypress. The target application will receive the "KeyDown" event for the long keystroke only after this many milliseconds.
+
 
 [#simHubPropertyForState]
 === Field "SimHub Property (for state)"
@@ -236,25 +282,35 @@ Everywhere, where a SimHub property can be used, there are also buttons labeled 
 
 === Examples
 
-* Button to toggle the Ignition in ACC (which is mapped to "Shift + I" by default):
-+
+==== Button to toggle the Ignition in ACC (which is mapped to "Shift + I" by default):
+
 image::Example-Ignition.png[Ignition]
-+
+
 In this example, the ignition is turned on in the game, so the button is in the "on" state (determined via SimHub by the property `dcp.gd.EngineIgnitionOn`).
 
-* Button to toggle the Engine in ACC (which is mapped to "S" by default):
-+
+==== Button to toggle the Engine in ACC (which is mapped to "S" by default):
+
 image::Example-Engine.png[Engine]
-+
+
 In this example, the engine is turned off in the game, so the button is in the "off" state (determined via SimHub by the property `dcp.gd.EngineStarted`).
 
-* Button without Hotkey functionality, but to display the brake bias:
-+
+==== Button without Hotkey functionality, but to display the brake bias:
+
 image::Example-BrakeBias.png[Brake Bias]
-+
+
 The "generic" property `DataCorePlugin.GameData.BrakeBias` is uses as the title. Although the "typed" property `acc.physics.BrakeBias` would be better than the "generic" property, we cannot use the latter one, because ACC uses car-dependent offset values for the brake bias - SimHub, on the other hand, provides us with the corrected value.
 
-* Another useful button for ACC would be the Hotkey "Alt + L" with the SimHub property `gd.sdb.PitLimiterOn` to toggle the pit limiter.
+==== Button with "short" for Ignition and "long" for Engine in ACC
+
+image::Example-Ign-Eng.png[Ignition and Engine]
+
+The same button can be used to toggle the ignition with a short press and the engine with a long press.
+
+This can be used if there are not enough keys available on the Stream Deck.
+
+==== ACC Pit Limiter
+
+Another useful button for ACC would be the Hotkey "Alt + L" with the SimHub property `gd.sdb.PitLimiterOn` to toggle the pit limiter.
 
 
 == Action "Hotkey 4-state"

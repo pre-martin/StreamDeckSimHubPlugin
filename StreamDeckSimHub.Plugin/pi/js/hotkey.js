@@ -27,6 +27,14 @@ $PI.onConnected(jsn => {
 });
 
 function loadSettings(settings) {
+    toggleLongKeypress(settings['hasLongKeypress']);
+    if (!('longKeypressShortHoldTime' in settings) || !settings['longKeypressShortHoldTime']) {
+        settings['longKeypressShortHoldTime'] = 50;
+    }
+    if (!('longKeypressTimeSpan' in settings) || !settings['longKeypressTimeSpan']) {
+        settings['longKeypressTimeSpan'] = 500;
+    }
+
     for (const id in settings) {
         try {
             const element = document.getElementById(id);
@@ -54,12 +62,18 @@ function saveSettings() {
         'hotkey', 'ctrl', 'alt', 'shift',
         'simhubControl',
         'simhubProperty', 'simhubPropertyClearNameCache',
+        'hasLongKeypress', 'longHotkey', 'longCtrl', 'longAlt', 'longShift', 'longKeypressShortHoldTime', 'longKeypressTimeSpan', 'longKeypressSimhubControl',
         'titleSimhubProperty', 'titleSimhubPropertyClearNameCache', 'titleFormat'
     ];
 
     let payload = {};
     for (const id of settingIds) {
         const element = document.getElementById(id);
+        if (!element) {
+            console.log('Save: Could not find element ' + id + ' on page!');
+            $PI.logMessage('Save: Could not find element ' + id + ' on page');
+            continue;
+        }
         if (element.getAttribute('type') === 'checkbox') {
             payload[id] = element.checked;
         } else {
@@ -67,7 +81,30 @@ function saveSettings() {
         }
     }
 
+    // Adjust flat object so that it fits to the server side JSON object. This also means that these settings will be saved
+    // twice, but that is not a problem.
+    payload['longKeypressSettings'] = {};
+    payload['longKeypressSettings']['hotkey'] = payload['longHotkey'];
+    payload['longKeypressSettings']['ctrl'] = payload['longCtrl'];
+    payload['longKeypressSettings']['alt'] = payload['longAlt'];
+    payload['longKeypressSettings']['shift'] = payload['longShift'];
+
     $PI.setSettings(payload);
+}
+
+/**
+ * Shows or hides the area of "Long Keypress" depending on the parameter "show".
+ */
+const toggleLongKeypress = (show) => {
+    const divElement = document.getElementById('longKeypressDiv')
+    if (divElement) {
+        if (show) {
+            divElement.classList.remove('hidden');
+        }
+        else {
+            divElement.classList.add('hidden');
+        }
+    }
 }
 
 /**

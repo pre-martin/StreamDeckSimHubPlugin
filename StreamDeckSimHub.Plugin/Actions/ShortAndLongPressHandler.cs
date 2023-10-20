@@ -15,25 +15,29 @@ namespace StreamDeckSimHub.Plugin.Actions;
 public class ShortAndLongPressHandler
 {
     private ConcurrentStack<ActionEventArgs<KeyPayload>> KeyPressStack { get; } = new();
-    private TimeSpan LongPressTimeSpan { get; }
+    public TimeSpan LongPressTimeSpan { get; set; }
     private Func<ActionEventArgs<KeyPayload>, Task> OnShortPress { get; }
     private Func<ActionEventArgs<KeyPayload>, Task> OnLongPress { get; }
+    private Func<Task> OnLongReleased { get; }
     private CancellationTokenSource? _cancellationTokenSource;
 
     public ShortAndLongPressHandler(
         Func<ActionEventArgs<KeyPayload>, Task> onShortPress,
-        Func<ActionEventArgs<KeyPayload>, Task> onLongPress) : this(TimeSpan.FromMilliseconds(500), onShortPress, onLongPress)
+        Func<ActionEventArgs<KeyPayload>, Task> onLongPress,
+        Func<Task> onLongReleased) : this(TimeSpan.FromMilliseconds(500), onShortPress, onLongPress, onLongReleased)
     {
     }
 
     public ShortAndLongPressHandler(
         TimeSpan longPressTimeSpan,
         Func<ActionEventArgs<KeyPayload>, Task> onShortPress,
-        Func<ActionEventArgs<KeyPayload>, Task> onLongPress)
+        Func<ActionEventArgs<KeyPayload>, Task> onLongPress,
+        Func<Task> onLongReleased)
     {
         LongPressTimeSpan = longPressTimeSpan;
         OnShortPress = onShortPress;
         OnLongPress = onLongPress;
+        OnLongReleased = onLongReleased;
     }
 
     public Task KeyDown(ActionEventArgs<KeyPayload> args)
@@ -67,10 +71,18 @@ public class ShortAndLongPressHandler
 
     private async Task TryHandlePress(Func<ActionEventArgs<KeyPayload>, Task> handler)
     {
-        if (KeyPressStack.TryPop(out var result))
+        // We reach this code either
+        // - when "KeyUp" was received before the end of the "Delay" (= short key press)
+        // - when the "Delay" has expired (= start of long key press).
+        // - when "KeyUp" was received after the Delay (= end of long key press)
+        if (KeyPressStack.TryPop(out var eventArgs))
         {
             _cancellationTokenSource?.Cancel();
-            await handler(result);
+            await handler(eventArgs);
+        }
+        else
+        {
+            await OnLongReleased();
         }
     }
 }
