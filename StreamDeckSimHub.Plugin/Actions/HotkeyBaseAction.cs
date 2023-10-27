@@ -25,7 +25,6 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
     private readonly IPropertyChangedReceiver _propertyChangedReceiver;
     private PropertyChangedArgs? _lastPropertyChangedEvent;
     private bool _simHubTriggerActive;
-    private bool _longKeypressSimHubTriggerActive;
     private readonly ShortAndLongPressHandler _salHandler;
 
     protected HotkeyBaseAction(SimHubConnection simHubConnection)
@@ -55,12 +54,6 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
             Logger.LogWarning("SimHub trigger still active. Sending \"released\" command");
             _simHubTriggerActive = false;
             await SimHubConnection.SendTriggerInputReleased(HotkeySettings.SimHubControl);
-        }
-        if (_longKeypressSimHubTriggerActive)
-        {
-            Logger.LogWarning("SimHub trigger (long) still active. Sending \"released\" command");
-            _longKeypressSimHubTriggerActive = false;
-            await SimHubConnection.SendTriggerInputReleased(HotkeySettings.LongKeypressSimHubControl);
         }
 
         await base.OnWillDisappear(args);
@@ -172,10 +165,10 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
         // Hotkey
         KeyboardUtils.KeyDown(_longKeypressHotkey);
         // SimHubControl
-        if (!string.IsNullOrWhiteSpace(HotkeySettings.LongKeypressSimHubControl))
+        if (!string.IsNullOrWhiteSpace(HotkeySettings.SimHubControl))
         {
-            _longKeypressSimHubTriggerActive = true;
-            await SimHubConnection.SendTriggerInputPressed(HotkeySettings.LongKeypressSimHubControl);
+            _simHubTriggerActive = true;
+            await SimHubConnection.SendTriggerInputPressed(HotkeySettings.SimHubControl);
         }
     }
 
@@ -184,11 +177,11 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
         // Hotkey
         KeyboardUtils.KeyUp(_longKeypressHotkey);
         // SimHubControl
-        if (!string.IsNullOrWhiteSpace(HotkeySettings.LongKeypressSimHubControl))
+        if (!string.IsNullOrWhiteSpace(HotkeySettings.SimHubControl))
         {
             // Let's hope that nobody changed the settings since the "pressed" command...
-            _longKeypressSimHubTriggerActive = false;
-            await SimHubConnection.SendTriggerInputReleased(HotkeySettings.LongKeypressSimHubControl);
+            _simHubTriggerActive = false;
+            await SimHubConnection.SendTriggerInputReleased(HotkeySettings.SimHubControl);
         }
         // Stream Deck always toggles the state for each keypress (at "key up", to be precise). So we have to set the
         // state again to the correct one, after Stream Deck has done its toggling stuff.

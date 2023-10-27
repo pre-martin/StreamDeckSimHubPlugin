@@ -71,7 +71,9 @@ Section Title::
 
 ==== Description
 
-If this section is enabled with the checkbox, the Stream Deck key will behave differently depending on whether it is pressed for a short or a longer period of time. This can be used if there are not enough keys available on the Stream Deck
+If this section is enabled with the checkbox, the Stream Deck key will behave differently depending on whether it is pressed for a short or a longer period of time. This can be used if there are not enough keys available on the Stream Deck.
+
+Note: SimHub has its own logic for short and long input triggers. The following only applies to key strokes. If only SimHub controls should be used for short and long, then the "Long Keypress" feature should be disabled.
 
 ==== Behavior if disabled
 
@@ -97,7 +99,7 @@ If "Long Time Span" milliseconds have elapsed and the key is still held down, th
 How long will the "short" keypress be hold down. I.e. the time between the "KeyDown" event and the "KeyUp" event. Set to 50 ms by default. +
 Should not be too short, otherwise some applications will have problems to detect that a key was pressed. If this is the case, the value can be increased to 100 ms.
 * *Long Time Span* +
-After how many milliseconds of holding down the Stream Deck key, it will be recognized as a "long" keypress. The target application will receive the "KeyDown" event for the long keystroke only after this many milliseconds.
+After how many milliseconds of holding down the Stream Deck key, it will be recognized as a "long" keypress. The target application will receive the "KeyDown" event for the long keystroke only after this many milliseconds. Set to 500 ms by default.
 
 
 [#simHubPropertyForState]

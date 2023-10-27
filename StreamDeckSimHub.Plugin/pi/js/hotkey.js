@@ -62,7 +62,7 @@ function saveSettings() {
         'hotkey', 'ctrl', 'alt', 'shift',
         'simhubControl',
         'simhubProperty', 'simhubPropertyClearNameCache',
-        'hasLongKeypress', 'longHotkey', 'longCtrl', 'longAlt', 'longShift', 'longKeypressShortHoldTime', 'longKeypressTimeSpan', 'longKeypressSimhubControl',
+        'hasLongKeypress', 'longHotkey', 'longCtrl', 'longAlt', 'longShift', 'longKeypressShortHoldTime', 'longKeypressTimeSpan',
         'titleSimhubProperty', 'titleSimhubPropertyClearNameCache', 'titleFormat'
     ];
 
