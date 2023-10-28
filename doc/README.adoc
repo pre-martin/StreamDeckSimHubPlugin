@@ -1,0 +1,32 @@
+﻿= Usage of the Plugin
+:toc:
+:sectnums:
+
+== Overview
+
+After the installation of the Plugin, a new category named "SimHub" will be available in Stream Deck. Use the actions of this category to get Stream Deck buttons, which will interact with SimHub, e.g. update their state from SimHub properties.
+
+
+== Hotkey
+
+See link:hotkey/Hotkey.adoc[Hotkey.adoc]
+
+
+== Hotkey 4-state
+
+See link:hotkey-4-state/Hotkey-4-state.adoc[Hotkey-4-state.adoc]
+
+
+== Input Trigger
+
+See link:inputtrigger/InputTrigger.adoc[InputTrigger.adoc]
+
+
+== Dial (Stream Deck Plus only)
+
+See link:dial/Dial.adoc[Dial.adoc]
+
+
+== ShakeIt Features
+
+See link:shakeit/ShakeIt.adoc[ShakeIt.adoc]

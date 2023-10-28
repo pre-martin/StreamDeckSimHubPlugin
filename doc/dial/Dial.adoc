@@ -1,0 +1,35 @@
+﻿= Action "Dial" (Stream Deck Plus only)
+:toc:
+:sectnums:
+ifdef::env-github[]
+:tip-caption: :bulb:
+endif::[]
+ifndef::env-github[]
+:tip-caption: 💡
+endif::[]
+
+TIP: Always read the *correct version* of the documentation, which matches the version of the plugin that you have installed. To do so, use the dropdown in the top left, which usually contains the value "main". Select the "tag" that matches your installed version.
+
+
+== Description
+
+This action is very similar to the "Hotkey" action, with the difference that the "Dial" action can be used for the rotary encoders of the Stream Deck +. The features are as follows:
+
+* Send a keystroke event to the active window, if a rotary knob is rotated or pressed.
+* Send an input trigger to SimHub, if a rotary knob is rotated or pressed.
+* Show the value of a SimHub property on the display
+
+The fields of this action are as follows:
+
+* *Hotkey (Rotate counterclockwise)* +
+This optional field takes a key, which should be sent to the active window, when the rotary knob is turned counterclockwise. Please see the description of the link:../Hotkey.adoc[Hotkey.adoc] for details.
+* *SimHub Control (Rotate counterclockwise)* +
+This optional field may take a *unique* string. This string will be sent as an input trigger to SimHub, when die rotary knob is turned counterclockwise. Again, see link:../Hotkey.adoc[Hotkey.adoc] for details.
+* *Hotkey* and *SimHub Control* (*Rotate clockwise*) +
+Same as above, but for clockwise rotation of the knob.
+* *Hotkey* and *SimHub Control* (*Press*) +
+Same as above, but when the rotary knob is pressed.
+* *SimHub Property (for display)* +
+This optional field allows to specify a SimHub property, which will be shown in the display of the rotary knob. The section link:../Hotkey.adoc[Hotkey.adoc] contains extensive documentation on the use of SimHub properties.
+* *Display Format (for display)* +
+Another optional field. If set, the SimHub property shown on the display will be formatted with this format string. Again, see link:../Hotkey.adoc[Hotkey.adoc] for extensive documentation of the format string.
