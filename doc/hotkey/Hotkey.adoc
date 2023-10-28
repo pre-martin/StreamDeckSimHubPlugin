@@ -1,4 +1,4 @@
-= Usage of the plugin
+= Action "Hotkey"
 :toc:
 :sectnums:
 ifdef::env-github[]
@@ -10,15 +10,7 @@ endif::[]
 
 TIP: Always read the *correct version* of the documentation, which matches the version of the plugin that you have installed. To do so, use the dropdown in the top left, which usually contains the value "main". Select the "tag" that matches your installed version.
 
-== Overview
-
-After the installation of the Plugin, a new category named "SimHub" will be available in Stream Deck. Use the actions of this category to get Stream Deck buttons, which will interact with SimHub, e.g. update their state from SimHub properties.
-
-
-[#hotkey]
-== Action "Hotkey"
-
-=== Description
+== Description
 
 This action offers the same functionality as the built-in action "Hotkey", but with some additional - mostly SimHub related - features. The features are as follows:
 
@@ -48,7 +40,7 @@ Please note, that not all entries in "VirtualKeyShort" make sense in the field "
 * *Modifiers* +
   Modifiers like Ctrl, Alt and Shift have to be specified by using the corresponding checkbox.
 * *SimHub Control* +
-  This optional field may take a *unique* string. This string will be sent as an input trigger to SimHub, where it is used to identify this Stream Deck button. See the section <<#input>> below for details about input triggers.
+  This optional field may take a *unique* string. This string will be sent as an input trigger to SimHub, where it is used to identify this Stream Deck button. See link:../inputtrigger/InputTrigger.adoc[InputTrigger.adoc] for details about input triggers.
 
 Section Long Keypress::
 
@@ -67,21 +59,21 @@ Section Title::
   Another optional field. If set, the SimHub property for the title will be formatted with this format string. If this field is empty, a default format is used. See the section <<#displayFormatForTitle>> for details.
 
 [#longKeypress]
-=== Section "Long Keypress"
+== Section "Long Keypress"
 
-==== Description
+=== Description
 
 If this section is enabled with the checkbox, the Stream Deck key will behave differently depending on whether it is pressed for a short or a longer period of time. This can be used if there are not enough keys available on the Stream Deck.
 
 Note: SimHub has its own logic for short and long input triggers. The following only applies to key strokes. If only SimHub controls should be used for short and long, then the "Long Keypress" feature should be disabled.
 
-==== Behavior if disabled
+=== Behavior if disabled
 
 When this feature is *disabled*, the Stream Deck key behaves as follows: When the key is pressed, the plugin sends immediately the hotkey with its modifiers as a "KeyDown" event to Windows. When the Stream Deck key is released, the plugin sends a "KeyUp" event to Windows. This is the same behavior as holding down a key on the keyboard for a long time. For example, if the active window is an editor, the pressed key is repeated until it is released.
 
 *Important:* The "KeyDown" event is sent immediately when the key is pressed.
 
-==== Behavior if enabled
+=== Behavior if enabled
 
 The plugin has to detect whether the Stream Deck key was pressed for a short or long time. Unfortunately, this only works if the key has been pressed for a certain time.
 
@@ -93,7 +85,7 @@ If "Long Time Span" milliseconds have elapsed and the key is still held down, th
 
 *Important:* The first "KeyDown" event is only sent, when either the Stream Deck key is released before "Long Time Span" or if "Long Time Span" milliseconds have elapsed. Thus the target application will not react immediately, when the key is pressed.
 
-==== Parameters
+=== Parameters
 
 * *Short Hold Time* +
 How long will the "short" keypress be hold down. I.e. the time between the "KeyDown" event and the "KeyUp" event. Set to 50 ms by default. +
@@ -103,7 +95,7 @@ After how many milliseconds of holding down the Stream Deck key, it will be reco
 
 
 [#simHubPropertyForState]
-=== Field "SimHub Property (for state)"
+== Field "SimHub Property (for state)"
 
 This field allows to bind the button to a SimHub property, which will be used to determine the state of the button.
 
@@ -113,7 +105,7 @@ TIP: Be sure to read the documentation of the https://github.com/pre-martin/SimH
 
 TIP: "Generic" properties are received untyped as `object` (see SimHubPropertyServer plugin). This plugin tries to interpret them as a `double` value. If this is not possible, they are treated as strings.
 
-==== Simple SimHub Property
+=== Simple SimHub Property
 
 Enter the name of a SimHub property. E.g.
 
@@ -130,7 +122,7 @@ The logic for the action state depending on the SimHub property value is as foll
 * Properties of type `integer`, `long`, `float` or `double`: +
   If the property value is greater than zero, the action will be in the "on" state, otherwise in the "off" state.
 
-==== SimHub property with logical expression
+=== SimHub property with logical expression
 
 This allows a much finer grained logic for the button state. Enter the name of a SimHub property, a condition and a value. E.g.
 
@@ -206,13 +198,13 @@ So the following expressions are all valid:
 
 
 [#displayFormatForTitle]
-=== Field "Display Format (for title)"
+== Field "Display Format (for title)"
 
 If this field is empty, the value of the SimHub property for the title will be displayed with the default formatter of that type. If this is not desired, a more extensive format can be specified here.
 
 Two options are available: A "*simple format*" and a "*full format*". The main difference is, that the "simple format" only allows an alignment and a format string, whereas the "full format" allows a combination of static text plus the features of the "simple format".
 
-==== Simple Format
+=== Simple Format
 
 The display format has this syntax:
 
@@ -265,7 +257,7 @@ Both::
 
 All characters are counted for the alignment - including decimal separator and decimal digits.
 
-==== Full Format
+=== Full Format
 
 The full format allows the same formatting features as the simple format, but the format can be combined with static text. The alignment and the format string have to be put into curly braces in order to be recognized. So a format in the full format may look like
 
@@ -277,32 +269,32 @@ Line breaks are also allowed, therefore a line break could be inserted in this e
 
 image::Example-Multiline-Title.png[Multiline Title]
 
-=== Buttons "SIB" and "SIM"
+== Buttons "SIB" and "SIM"
 
-Everywhere, where a SimHub property can be used, there are also buttons labeled "SIB" and "SIM". These buttons are related to "ShakeIt Bass" and "ShakeIt Motors" properties from SimHub and are described in the separate document link:ShakeIt.adoc[ShakeIt.adoc]
+Everywhere, where a SimHub property can be used, there are also buttons labeled "SIB" and "SIM". These buttons are related to "ShakeIt Bass" and "ShakeIt Motors" properties from SimHub and are described in the separate document link:../shakeit/ShakeIt.adoc[ShakeIt.adoc]
 
 
-=== Examples
+== Examples
 
-==== Button to toggle the Ignition in ACC (which is mapped to "Shift + I" by default):
+=== Button to toggle the Ignition in ACC (which is mapped to "Shift + I" by default):
 
 image::Example-Ignition.png[Ignition]
 
 In this example, the ignition is turned on in the game, so the button is in the "on" state (determined via SimHub by the property `dcp.gd.EngineIgnitionOn`).
 
-==== Button to toggle the Engine in ACC (which is mapped to "S" by default):
+=== Button to toggle the Engine in ACC (which is mapped to "S" by default):
 
 image::Example-Engine.png[Engine]
 
 In this example, the engine is turned off in the game, so the button is in the "off" state (determined via SimHub by the property `dcp.gd.EngineStarted`).
 
-==== Button without Hotkey functionality, but to display the brake bias:
+=== Button without Hotkey functionality, but to display the brake bias:
 
 image::Example-BrakeBias.png[Brake Bias]
 
 The "generic" property `DataCorePlugin.GameData.BrakeBias` is uses as the title. Although the "typed" property `acc.physics.BrakeBias` would be better than the "generic" property, we cannot use the latter one, because ACC uses car-dependent offset values for the brake bias - SimHub, on the other hand, provides us with the corrected value.
 
-==== Button with "short" for Ignition and "long" for Engine in ACC
+=== Button with "short" for Ignition and "long" for Engine in ACC
 
 image::Example-Ign-Eng.png[Ignition and Engine]
 
@@ -310,81 +302,6 @@ The same button can be used to toggle the ignition with a short press and the en
 
 This can be used if there are not enough keys available on the Stream Deck.
 
-==== ACC Pit Limiter
+=== ACC Pit Limiter
 
 Another useful button for ACC would be the Hotkey "Alt + L" with the SimHub property `gd.sdb.PitLimiterOn` to toggle the pit limiter.
-
-
-== Action "Hotkey 4-state"
-
-__Note:__
-
-__This action is deprecated as of version 1.6.x. The functionality can now be implemented with the regular "Hotkey". As long as Stream Deck has no better UI support for buttons with more than two states, this action won't receive any new features.__
-
-This action is the same as the "Hotkey" action: It sends a keystroke to the active window, and it can be connected to a SimHub property, which will update its state.
-
-The difference is that this action can have up to four states. The logic for the action state in dependency from the SimHub property value is as follows:
-
-- `boolean`: If the property value is `True`, the action will be in the state "1", otherwise in the state "0" state.
-- `integer` and `long`: The property value will directly set the state. The value "0" maps to the action state "0", "1" to the action state "1" and so on.
-
-Unlike the action "Hotkey", this action does not support expressions!
-
-Unfortunately, the Stream Deck UI support is very limited for actions which have more than two states. "Title" and icon can only be customized for the first two states. Maybe Stream Deck will enhance their UI one day to allow customization of all states.
-
-
-[#input]
-== Action "Input Trigger"
-
-=== Description
-
-SimHub allows to trigger various actions by controller and/or keyboard inputs. For example:
-
-* Controls can be mapped to actions in the menu "Control and events"
-* Controls can be mapped to Bass Shaker effect groups and effects, in order to modify their gain value or to mute and unmute them.
-
-The action "Input Trigger" extends the available inputs to the use of Stream Deck buttons. It has only one field:
-
-* *SimHub Control* +
-  Simply enter a *unique* string into this field. This string will be used in SimHub to identify this Stream Deck button.
-
-=== Examples
-
-In the following example, there is a "ShakeIt Bass" effect group. The Stream Deck button is used to mute or unmute this effect group. The configuration in Stream Deck will look as follows:
-
-image::Example-TriggerInput-StreamDeck.png[Trigger Input]
-
-In SimHub, the assignment dialog ("Pick a control") has to be opened. After pressing the Stream Deck button, the assignment will be shown as follows:
-
-image::Example-TriggerInput-SimHub.png[Trigger Input - SimHub]
-
-The Stream Deck button can now be used to mute and unmute the effect group in SimHub.
-
-*Note*: This action is usually used inside of multi actions. For buttons with feedback, consider using the <<hotkey>> action. It offers significantly more features, including the field "SimHub Control".
-
-
-[#dial]
-== Action "Dial" (Stream Deck + only)
-
-=== Description
-
-This action is very similar to the "Hotkey" action, with the difference that the "Dial" action can be used for the rotary encoders of the Stream Deck +. The features are as follows:
-
-* Send a keystroke event to the active window, if a rotary knob is rotated or pressed.
-* Send an input trigger to SimHub, if a rotary knob is rotated or pressed.
-* Show the value of a SimHub property on the display
-
-The fields of this action are as follows:
-
-* *Hotkey (Rotate counterclockwise)* +
-  This optional field takes a key, which should be sent to the active window, when the rotary knob is turned counterclockwise. Please see the description of the <<hotkey>> for details.
-* *SimHub Control (Rotate counterclockwise)* +
-  This optional field may take a *unique* string. This string will be sent as an input trigger to SimHub, when die rotary knob is turned counterclockwise. Again, see <<hotkey>> for details.
-* *Hotkey* and *SimHub Control* (*Rotate clockwise*) +
-  Same as above, but for clockwise rotation of the knob.
-* *Hotkey* and *SimHub Control* (*Press*) +
-  Same as above, but when the rotary knob is pressed.
-* *SimHub Property (for display)* +
-  This optional field allows to specify a SimHub property, which will be shown in the display of the rotary knob. The setion <<hotkey>> contains extensive documentation on the use of SimHub properties.
-* *Display Format (for display)* +
-  Another optional field. If set, the SimHub property shown on the display will be formatted with this format string. Again, see <<hotkey>> for extensive documentation of the format string.
