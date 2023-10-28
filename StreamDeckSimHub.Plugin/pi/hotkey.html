@@ -14,6 +14,8 @@
 <body>
 
 <div class="sdpi-wrapper">
+    <div class="sdpi-heading">Keypress</div>
+
     <div class="sdpi-item">
         <div class="sdpi-item-label">Hotkey</div>
         <input class="sdpi-item-value" id="hotkey" value="" placeholder="Enter hotkey" oninput="saveSettings()">
@@ -32,6 +34,41 @@
     <div class="sdpi-item">
         <div class="sdpi-item-label">SimHub Control</div>
         <input class="sdpi-item-value" id="simhubControl" value="" placeholder="Enter unique control name" oninput="saveSettingsDelayed()">
+    </div>
+
+    <div class="sdpi-heading">Long Keypress</div>
+
+    <div type="checkbox" class="sdpi-item">
+        <div class="sdpi-item-label">Long Keypress</div>
+        <div class="sdpi-item-value">
+            <input id="hasLongKeypress" type="checkbox" value="hasLongKeypress" oninput="toggleLongKeypress(this.checked); saveSettings();">
+            <label for="hasLongKeypress" class="sdpi-item-label"><span></span>Enabled</label>
+        </div>
+    </div>
+    <div id="longKeypressDiv">
+        <div class="sdpi-item">
+            <div class="sdpi-item-label">Hotkey</div>
+            <input class="sdpi-item-value" id="longHotkey" value="" placeholder="Enter hotkey" oninput="saveSettings()">
+        </div>
+        <div type="checkbox" class="sdpi-item">
+            <div class="sdpi-item-label">Modifiers</div>
+            <div class="sdpi-item-value">
+                <input id="longCtrl" type="checkbox" value="longCtrl" oninput="saveSettings()">
+                <label for="longCtrl" class="sdpi-item-label"><span></span>Ctrl</label>
+                <input id="longAlt" type="checkbox" value="longAlt" oninput="saveSettings()">
+                <label for="longAlt" class="sdpi-item-label"><span></span>Alt</label>
+                <input id="longShift" type="checkbox" value="longShift" oninput="saveSettings()">
+                <label for="longShift" class="sdpi-item-label"><span></span>Shift</label>
+            </div>
+        </div>
+        <div class="sdpi-item">
+            <div class="sdpi-item-label">Short Hold Time</div>
+            <input class="sdpi-item-value" id="longKeypressShortHoldTime" value="" placeholder="Time to hold 'short' in ms" oninput="saveSettingsDelayed()">
+        </div>
+        <div class="sdpi-item">
+            <div class="sdpi-item-label">Long Time Span</div>
+            <input class="sdpi-item-value" id="longKeypressTimeSpan" value="" placeholder="Time to detect 'long' in ms" oninput="saveSettingsDelayed()">
+        </div>
     </div>
 
     <div class="sdpi-heading">State</div>

@@ -10,9 +10,15 @@ public class HotkeyBaseActionSettings : HotkeySettings
 {
     public string SimHubControl { get; init; } = string.Empty;
     public string SimHubProperty { get; set; } = string.Empty;
+    public bool HasLongKeypress { get; init; } = false;
+    public HotkeySettings LongKeypressSettings { get; init; } = new();
+    public uint LongKeypressShortHoldTime { get; } = 50;
+    public uint LongKeypressTimeSpan { get; } = 500;
 
     public override string ToString()
     {
-        return $"{base.ToString()}, SimHubControl: {SimHubControl}, SimHubProperty: {SimHubProperty}";
+        return $"{base.ToString()}, SimHubControl: {SimHubControl}, SimHubProperty: {SimHubProperty}, HasLongKeypress: {HasLongKeypress}, " +
+            $"LongKeypressSettings: {LongKeypressSettings}, LongKeypressTimeSpan: {LongKeypressTimeSpan}, " +
+            $"LongKeypressShortHoldTime: {LongKeypressShortHoldTime}";
     }
 }

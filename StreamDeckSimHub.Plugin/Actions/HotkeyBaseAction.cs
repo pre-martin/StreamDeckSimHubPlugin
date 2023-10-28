@@ -20,16 +20,19 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
     protected SimHubConnection SimHubConnection { get; }
     protected TSettings HotkeySettings { get; private set; }
     private KeyboardUtils.Hotkey? _hotkey;
+    private KeyboardUtils.Hotkey? _longKeypressHotkey;
     private int _state;
     private readonly IPropertyChangedReceiver _propertyChangedReceiver;
     private PropertyChangedArgs? _lastPropertyChangedEvent;
     private bool _simHubTriggerActive;
+    private readonly ShortAndLongPressHandler _salHandler;
 
     protected HotkeyBaseAction(SimHubConnection simHubConnection)
     {
         HotkeySettings = new TSettings();
         SimHubConnection = simHubConnection;
         _propertyChangedReceiver = new PropertyChangedDelegate(PropertyChanged);
+        _salHandler = new ShortAndLongPressHandler(OnShortPress, OnLongPress, OnLongReleased);
     }
 
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
@@ -90,6 +93,47 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
 
     protected override async Task OnKeyDown(ActionEventArgs<KeyPayload> args)
     {
+        if (!HotkeySettings.HasLongKeypress)
+        {
+            await DownNormal();
+        }
+        else
+        {
+            await _salHandler.KeyDown(args);
+        }
+    }
+
+    protected override async Task OnKeyUp(ActionEventArgs<KeyPayload> args)
+    {
+        if (!HotkeySettings.HasLongKeypress)
+        {
+            await UpNormal();
+        }
+        else
+        {
+            await _salHandler.KeyUp();
+        }
+    }
+
+    private async Task OnShortPress(ActionEventArgs<KeyPayload> args)
+    {
+        await DownNormal();
+        await Task.Delay(TimeSpan.FromMilliseconds(HotkeySettings.LongKeypressShortHoldTime));
+        await UpNormal();
+    }
+
+    private async Task OnLongPress(ActionEventArgs<KeyPayload> args)
+    {
+        await DownLong();
+    }
+
+    private async Task OnLongReleased()
+    {
+        await UpLong();
+    }
+
+    private async Task DownNormal()
+    {
         // Hotkey
         KeyboardUtils.KeyDown(_hotkey);
         // SimHubControl
@@ -98,11 +142,9 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
             _simHubTriggerActive = true;
             await SimHubConnection.SendTriggerInputPressed(HotkeySettings.SimHubControl);
         }
-
-        await base.OnKeyDown(args);
     }
 
-    protected override async Task OnKeyUp(ActionEventArgs<KeyPayload> args)
+    private async Task UpNormal()
     {
         // Hotkey
         KeyboardUtils.KeyUp(_hotkey);
@@ -113,12 +155,37 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
             _simHubTriggerActive = false;
             await SimHubConnection.SendTriggerInputReleased(HotkeySettings.SimHubControl);
         }
-
         // Stream Deck always toggles the state for each keypress (at "key up", to be precise). So we have to set the
         // state again to the correct one, after Stream Deck has done its toggling stuff.
         await SetStateAsync(_state);
+    }
 
-        await base.OnKeyUp(args);
+    private async Task DownLong()
+    {
+        // Hotkey
+        KeyboardUtils.KeyDown(_longKeypressHotkey);
+        // SimHubControl
+        if (!string.IsNullOrWhiteSpace(HotkeySettings.SimHubControl))
+        {
+            _simHubTriggerActive = true;
+            await SimHubConnection.SendTriggerInputPressed(HotkeySettings.SimHubControl);
+        }
+    }
+
+    private async Task UpLong()
+    {
+        // Hotkey
+        KeyboardUtils.KeyUp(_longKeypressHotkey);
+        // SimHubControl
+        if (!string.IsNullOrWhiteSpace(HotkeySettings.SimHubControl))
+        {
+            // Let's hope that nobody changed the settings since the "pressed" command...
+            _simHubTriggerActive = false;
+            await SimHubConnection.SendTriggerInputReleased(HotkeySettings.SimHubControl);
+        }
+        // Stream Deck always toggles the state for each keypress (at "key up", to be precise). So we have to set the
+        // state again to the correct one, after Stream Deck has done its toggling stuff.
+        await SetStateAsync(_state);
     }
 
     /// <summary>
@@ -134,6 +201,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
         }
 
         _hotkey = KeyboardUtils.CreateHotkey(settings.Ctrl, settings.Alt, settings.Shift, settings.Hotkey);
+        _longKeypressHotkey = KeyboardUtils.CreateHotkey(settings.LongKeypressSettings.Ctrl, settings.LongKeypressSettings.Alt, settings.LongKeypressSettings.Shift, settings.LongKeypressSettings.Hotkey);
 
         // Subscribe SimHub property, if it is set and different than the previous one.
         if (!string.IsNullOrEmpty(settings.SimHubProperty) && (settings.SimHubProperty != HotkeySettings.SimHubProperty || forceSubscribe))
@@ -141,7 +209,8 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
             await SimHubConnection.Subscribe(settings.SimHubProperty, _propertyChangedReceiver);
         }
 
-        this.HotkeySettings = settings;
+        HotkeySettings = settings;
+        _salHandler.LongPressTimeSpan = TimeSpan.FromMilliseconds(HotkeySettings.LongKeypressTimeSpan);
     }
 
     /// <summary>

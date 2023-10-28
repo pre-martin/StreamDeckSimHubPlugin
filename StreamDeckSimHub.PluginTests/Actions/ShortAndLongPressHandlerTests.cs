@@ -16,7 +16,7 @@ public class ShortAndLongPressHandlerTests
     public async Task TestShortPress()
     {
         var cb = new CallbackHolder();
-        var handler = new ShortAndLongPressHandler(_timeSpan, cb.OnShortPress, cb.OnLongPress);
+        var handler = new ShortAndLongPressHandler(_timeSpan, cb.OnShortPress, cb.OnLongPress, cb.OnLongReleased);
         await handler.KeyDown(new ActionEventArgs<KeyPayload>());
         await Task.Delay(_timeSpanShorter);
         await handler.KeyUp();
@@ -28,7 +28,7 @@ public class ShortAndLongPressHandlerTests
     public async Task TestLongPress()
     {
         var cb = new CallbackHolder();
-        var handler = new ShortAndLongPressHandler(_timeSpan, cb.OnShortPress, cb.OnLongPress);
+        var handler = new ShortAndLongPressHandler(_timeSpan, cb.OnShortPress, cb.OnLongPress, cb.OnLongReleased);
         await handler.KeyDown(new ActionEventArgs<KeyPayload>());
         await Task.Delay(_timeSpanLonger);
         await handler.KeyUp();
@@ -42,7 +42,7 @@ public class ShortAndLongPressHandlerTests
         // Short+Short must not trigger Short+Long! See https://github.com/GeekyEggo/SharpDeck/issues/18 for details.
 
         var cb = new CallbackHolder();
-        var handler = new ShortAndLongPressHandler(_timeSpan, cb.OnShortPress, cb.OnLongPress);
+        var handler = new ShortAndLongPressHandler(_timeSpan, cb.OnShortPress, cb.OnLongPress, cb.OnLongReleased);
 
         await handler.KeyDown(new ActionEventArgs<KeyPayload>());
         await Task.Delay(_timeSpanShorter);
@@ -63,7 +63,7 @@ public class ShortAndLongPressHandlerTests
         // Long+Long to test that the delay timer works several times
 
         var cb = new CallbackHolder();
-        var handler = new ShortAndLongPressHandler(_timeSpan, cb.OnShortPress, cb.OnLongPress);
+        var handler = new ShortAndLongPressHandler(_timeSpan, cb.OnShortPress, cb.OnLongPress, cb.OnLongReleased);
 
         await handler.KeyDown(new ActionEventArgs<KeyPayload>());
         await Task.Delay(_timeSpanLonger);
@@ -103,6 +103,11 @@ public class ShortAndLongPressHandlerTests
         internal Task OnLongPress(ActionEventArgs<KeyPayload> args)
         {
             _longWasCalled = true;
+            return Task.CompletedTask;
+        }
+
+        internal Task OnLongReleased()
+        {
             return Task.CompletedTask;
         }
     }
