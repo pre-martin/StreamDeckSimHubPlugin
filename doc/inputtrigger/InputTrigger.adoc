@@ -35,5 +35,5 @@ image::Example-TriggerInput-SimHub.png[Trigger Input - SimHub]
 
 The Stream Deck button can now be used to mute and unmute the effect group in SimHub.
 
-*Note*: This action is usually used inside of multi actions. For buttons with feedback, consider using the link:../Hotkey.adoc[Hotkey.adoc] action. It offers significantly more features, including the field "SimHub Control".
+*Note*: This action is usually used inside of multi actions. For buttons with feedback, consider using the link:../hotkey/Hotkey.adoc[Hotkey.adoc] action. It offers significantly more features, including the field "SimHub Control".
 

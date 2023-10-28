@@ -22,14 +22,14 @@ This action is very similar to the "Hotkey" action, with the difference that the
 The fields of this action are as follows:
 
 * *Hotkey (Rotate counterclockwise)* +
-This optional field takes a key, which should be sent to the active window, when the rotary knob is turned counterclockwise. Please see the description of the link:../Hotkey.adoc[Hotkey.adoc] for details.
+This optional field takes a key, which should be sent to the active window, when the rotary knob is turned counterclockwise. Please see the description of the link:../hotkey/Hotkey.adoc[Hotkey.adoc] for details.
 * *SimHub Control (Rotate counterclockwise)* +
-This optional field may take a *unique* string. This string will be sent as an input trigger to SimHub, when die rotary knob is turned counterclockwise. Again, see link:../Hotkey.adoc[Hotkey.adoc] for details.
+This optional field may take a *unique* string. This string will be sent as an input trigger to SimHub, when die rotary knob is turned counterclockwise. Again, see link:../hotkey/Hotkey.adoc[Hotkey.adoc] for details.
 * *Hotkey* and *SimHub Control* (*Rotate clockwise*) +
 Same as above, but for clockwise rotation of the knob.
 * *Hotkey* and *SimHub Control* (*Press*) +
 Same as above, but when the rotary knob is pressed.
 * *SimHub Property (for display)* +
-This optional field allows to specify a SimHub property, which will be shown in the display of the rotary knob. The section link:../Hotkey.adoc[Hotkey.adoc] contains extensive documentation on the use of SimHub properties.
+This optional field allows to specify a SimHub property, which will be shown in the display of the rotary knob. The section link:../hotkey/Hotkey.adoc[Hotkey.adoc] contains extensive documentation on the use of SimHub properties.
 * *Display Format (for display)* +
-Another optional field. If set, the SimHub property shown on the display will be formatted with this format string. Again, see link:../Hotkey.adoc[Hotkey.adoc] for extensive documentation of the format string.
+Another optional field. If set, the SimHub property shown on the display will be formatted with this format string. Again, see link:../hotkey/Hotkey.adoc[Hotkey.adoc] for extensive documentation of the format string.

@@ -41,6 +41,4 @@ Download the file `net.planetrenner.simhub.streamDeckPlugin` from the GitHub "Re
 
 == Usage
 
-See link:doc/Usage.adoc[Usage.adoc]
-
-For ShakeIt feature, see link:doc/ShakeIt.adoc[ShakeIt.adoc]
+See documents in folder link:doc/README.adoc["doc"]
