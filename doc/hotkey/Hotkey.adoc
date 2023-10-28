@@ -276,13 +276,17 @@ Everywhere, where a SimHub property can be used, there are also buttons labeled 
 
 == Examples
 
-=== Button to toggle the Ignition in ACC (which is mapped to "Shift + I" by default):
+=== Button to toggle the Ignition in ACC
+
+Mapped to "Shift + I" by default.
 
 image::Example-Ignition.png[Ignition]
 
 In this example, the ignition is turned on in the game, so the button is in the "on" state (determined via SimHub by the property `dcp.gd.EngineIgnitionOn`).
 
-=== Button to toggle the Engine in ACC (which is mapped to "S" by default):
+=== Button to toggle the Engine in ACC
+
+;apped to "S" by default.
 
 image::Example-Engine.png[Engine]
 
@@ -301,6 +305,14 @@ image::Example-Ign-Eng.png[Ignition and Engine]
 The same button can be used to toggle the ignition with a short press and the engine with a long press.
 
 This can be used if there are not enough keys available on the Stream Deck.
+
+=== Button to cycle through the Wiper stages in ACC
+
+Mapped to "Alt + R" by default.
+
+image::Example-Wiper.png[Wiper]
+
+Just set a red icon for the "off" state and a green icon for the "on" state. Pressing this key cycles through the wiper stages "off" and 1 to 3 in ACC. The current stage is displayed on the Stream Deck key.
 
 === ACC Pit Limiter
 
