@@ -17,6 +17,7 @@ namespace StreamDeckSimHub.Plugin.Actions;
 public class DialAction : StreamDeckAction<DialActionSettings>
 {
     private readonly SimHubConnection _simHubConnection;
+    private readonly ImageUtils _imageUtils;
     private DialActionSettings _settings = new();
     private KeyboardUtils.Hotkey? _hotkey;
     private KeyboardUtils.Hotkey? _hotkeyLeft;
@@ -28,9 +29,10 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     private readonly FormatHelper _formatHelper = new();
     private readonly KeyQueue _keyQueue;
 
-    public DialAction(SimHubConnection simHubConnection, ShakeItStructureFetcher shakeItStructureFetcher)
+    public DialAction(SimHubConnection simHubConnection, ImageUtils imageUtils, ShakeItStructureFetcher shakeItStructureFetcher)
     {
         _simHubConnection = simHubConnection;
+        _imageUtils = imageUtils;
         _keyQueue = new KeyQueue(simHubConnection);
         _shakeItStructureFetcher = shakeItStructureFetcher;
         _displayPropertyChangedReceiver = new PropertyChangedDelegate(DisplayPropertyChanged);
@@ -85,6 +87,13 @@ public class DialAction : StreamDeckAction<DialActionSettings>
 
         await SetSettings(settings, false);
         await base.OnDidReceiveSettings(args, settings);
+    }
+
+    protected override async Task OnTitleParametersDidChange(ActionEventArgs<TitlePayload> args)
+    {
+        // Display the title on the round icon in the Stream Deck application.
+        await SetImageAsync(_imageUtils.GenerateDialImage(args.Payload.Title));
+        await base.OnTitleParametersDidChange(args);
     }
 
     protected override Task OnDialRotate(ActionEventArgs<DialRotatePayload> args)

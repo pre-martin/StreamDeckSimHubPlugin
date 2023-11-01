@@ -9,6 +9,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AssemblyName>StreamDeckSimHub</AssemblyName>
+        <LangVersion>11</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,6 +20,7 @@
         <PackageReference Include="NLog" Version="5.1.0" />
         <PackageReference Include="NLog.Extensions.Logging" Version="5.2.0" />
         <PackageReference Include="SharpDeck" Version="7.0.0-beta1" />
+        <PackageReference Include="SkiaSharp" Version="2.88.6" />
     </ItemGroup>
 
     <Target Name="CustomAfterPublish" AfterTargets="Publish" DependsOnTargets="GetBuildVersion">
