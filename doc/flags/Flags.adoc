@@ -28,3 +28,17 @@ Otherwise it shows the currently active flag, like the green or the blue flag:
 image::Flag-Green.png[Green Flag]
 image::Flag-Blue.png[Blue Flag]
 
+The button currently supports the following flags (depending on the simulation):
+
+[%autowidth]
+|===
+| Flag | Summary
+
+| Black     | Disqualification
+| Blue      | Faster vehicles approaching
+| Checkered | End of Session
+| Green     | Start of race/End of Caution/Pit Lane open
+| Orange    | Mechanical problem
+| White     | Slow moving vehicle ahead
+| Yellow    | Caution
+|===
