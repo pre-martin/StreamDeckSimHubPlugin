@@ -12,6 +12,11 @@ After the installation of the Plugin, a new category named "SimHub" will be avai
 See link:hotkey/Hotkey.adoc[Hotkey.adoc]
 
 
+== Flags
+
+See link:flags/Flags.adoc[Flags.adoc]
+
+
 == Hotkey 4-state
 
 See link:hotkey-4-state/Hotkey-4-state.adoc[Hotkey-4-state.adoc]

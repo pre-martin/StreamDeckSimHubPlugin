@@ -18,6 +18,20 @@
       "UUID": "net.planetrenner.simhub.hotkey"
     },
     {
+      "Icon": "images/actions/flag",
+      "Name": "Flags",
+      "States": [
+        {
+          "Image": "images/icons/flag",
+          "Name": "on"
+        }
+      ],
+      "Tooltip": "Flags",
+      "SupportedInMultiActions": false,
+      "UserTitleEnabled": false,
+      "UUID": "net.planetrenner.simhub.flags"
+    },
+    {
       "Icon": "images/actions/hotkey4",
       "Name": "Hotkey 4-state",
       "PropertyInspectorPath": "pi/hotkey4.html",
