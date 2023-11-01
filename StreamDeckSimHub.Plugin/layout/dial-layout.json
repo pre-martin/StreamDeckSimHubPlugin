@@ -1,0 +1,21 @@
+﻿{
+  "id": "net.planetrenner.simhub.dial.dial-layout",
+  "items": [
+    {
+      "key": "title",
+      "type": "text",
+      "rect": [16, 4, 168, 34],
+      "font": { "size": 26, "weight": 600 },
+      "alignment": "center",
+      "zOrder": 5
+    },
+    {
+      "key": "value",
+      "type": "text",
+      "rect": [16, 40, 168, 54],
+      "font": { "size": 46, "weight": 600 },
+      "alignment": "center",
+      "zOrder": 5
+    }
+  ]
+}

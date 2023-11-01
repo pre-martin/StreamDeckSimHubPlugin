@@ -2,6 +2,7 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using SharpDeck;
 using SharpDeck.Events.Received;
 using SharpDeck.Layouts;
@@ -25,10 +26,12 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     private string _displayFormat = "${0}";
     private PropertyChangedArgs? _lastDisplayPropertyChangedEvent;
     private readonly FormatHelper _formatHelper = new();
+    private readonly KeyQueue _keyQueue;
 
     public DialAction(SimHubConnection simHubConnection, ShakeItStructureFetcher shakeItStructureFetcher)
     {
         _simHubConnection = simHubConnection;
+        _keyQueue = new KeyQueue(simHubConnection);
         _shakeItStructureFetcher = shakeItStructureFetcher;
         _displayPropertyChangedReceiver = new PropertyChangedDelegate(DisplayPropertyChanged);
     }
@@ -59,9 +62,21 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     {
         var settings = args.Payload.GetSettings<DialActionSettings>();
         Logger.LogInformation("OnWillAppear ({coords}): {settings}", args.Payload.Coordinates, settings);
+        _keyQueue.Start();
         await SetSettings(settings, true);
 
         await base.OnWillAppear(args);
+    }
+
+    protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
+    {
+        _keyQueue.Stop();
+        if (!string.IsNullOrEmpty(_settings.DisplaySimHubProperty))
+        {
+            await _simHubConnection.Unsubscribe(_settings.DisplaySimHubProperty, _displayPropertyChangedReceiver);
+        }
+
+        await base.OnWillDisappear(args);
     }
 
     protected override async Task OnDidReceiveSettings(ActionEventArgs<ActionPayload> args, DialActionSettings settings)
@@ -72,42 +87,22 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         await base.OnDidReceiveSettings(args, settings);
     }
 
-    protected override async Task OnDialRotate(ActionEventArgs<DialRotatePayload> args)
+    protected override Task OnDialRotate(ActionEventArgs<DialRotatePayload> args)
     {
-        Logger.LogInformation("OnDialRotate ({coords}): Ticks: {ticks}, Pressed {pressed}", args.Payload.Coordinates, args.Payload.Ticks,
-            args.Payload.Pressed);
-        if (args.Payload.Ticks < 0)
+        Logger.LogInformation("OnDialRotate ({coords}): Ticks: {ticks}, Pressed {pressed}", args.Payload.Coordinates, args.Payload.Ticks, args.Payload.Pressed);
+        // Rotate events can appear faster than they are processed (because we have a delay between "key down" and "key up".
+        // Thus we have to place them into a queue, where they are processed by a different thread.
+        switch (args.Payload.Ticks)
         {
-            KeyboardUtils.KeyDown(_hotkeyLeft);
-            if (!string.IsNullOrWhiteSpace(_settings.SimHubControlLeft))
-            {
-                await _simHubConnection.SendTriggerInputPressed(_settings.SimHubControlLeft);
-            }
-
-            await Task.Delay(TimeSpan.FromMilliseconds(50));
-
-            KeyboardUtils.KeyUp(_hotkeyLeft);
-            if (!string.IsNullOrWhiteSpace(_settings.SimHubControlLeft))
-            {
-                await _simHubConnection.SendTriggerInputReleased(_settings.SimHubControlLeft);
-            }
+            case < 0:
+                _keyQueue.Enqueue(_hotkeyLeft, _settings.SimHubControlLeft, -args.Payload.Ticks);
+                break;
+            case > 0:
+                _keyQueue.Enqueue(_hotkeyRight, _settings.SimHubControlRight, args.Payload.Ticks);
+                break;
         }
-        else if (args.Payload.Ticks > 0)
-        {
-            KeyboardUtils.KeyDown(_hotkeyRight);
-            if (!string.IsNullOrWhiteSpace(_settings.SimHubControlRight))
-            {
-                await _simHubConnection.SendTriggerInputPressed(_settings.SimHubControlRight);
-            }
 
-            await Task.Delay(TimeSpan.FromMilliseconds(50));
-
-            KeyboardUtils.KeyUp(_hotkeyRight);
-            if (!string.IsNullOrWhiteSpace(_settings.SimHubControlRight))
-            {
-                await _simHubConnection.SendTriggerInputReleased(_settings.SimHubControlRight);
-            }
-        }
+        return Task.CompletedTask;
     }
 
     protected override async Task OnDialPress(ActionEventArgs<DialPayload> args)
@@ -188,11 +183,17 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         var value = property ?? string.Empty;
         try
         {
-            await SetFeedbackAsync(new LayoutA1 { Value = string.Format(_displayFormat, value) });
+            await SetFeedbackAsync(new DialLayout { Value = string.Format(_displayFormat, value) });
         }
         catch (FormatException)
         {
-            await SetFeedbackAsync(new LayoutA1 { Value = value.ToString() });
+            await SetFeedbackAsync(new DialLayout { Value = value.ToString() });
         }
     }
+}
+
+[JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
+public class DialLayout
+{
+    public Text Value { get; set; } = "";
 }

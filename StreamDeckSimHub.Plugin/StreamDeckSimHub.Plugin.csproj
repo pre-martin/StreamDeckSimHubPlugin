@@ -178,6 +178,9 @@
       <None Update="images\store\plugin@2x.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="layout\dial-layout.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="pi\components\sib.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
