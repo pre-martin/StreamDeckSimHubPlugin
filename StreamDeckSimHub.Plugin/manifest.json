@@ -18,7 +18,7 @@
       "UUID": "net.planetrenner.simhub.hotkey"
     },
     {
-      "Icon": "images/actions/flags",
+      "Icon": "images/actions/flag",
       "Name": "Flags",
       "States": [
         {
@@ -28,6 +28,7 @@
       ],
       "Tooltip": "Flags",
       "SupportedInMultiActions": false,
+      "UserTitleEnabled": false,
       "UUID": "net.planetrenner.simhub.flags"
     },
     {

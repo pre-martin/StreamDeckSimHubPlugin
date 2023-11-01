@@ -1,0 +1,30 @@
+﻿= Flags
+:toc:
+:sectnums:
+ifdef::env-github[]
+:tip-caption: :bulb:
+endif::[]
+ifndef::env-github[]
+:tip-caption: 💡
+endif::[]
+
+TIP: Always read the *correct version* of the documentation, which matches the version of the plugin that you have installed. To do so, use the dropdown in the top left, which usually contains the value "main". Select the "tag" that matches your installed version.
+
+
+== Description
+
+This is a special button that displays the race flags. It does not have any configuration or interaction options. Therefore, it is enough to simply drag it to a free slot.
+
+When no race is active, it displays the finish flag:
+
+image::Flag-Finish.png[Finish Flag]
+
+If a race is active, it shows a blank screen if no flag is active in the game:
+
+image::Flag-Empty.png[Empty]
+
+Otherwise it shows the currently active flag, like the green or the blue flag:
+
+image::Flag-Green.png[Green Flag]
+image::Flag-Blue.png[Blue Flag]
+
