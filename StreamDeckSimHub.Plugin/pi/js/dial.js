@@ -42,6 +42,7 @@ function loadSettings(settings) {
         }
     }
 
+    $ShakeIt.resolvePropertyNameFromCache(document.getElementById('simhubProperty'));
     $ShakeIt.resolvePropertyNameFromCache(document.getElementById('displaySimhubProperty'));
 }
 
@@ -52,6 +53,7 @@ function saveSettings() {
         'hotkeyLeft', 'ctrlLeft', 'altLeft', 'shiftLeft', 'simhubControlLeft',
         'hotkeyRight', 'ctrlRight', 'altRight', 'shiftRight', 'simhubControlRight',
         'hotkey', 'ctrl', 'alt', 'shift', 'simhubControl',
+        'simhubProperty', 'simhubPropertyClearNameCache',
         'displaySimhubProperty', 'displaySimhubPropertyClearNameCache', 'displayFormat'
     ];
 

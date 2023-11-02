@@ -15,4 +15,19 @@ public class ConditionExpression
     public string Property { get; }
     public ConditionOperator Operator { get; }
     public string CompareValue { get; }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not ConditionExpression other)
+        {
+            return false;
+        }
+
+        return Property == other.Property && Operator == other.Operator && CompareValue == other.CompareValue;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Property, (int)Operator, CompareValue);
+    }
 }
