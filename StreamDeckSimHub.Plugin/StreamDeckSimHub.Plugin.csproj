@@ -66,10 +66,7 @@
       <None Update="pi\js\dial.js">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\actions\dial.png">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="images\actions\dial@2x.png">
+      <None Update="images\actions\dial.svg">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="images\actions\flag.svg">
@@ -129,10 +126,7 @@
       <None Update="images\icons\3@2x.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\icons\dial.png">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="images\icons\dial@2x.png">
+      <None Update="images\icons\dial.svg">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="images\icons\flag-black.svg">

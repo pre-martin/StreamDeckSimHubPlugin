@@ -92,7 +92,8 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     protected override async Task OnTitleParametersDidChange(ActionEventArgs<TitlePayload> args)
     {
         // Display the title on the round icon in the Stream Deck application.
-        await SetImageAsync(_imageUtils.GenerateDialImage(args.Payload.Title));
+        var title = string.IsNullOrEmpty(args.Payload.Title) ? "Dial" : args.Payload.Title;
+        await SetImageAsync(_imageUtils.GenerateDialImage(title));
         await base.OnTitleParametersDidChange(args);
     }
 
