@@ -22,7 +22,7 @@
       "Name": "Flags",
       "States": [
         {
-          "Image": "images/icons/flag",
+          "Image": "images/icons/flag-checkered",
           "Name": "on"
         }
       ],
