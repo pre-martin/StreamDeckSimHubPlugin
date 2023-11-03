@@ -8,7 +8,7 @@ taskkill /im StreamDeck.exe /t /f
 timeout 1 > nul
 
 cd build
-xcopy net.planetrenner.simhub.sdPlugin "%AppData%\Elgato\StreamDeck\Plugins\net.planetrenner.simhub.sdPlugin\" /e /y
+xcopy net.planetrenner.simhub.sdPlugin "%AppData%\Elgato\StreamDeck\Plugins\net.planetrenner.simhub.sdPlugin\" /e /y /q
 cd ..
 
 start /d "%ProgramFiles%\Elgato\StreamDeck" StreamDeck.exe
