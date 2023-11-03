@@ -79,8 +79,7 @@ public class DialAction : StreamDeckAction<DialActionSettings>
 
     protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
     {
-        var settings = args.Payload.GetSettings<DialActionSettings>();
-        Logger.LogInformation("OnWillDisappear ({coords}): {settings}", args.Payload.Coordinates, settings);
+        Logger.LogInformation("OnWillDisappear ({coords}): {settings}", args.Payload.Coordinates, args.Payload.GetSettings<DialActionSettings>());
         _keyQueue.Stop();
         if (_conditionExpression != null && !string.IsNullOrEmpty(_conditionExpression.Property))
         {
@@ -170,7 +169,7 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         _conditionExpression = newCondExpr;
         if (recalcState)
         {
-            await RefireStatePropertyChanfed();
+            await RefireStatePropertyChanged();
         }
 
         // Redisplay the title if the format for the title has changed.
@@ -207,7 +206,7 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     /// <summary>
     /// Refire the last "StatePropertyChanged" event that was received from SimHub.
     /// </summary>
-    private async Task RefireStatePropertyChanfed()
+    private async Task RefireStatePropertyChanged()
     {
         if (_lastStatePropertyChangedEvent != null)
         {
