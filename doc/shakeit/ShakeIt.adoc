@@ -125,6 +125,10 @@ Volume up, Volume down and Mute/Unmute can be controlled with a rotary knob. The
 
 image::ShakeIt-Bass-Dial.png[Dial]
 
-The value in the field "SimHub Property (State)" has to end with `==false`. If the channel is muted, the value will we displayed in light gray instead of white.
+The value in the field "SimHub Property (State)" has to end with `==false`. If the channel is muted, the value will we displayed in light gray instead of white:
+
+image::ShakeIt-Bass-Dial-Muted.png[Dial Muted]
+
+At the moment, it is not possible to also dim the title ("Audi" in this example). Elgato has to implement https://github.com/orgs/elgatosf/discussions/17 first.
 
 Because the reaction to the knobs is very fast, the parameter "Gain change step" can be reduced to "1" in SimHub.
