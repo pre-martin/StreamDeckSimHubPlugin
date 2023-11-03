@@ -79,7 +79,13 @@ public class DialAction : StreamDeckAction<DialActionSettings>
 
     protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
     {
+        var settings = args.Payload.GetSettings<DialActionSettings>();
+        Logger.LogInformation("OnWillDisappear ({coords}): {settings}", args.Payload.Coordinates, settings);
         _keyQueue.Stop();
+        if (_conditionExpression != null && !string.IsNullOrEmpty(_conditionExpression.Property))
+        {
+            await _simHubConnection.Unsubscribe(_conditionExpression.Property, _statePropertyChangedReceiver);
+        }
         if (!string.IsNullOrEmpty(_settings.DisplaySimHubProperty))
         {
             await _simHubConnection.Unsubscribe(_settings.DisplaySimHubProperty, _displayPropertyChangedReceiver);
