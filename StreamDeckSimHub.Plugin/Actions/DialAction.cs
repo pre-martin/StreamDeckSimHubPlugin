@@ -79,7 +79,12 @@ public class DialAction : StreamDeckAction<DialActionSettings>
 
     protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
     {
+        Logger.LogInformation("OnWillDisappear ({coords}): {settings}", args.Payload.Coordinates, args.Payload.GetSettings<DialActionSettings>());
         _keyQueue.Stop();
+        if (_conditionExpression != null && !string.IsNullOrEmpty(_conditionExpression.Property))
+        {
+            await _simHubConnection.Unsubscribe(_conditionExpression.Property, _statePropertyChangedReceiver);
+        }
         if (!string.IsNullOrEmpty(_settings.DisplaySimHubProperty))
         {
             await _simHubConnection.Unsubscribe(_settings.DisplaySimHubProperty, _displayPropertyChangedReceiver);
@@ -154,7 +159,8 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         }
 
         // Subscribe SimHub state property, if it is set and different than the previous one.
-        if (!string.IsNullOrEmpty(newCondExpr.Property) && (_conditionExpression == null || _conditionExpression.Property != newCondExpr.Property))
+        if (!string.IsNullOrEmpty(newCondExpr.Property) &&
+            (_conditionExpression == null || _conditionExpression.Property != newCondExpr.Property || forceSubscribe))
         {
             await _simHubConnection.Subscribe(newCondExpr.Property, _statePropertyChangedReceiver);
         }
@@ -164,7 +170,7 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         _conditionExpression = newCondExpr;
         if (recalcState)
         {
-            await RefireStatePropertyChanfed();
+            await RefireStatePropertyChanged();
         }
 
         // Redisplay the title if the format for the title has changed.
@@ -201,7 +207,7 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     /// <summary>
     /// Refire the last "StatePropertyChanged" event that was received from SimHub.
     /// </summary>
-    private async Task RefireStatePropertyChanfed()
+    private async Task RefireStatePropertyChanged()
     {
         if (_lastStatePropertyChangedEvent != null)
         {
