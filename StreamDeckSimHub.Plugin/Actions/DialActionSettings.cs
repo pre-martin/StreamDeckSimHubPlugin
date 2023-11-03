@@ -36,7 +36,11 @@ public class DialActionSettings : HotkeySettings
 
     public override string ToString()
     {
-        return $"Press: {base.ToString()}, SimHubControl: {SimHubControl}, Left: {HotkeyString(HotkeyLeft, CtrlLeft, AltLeft, ShiftLeft)}, SimHubControlLeft: {SimHubControlLeft}, Right: {HotkeyString(HotkeyRight, CtrlRight, AltRight, ShiftRight)}, SimHubControlRight: {SimHubControlRight}, DisplaySimHubProperty: {DisplaySimHubProperty}, DisplayFormat: {DisplayFormat}";
+        return $"(Press: {base.ToString()}, SimHubControl: {SimHubControl}), " +
+               $"(CCW: {HotkeyString(HotkeyLeft, CtrlLeft, AltLeft, ShiftLeft)}, SimHubControlLeft: {SimHubControlLeft}), " +
+               $"(CW: {HotkeyString(HotkeyRight, CtrlRight, AltRight, ShiftRight)}, SimHubControlRight: {SimHubControlRight}), " +
+               $"(State: SimHubProperty: {SimHubProperty}), " +
+               $"(Display: DisplaySimHubProperty: {DisplaySimHubProperty}, DisplayFormat: {DisplayFormat})";
     }
 
 }

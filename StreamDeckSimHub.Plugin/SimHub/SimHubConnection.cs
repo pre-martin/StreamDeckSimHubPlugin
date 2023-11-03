@@ -213,7 +213,7 @@ public class SimHubConnection
         {
             if (!_subscriptions.TryGetValue(propertyName, out var propInfo))
             {
-                Logger.Info($"Not subscribed to {propertyName}, ignoring unsubscribe request");
+                Logger.Warn($"Not subscribed to {propertyName}, ignoring unsubscribe request");
                 return;
             }
 
@@ -221,7 +221,7 @@ public class SimHubConnection
             var wasRemoved = receivers.Remove(propertyChangedReceiver);
             if (!wasRemoved)
             {
-                Logger.Info($"Action was not subscribed to {propertyName}, ignoring unsubscribe request");
+                Logger.Warn($"Action was not subscribed to {propertyName}, ignoring unsubscribe request");
                 return;
             }
             else

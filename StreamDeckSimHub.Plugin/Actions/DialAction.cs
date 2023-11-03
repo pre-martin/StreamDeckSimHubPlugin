@@ -159,7 +159,8 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         }
 
         // Subscribe SimHub state property, if it is set and different than the previous one.
-        if (!string.IsNullOrEmpty(newCondExpr.Property) && (_conditionExpression == null || _conditionExpression.Property != newCondExpr.Property))
+        if (!string.IsNullOrEmpty(newCondExpr.Property) &&
+            (_conditionExpression == null || _conditionExpression.Property != newCondExpr.Property || forceSubscribe))
         {
             await _simHubConnection.Subscribe(newCondExpr.Property, _statePropertyChangedReceiver);
         }
