@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 setlocal
 
 rem Script to deploy locally.

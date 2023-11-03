@@ -74,7 +74,7 @@
         "Encoder"
       ],
       "Encoder": {
-        "layout": "$A1"
+        "layout": "layout/dial-layout.json"
       },
       "Icon": "images/actions/dial",
       "Name": "Dial",

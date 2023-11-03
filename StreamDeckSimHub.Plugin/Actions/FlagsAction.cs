@@ -31,7 +31,6 @@ public class FlagsAction : StreamDeckAction
 {
     private readonly SimHubConnection _simHubConnection;
     private readonly IPropertyChangedReceiver _propertyChangedReceiver;
-    private readonly ImageUtils _imageUtils = new();
     private bool _gameRunning;
     private FlagState _flagState = new();
     private readonly string _noFlag;
@@ -43,19 +42,19 @@ public class FlagsAction : StreamDeckAction
     private readonly string _whiteFlag;
     private readonly string _yellowFlag;
 
-    public FlagsAction(SimHubConnection simHubConnection)
+    public FlagsAction(SimHubConnection simHubConnection, ImageUtils imageUtils)
     {
         _simHubConnection = simHubConnection;
         _propertyChangedReceiver = new PropertyChangedDelegate(PropertyChanged);
 
-        _noFlag = _imageUtils.EncodeSvg("<svg viewBox=\"0 0 70 70\" />");
-        _blackFlag = _imageUtils.LoadSvg("images/icons/flag-black.svg");
-        _blueFlag = _imageUtils.LoadSvg("images/icons/flag-blue.svg");
-        _checkeredFlag = _imageUtils.LoadSvg("images/icons/flag-checkered.svg");
-        _greenFlag = _imageUtils.LoadSvg("images/icons/flag-green.svg");
-        _orangeFlag = _imageUtils.LoadSvg("images/icons/flag-orange.svg");
-        _whiteFlag = _imageUtils.LoadSvg("images/icons/flag-white.svg");
-        _yellowFlag = _imageUtils.LoadSvg("images/icons/flag-yellow.svg");
+        _noFlag = imageUtils.EncodeSvg("<svg viewBox=\"0 0 70 70\" />");
+        _blackFlag = imageUtils.LoadSvg("images/icons/flag-black.svg");
+        _blueFlag = imageUtils.LoadSvg("images/icons/flag-blue.svg");
+        _checkeredFlag = imageUtils.LoadSvg("images/icons/flag-checkered.svg");
+        _greenFlag = imageUtils.LoadSvg("images/icons/flag-green.svg");
+        _orangeFlag = imageUtils.LoadSvg("images/icons/flag-orange.svg");
+        _whiteFlag = imageUtils.LoadSvg("images/icons/flag-white.svg");
+        _yellowFlag = imageUtils.LoadSvg("images/icons/flag-yellow.svg");
     }
 
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)

@@ -2,6 +2,7 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using SharpDeck;
 using SharpDeck.Events.Received;
 using SharpDeck.Layouts;
@@ -16,20 +17,31 @@ namespace StreamDeckSimHub.Plugin.Actions;
 public class DialAction : StreamDeckAction<DialActionSettings>
 {
     private readonly SimHubConnection _simHubConnection;
+    private readonly PropertyComparer _propertyComparer;
+    private readonly ImageUtils _imageUtils;
+    private ConditionExpression? _conditionExpression;
     private DialActionSettings _settings = new();
     private KeyboardUtils.Hotkey? _hotkey;
     private KeyboardUtils.Hotkey? _hotkeyLeft;
     private KeyboardUtils.Hotkey? _hotkeyRight;
     private readonly ShakeItStructureFetcher _shakeItStructureFetcher;
+    private bool _state = true;
+    private readonly IPropertyChangedReceiver _statePropertyChangedReceiver;
+    private PropertyChangedArgs? _lastStatePropertyChangedEvent;
     private readonly IPropertyChangedReceiver _displayPropertyChangedReceiver;
     private string _displayFormat = "${0}";
     private PropertyChangedArgs? _lastDisplayPropertyChangedEvent;
     private readonly FormatHelper _formatHelper = new();
+    private readonly KeyQueue _keyQueue;
 
-    public DialAction(SimHubConnection simHubConnection, ShakeItStructureFetcher shakeItStructureFetcher)
+    public DialAction(SimHubConnection simHubConnection, PropertyComparer propertyComparer, ImageUtils imageUtils, ShakeItStructureFetcher shakeItStructureFetcher)
     {
         _simHubConnection = simHubConnection;
+        _propertyComparer = propertyComparer;
+        _imageUtils = imageUtils;
+        _keyQueue = new KeyQueue(simHubConnection);
         _shakeItStructureFetcher = shakeItStructureFetcher;
+        _statePropertyChangedReceiver = new PropertyChangedDelegate(StatePropertyChanged);
         _displayPropertyChangedReceiver = new PropertyChangedDelegate(DisplayPropertyChanged);
     }
 
@@ -59,9 +71,21 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     {
         var settings = args.Payload.GetSettings<DialActionSettings>();
         Logger.LogInformation("OnWillAppear ({coords}): {settings}", args.Payload.Coordinates, settings);
+        _keyQueue.Start();
         await SetSettings(settings, true);
 
         await base.OnWillAppear(args);
+    }
+
+    protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
+    {
+        _keyQueue.Stop();
+        if (!string.IsNullOrEmpty(_settings.DisplaySimHubProperty))
+        {
+            await _simHubConnection.Unsubscribe(_settings.DisplaySimHubProperty, _displayPropertyChangedReceiver);
+        }
+
+        await base.OnWillDisappear(args);
     }
 
     protected override async Task OnDidReceiveSettings(ActionEventArgs<ActionPayload> args, DialActionSettings settings)
@@ -72,42 +96,30 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         await base.OnDidReceiveSettings(args, settings);
     }
 
-    protected override async Task OnDialRotate(ActionEventArgs<DialRotatePayload> args)
+    protected override async Task OnTitleParametersDidChange(ActionEventArgs<TitlePayload> args)
     {
-        Logger.LogInformation("OnDialRotate ({coords}): Ticks: {ticks}, Pressed {pressed}", args.Payload.Coordinates, args.Payload.Ticks,
-            args.Payload.Pressed);
-        if (args.Payload.Ticks < 0)
+        // Display the title on the round icon in the Stream Deck application.
+        var title = string.IsNullOrEmpty(args.Payload.Title) ? "Dial" : args.Payload.Title;
+        await SetImageAsync(_imageUtils.GenerateDialImage(title));
+        await base.OnTitleParametersDidChange(args);
+    }
+
+    protected override Task OnDialRotate(ActionEventArgs<DialRotatePayload> args)
+    {
+        Logger.LogInformation("OnDialRotate ({coords}): Ticks: {ticks}, Pressed {pressed}", args.Payload.Coordinates, args.Payload.Ticks, args.Payload.Pressed);
+        // Rotate events can appear faster than they are processed (because we have a delay between "key down" and "key up".
+        // Thus we have to place them into a queue, where they are processed by a different thread.
+        switch (args.Payload.Ticks)
         {
-            KeyboardUtils.KeyDown(_hotkeyLeft);
-            if (!string.IsNullOrWhiteSpace(_settings.SimHubControlLeft))
-            {
-                await _simHubConnection.SendTriggerInputPressed(_settings.SimHubControlLeft);
-            }
-
-            await Task.Delay(TimeSpan.FromMilliseconds(50));
-
-            KeyboardUtils.KeyUp(_hotkeyLeft);
-            if (!string.IsNullOrWhiteSpace(_settings.SimHubControlLeft))
-            {
-                await _simHubConnection.SendTriggerInputReleased(_settings.SimHubControlLeft);
-            }
+            case < 0:
+                _keyQueue.Enqueue(_hotkeyLeft, _settings.SimHubControlLeft, -args.Payload.Ticks);
+                break;
+            case > 0:
+                _keyQueue.Enqueue(_hotkeyRight, _settings.SimHubControlRight, args.Payload.Ticks);
+                break;
         }
-        else if (args.Payload.Ticks > 0)
-        {
-            KeyboardUtils.KeyDown(_hotkeyRight);
-            if (!string.IsNullOrWhiteSpace(_settings.SimHubControlRight))
-            {
-                await _simHubConnection.SendTriggerInputPressed(_settings.SimHubControlRight);
-            }
 
-            await Task.Delay(TimeSpan.FromMilliseconds(50));
-
-            KeyboardUtils.KeyUp(_hotkeyRight);
-            if (!string.IsNullOrWhiteSpace(_settings.SimHubControlRight))
-            {
-                await _simHubConnection.SendTriggerInputReleased(_settings.SimHubControlRight);
-            }
-        }
+        return Task.CompletedTask;
     }
 
     protected override async Task OnDialPress(ActionEventArgs<DialPayload> args)
@@ -134,8 +146,29 @@ public class DialAction : StreamDeckAction<DialActionSettings>
 
     private async Task SetSettings(DialActionSettings settings, bool forceSubscribe)
     {
-        var newDisplayFormat = _formatHelper.CompleteFormatString(settings.DisplayFormat);
+        var newCondExpr = _propertyComparer.Parse(settings.SimHubProperty);
+        // Unsubscribe previous SimHub state property, if it was set and is different than the new one.
+        if (_conditionExpression != null && _conditionExpression.Property != newCondExpr.Property && !string.IsNullOrEmpty(_conditionExpression.Property))
+        {
+            await _simHubConnection.Unsubscribe(_conditionExpression.Property, _statePropertyChangedReceiver);
+        }
+
+        // Subscribe SimHub state property, if it is set and different than the previous one.
+        if (!string.IsNullOrEmpty(newCondExpr.Property) && (_conditionExpression == null || _conditionExpression.Property != newCondExpr.Property))
+        {
+            await _simHubConnection.Subscribe(newCondExpr.Property, _statePropertyChangedReceiver);
+        }
+
+        // Recalculate action state if the State Property has changed.
+        var recalcState = !Equals(newCondExpr, _conditionExpression);
+        _conditionExpression = newCondExpr;
+        if (recalcState)
+        {
+            await RefireStatePropertyChanfed();
+        }
+
         // Redisplay the title if the format for the title has changed.
+        var newDisplayFormat = _formatHelper.CompleteFormatString(settings.DisplayFormat);
         var recalcDisplay = newDisplayFormat != _displayFormat;
         _displayFormat = newDisplayFormat;
         if (recalcDisplay)
@@ -148,22 +181,40 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         {
             await _simHubConnection.Unsubscribe(_settings.DisplaySimHubProperty, _displayPropertyChangedReceiver);
             // In case of the new "Display" property being invalid or empty, we remove the old title value.
-            _lastDisplayPropertyChangedEvent = null;
-            await SetDisplayProperty(null);
+            await DisplayPropertyChanged(null);
         }
 
-        _hotkey = KeyboardUtils.CreateHotkey(settings.Ctrl, settings.Alt, settings.Shift, settings.Hotkey);
-        _hotkeyLeft = KeyboardUtils.CreateHotkey(settings.CtrlLeft, settings.AltLeft, settings.ShiftLeft, settings.HotkeyLeft);
-        _hotkeyRight = KeyboardUtils.CreateHotkey(settings.CtrlRight, settings.AltRight, settings.ShiftRight, settings.HotkeyRight);
-
-        // Subscribe SimHub property, if it is set and different than the previous one.
+        // Subscribe SimHub "Display" property, if it is set and different than the previous one.
         if (!string.IsNullOrEmpty(settings.DisplaySimHubProperty) &&
             (settings.DisplaySimHubProperty != _settings.DisplaySimHubProperty || forceSubscribe))
         {
             await _simHubConnection.Subscribe(settings.DisplaySimHubProperty, _displayPropertyChangedReceiver);
         }
 
+        _hotkey = KeyboardUtils.CreateHotkey(settings.Ctrl, settings.Alt, settings.Shift, settings.Hotkey);
+        _hotkeyLeft = KeyboardUtils.CreateHotkey(settings.CtrlLeft, settings.AltLeft, settings.ShiftLeft, settings.HotkeyLeft);
+        _hotkeyRight = KeyboardUtils.CreateHotkey(settings.CtrlRight, settings.AltRight, settings.ShiftRight, settings.HotkeyRight);
+
         _settings = settings;
+    }
+
+    /// <summary>
+    /// Refire the last "StatePropertyChanged" event that was received from SimHub.
+    /// </summary>
+    private async Task RefireStatePropertyChanfed()
+    {
+        if (_lastStatePropertyChangedEvent != null)
+        {
+            await StatePropertyChanged(_lastStatePropertyChangedEvent);
+        }
+    }
+
+    private async Task StatePropertyChanged(PropertyChangedArgs args)
+    {
+        Logger.LogDebug("Property {PropertyName} changed to '{PropertyValue}'", args.PropertyName, args.PropertyValue);
+        _lastStatePropertyChangedEvent = args;
+        _state = _conditionExpression == null || _propertyComparer.Evaluate(args.PropertyType, args.PropertyValue, _conditionExpression);
+        await RefireDisplayPropertyChanged();
     }
 
     /// <summary>
@@ -177,22 +228,29 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         }
     }
 
-    private async Task DisplayPropertyChanged(PropertyChangedArgs args)
+    private async Task DisplayPropertyChanged(PropertyChangedArgs? args)
     {
         _lastDisplayPropertyChangedEvent = args;
-        await SetDisplayProperty(args.PropertyValue);
+        await SetDisplayProperty(args?.PropertyValue);
     }
 
     private async Task SetDisplayProperty(IComparable? property)
     {
         var value = property ?? string.Empty;
+        var color = _state ? "#ffffff" : "#333333";
         try
         {
-            await SetFeedbackAsync(new LayoutA1 { Value = string.Format(_displayFormat, value) });
+            await SetFeedbackAsync(new DialLayout { Value = new Text { Value = string.Format(_displayFormat, value), Color = color } });
         }
         catch (FormatException)
         {
-            await SetFeedbackAsync(new LayoutA1 { Value = value.ToString() });
+            await SetFeedbackAsync(new DialLayout { Value = new Text { Value = value.ToString(), Color = color } });
         }
     }
+}
+
+[JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
+public class DialLayout
+{
+    public Text Value { get; set; } = "";
 }

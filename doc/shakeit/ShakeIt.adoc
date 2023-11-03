@@ -118,3 +118,13 @@ In the very first screenshot, you can see that my three "Audi" buttons are greye
 . Bind the "Audi" property "IsMuted" to the "+" and "-" button ("SimHub Property (state)"). Append `==false` as for the mute button in the center
 . Activate the "muted" state of each of the three buttons
 . From the dropdown menu of the Stream Deck field "Title", select a gray color.
+
+=== Stream Deck Plus Dial
+
+Volume up, Volume down and Mute/Unmute can be controlled with a rotary knob. The following example uses the same configuration as the previous examples:
+
+image::ShakeIt-Bass-Dial.png[Dial]
+
+The value in the field "SimHub Property (State)" has to end with `==false`. If the channel is muted, the value will we displayed in light gray instead of white.
+
+Because the reaction to the knobs is very fast, the parameter "Gain change step" can be reduced to "1" in SimHub.

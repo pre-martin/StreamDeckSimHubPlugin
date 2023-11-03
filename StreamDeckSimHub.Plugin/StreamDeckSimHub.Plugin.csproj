@@ -9,6 +9,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AssemblyName>StreamDeckSimHub</AssemblyName>
+        <LangVersion>11</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,6 +20,7 @@
         <PackageReference Include="NLog" Version="5.1.0" />
         <PackageReference Include="NLog.Extensions.Logging" Version="5.2.0" />
         <PackageReference Include="SharpDeck" Version="7.0.0-beta1" />
+        <PackageReference Include="SkiaSharp" Version="2.88.6" />
     </ItemGroup>
 
     <Target Name="CustomAfterPublish" AfterTargets="Publish" DependsOnTargets="GetBuildVersion">
@@ -64,10 +66,7 @@
       <None Update="pi\js\dial.js">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\actions\dial.png">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="images\actions\dial@2x.png">
+      <None Update="images\actions\dial.svg">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="images\actions\flag.svg">
@@ -127,10 +126,7 @@
       <None Update="images\icons\3@2x.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\icons\dial.png">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="images\icons\dial@2x.png">
+      <None Update="images\icons\dial.svg">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="images\icons\flag-black.svg">
@@ -176,6 +172,9 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="images\store\plugin@2x.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="layout\dial-layout.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="pi\components\sib.html">

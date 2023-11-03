@@ -1,0 +1,4 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144">
+    <circle cx="72" cy="72" r="38" fill="white"/>
+    <circle cx="72" cy="72" r="55" fill="none" stroke="white" stroke-width="6"/>
+</svg>

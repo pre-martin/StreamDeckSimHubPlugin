@@ -8,6 +8,7 @@ using NLog.Extensions.Logging;
 using SharpDeck.Extensions.Hosting;
 using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.SimHub;
+using StreamDeckSimHub.Plugin.Tools;
 
 // Main entry. Started by Stream Deck with appropriate arguments.
 
@@ -33,4 +34,5 @@ void ConfigureServices(IServiceCollection serviceCollection)
     serviceCollection.AddSingleton<SimHubConnection>();
     serviceCollection.AddSingleton<ShakeItStructureFetcher>();
     serviceCollection.AddSingleton<PropertyComparer>();
+    serviceCollection.AddSingleton<ImageUtils>();
 }
