@@ -40,7 +40,7 @@ public class DialActionSettings : HotkeySettings
                $"(CCW: {HotkeyString(HotkeyLeft, CtrlLeft, AltLeft, ShiftLeft)}, SimHubControlLeft: {SimHubControlLeft}), " +
                $"(CW: {HotkeyString(HotkeyRight, CtrlRight, AltRight, ShiftRight)}, SimHubControlRight: {SimHubControlRight}), " +
                $"(State: SimHubProperty: {SimHubProperty}), " +
-               $"(Display: DisplaySimHubProperty: {DisplaySimHubProperty}, DisplayFormat: {DisplayFormat})";
+               $"(Display: DisplaySimHubProperty: {DisplaySimHubProperty}, DisplayFormat: {DisplayFormat.Replace("\n", "<CR>")})";
     }
 
 }

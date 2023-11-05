@@ -2,6 +2,7 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using SharpDeck;
+using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.SimHub;
 
 namespace StreamDeckSimHub.Plugin.Actions;
@@ -13,27 +14,7 @@ namespace StreamDeckSimHub.Plugin.Actions;
 [StreamDeckAction("net.planetrenner.simhub.hotkey4")]
 public class Hotkey4Action : HotkeyBaseAction<Hotkey4ActionSettings>
 {
-    public Hotkey4Action(SimHubConnection simHubConnection) : base(simHubConnection)
+    public Hotkey4Action(SimHubConnection simHubConnection, PropertyComparer propertyComparer) : base(simHubConnection, propertyComparer, false)
     {
-    }
-
-    protected override int ValueToState(PropertyType propertyType, IComparable? propertyValue)
-    {
-        switch (propertyType)
-        {
-            case PropertyType.Boolean:
-                return propertyValue == null ? 0 : (bool)propertyValue ? 1 : 0;
-            case PropertyType.Integer:
-            case PropertyType.Long:
-                return propertyValue == null ? 0 : (int)propertyValue;
-            case PropertyType.Double:
-                // "double" as 4-state? for the moment, simply return 0.
-                return 0;
-            case PropertyType.Object:
-                // "object" as 4-state? for the moment, simply return 0.
-                return 0;
-            default:
-                return 0;
-        }
     }
 }

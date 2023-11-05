@@ -17,32 +17,34 @@ namespace StreamDeckSimHub.Plugin.Actions;
 public class DialAction : StreamDeckAction<DialActionSettings>
 {
     private readonly SimHubConnection _simHubConnection;
-    private readonly PropertyComparer _propertyComparer;
     private readonly ImageUtils _imageUtils;
-    private ConditionExpression? _conditionExpression;
+    private readonly StateManager _stateManager;
+    private readonly DisplayManager _displayManager;
     private DialActionSettings _settings = new();
     private KeyboardUtils.Hotkey? _hotkey;
     private KeyboardUtils.Hotkey? _hotkeyLeft;
     private KeyboardUtils.Hotkey? _hotkeyRight;
     private readonly ShakeItStructureFetcher _shakeItStructureFetcher;
-    private bool _state = true;
-    private readonly IPropertyChangedReceiver _statePropertyChangedReceiver;
-    private PropertyChangedArgs? _lastStatePropertyChangedEvent;
-    private readonly IPropertyChangedReceiver _displayPropertyChangedReceiver;
-    private string _displayFormat = "${0}";
-    private PropertyChangedArgs? _lastDisplayPropertyChangedEvent;
-    private readonly FormatHelper _formatHelper = new();
     private readonly KeyQueue _keyQueue;
 
     public DialAction(SimHubConnection simHubConnection, PropertyComparer propertyComparer, ImageUtils imageUtils, ShakeItStructureFetcher shakeItStructureFetcher)
     {
         _simHubConnection = simHubConnection;
-        _propertyComparer = propertyComparer;
         _imageUtils = imageUtils;
         _keyQueue = new KeyQueue(simHubConnection);
         _shakeItStructureFetcher = shakeItStructureFetcher;
-        _statePropertyChangedReceiver = new PropertyChangedDelegate(StatePropertyChanged);
-        _displayPropertyChangedReceiver = new PropertyChangedDelegate(DisplayPropertyChanged);
+        _stateManager = new StateManager(propertyComparer, simHubConnection, StateChangedFunc);
+        _displayManager = new DisplayManager(simHubConnection, DisplayChangedFunc);
+    }
+
+    private async Task StateChangedFunc(int _)
+    {
+        await SetFeedback(_displayManager.LastDisplayValue, _displayManager.DisplayFormat);
+    }
+
+    private async Task DisplayChangedFunc(IComparable? value, string format)
+    {
+        await SetFeedback(value, format);
     }
 
     /// <summary>
@@ -81,14 +83,8 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     {
         Logger.LogInformation("OnWillDisappear ({coords}): {settings}", args.Payload.Coordinates, args.Payload.GetSettings<DialActionSettings>());
         _keyQueue.Stop();
-        if (_conditionExpression != null && !string.IsNullOrEmpty(_conditionExpression.Property))
-        {
-            await _simHubConnection.Unsubscribe(_conditionExpression.Property, _statePropertyChangedReceiver);
-        }
-        if (!string.IsNullOrEmpty(_settings.DisplaySimHubProperty))
-        {
-            await _simHubConnection.Unsubscribe(_settings.DisplaySimHubProperty, _displayPropertyChangedReceiver);
-        }
+        _stateManager.Deactivate();
+        _displayManager.Deactivate();
 
         await base.OnWillDisappear(args);
     }
@@ -151,51 +147,8 @@ public class DialAction : StreamDeckAction<DialActionSettings>
 
     private async Task SetSettings(DialActionSettings settings, bool forceSubscribe)
     {
-        var newCondExpr = _propertyComparer.Parse(settings.SimHubProperty);
-        // Unsubscribe previous SimHub state property, if it was set and is different than the new one.
-        if (_conditionExpression != null && _conditionExpression.Property != newCondExpr.Property && !string.IsNullOrEmpty(_conditionExpression.Property))
-        {
-            await _simHubConnection.Unsubscribe(_conditionExpression.Property, _statePropertyChangedReceiver);
-        }
-
-        // Subscribe SimHub state property, if it is set and different than the previous one.
-        if (!string.IsNullOrEmpty(newCondExpr.Property) &&
-            (_conditionExpression == null || _conditionExpression.Property != newCondExpr.Property || forceSubscribe))
-        {
-            await _simHubConnection.Subscribe(newCondExpr.Property, _statePropertyChangedReceiver);
-        }
-
-        // Recalculate action state if the State Property has changed.
-        var recalcState = !Equals(newCondExpr, _conditionExpression);
-        _conditionExpression = newCondExpr;
-        if (recalcState)
-        {
-            await RefireStatePropertyChanged();
-        }
-
-        // Redisplay the title if the format for the title has changed.
-        var newDisplayFormat = _formatHelper.CompleteFormatString(settings.DisplayFormat);
-        var recalcDisplay = newDisplayFormat != _displayFormat;
-        _displayFormat = newDisplayFormat;
-        if (recalcDisplay)
-        {
-            await RefireDisplayPropertyChanged();
-        }
-
-        // Unsubscribe previous SimHub "Display" property, if it was set and is different than the new one.
-        if (!string.IsNullOrEmpty(_settings.DisplaySimHubProperty) && _settings.DisplaySimHubProperty != settings.DisplaySimHubProperty)
-        {
-            await _simHubConnection.Unsubscribe(_settings.DisplaySimHubProperty, _displayPropertyChangedReceiver);
-            // In case of the new "Display" property being invalid or empty, we remove the old title value.
-            await DisplayPropertyChanged(null);
-        }
-
-        // Subscribe SimHub "Display" property, if it is set and different than the previous one.
-        if (!string.IsNullOrEmpty(settings.DisplaySimHubProperty) &&
-            (settings.DisplaySimHubProperty != _settings.DisplaySimHubProperty || forceSubscribe))
-        {
-            await _simHubConnection.Subscribe(settings.DisplaySimHubProperty, _displayPropertyChangedReceiver);
-        }
+        await _stateManager.HandleExpression(settings.SimHubProperty, forceSubscribe);
+        await _displayManager.HandleDisplayProperties(settings.DisplaySimHubProperty, settings.DisplayFormat, forceSubscribe);
 
         _hotkey = KeyboardUtils.CreateHotkey(settings.Ctrl, settings.Alt, settings.Shift, settings.Hotkey);
         _hotkeyLeft = KeyboardUtils.CreateHotkey(settings.CtrlLeft, settings.AltLeft, settings.ShiftLeft, settings.HotkeyLeft);
@@ -204,53 +157,17 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         _settings = settings;
     }
 
-    /// <summary>
-    /// Refire the last "StatePropertyChanged" event that was received from SimHub.
-    /// </summary>
-    private async Task RefireStatePropertyChanged()
+    private async Task SetFeedback(IComparable? value, string format)
     {
-        if (_lastStatePropertyChangedEvent != null)
-        {
-            await StatePropertyChanged(_lastStatePropertyChangedEvent);
-        }
-    }
-
-    private async Task StatePropertyChanged(PropertyChangedArgs args)
-    {
-        Logger.LogDebug("Property {PropertyName} changed to '{PropertyValue}'", args.PropertyName, args.PropertyValue);
-        _lastStatePropertyChangedEvent = args;
-        _state = _conditionExpression == null || _propertyComparer.Evaluate(args.PropertyType, args.PropertyValue, _conditionExpression);
-        await RefireDisplayPropertyChanged();
-    }
-
-    /// <summary>
-    /// Refire the last "DisplayPropertyChanged" event that was received from SimHub.
-    /// </summary>
-    private async Task RefireDisplayPropertyChanged()
-    {
-        if (_lastDisplayPropertyChangedEvent != null)
-        {
-            await DisplayPropertyChanged(_lastDisplayPropertyChangedEvent);
-        }
-    }
-
-    private async Task DisplayPropertyChanged(PropertyChangedArgs? args)
-    {
-        _lastDisplayPropertyChangedEvent = args;
-        await SetDisplayProperty(args?.PropertyValue);
-    }
-
-    private async Task SetDisplayProperty(IComparable? property)
-    {
-        var value = property ?? string.Empty;
-        var color = _state ? "#ffffff" : "#333333";
+        var displayValue = value ?? string.Empty;
+        var color = _stateManager.State > 0 ? "#ffffff" : "#333333";
         try
         {
-            await SetFeedbackAsync(new DialLayout { Value = new Text { Value = string.Format(_displayFormat, value), Color = color } });
+            await SetFeedbackAsync(new DialLayout { Value = new Text { Value = string.Format(format, displayValue), Color = color } });
         }
         catch (FormatException)
         {
-            await SetFeedbackAsync(new DialLayout { Value = new Text { Value = value.ToString(), Color = color } });
+            await SetFeedbackAsync(new DialLayout { Value = new Text { Value = displayValue.ToString(), Color = color } });
         }
     }
 }
