@@ -11,7 +11,7 @@ namespace StreamDeckSimHub.Plugin.Tools;
 /// </summary>
 public class DisplayManager
 {
-    private readonly SimHubConnection _simHubConnection;
+    private readonly ISimHubConnection _simHubConnection;
     private readonly DisplayChangedFunc _displayChangedFunc;
     private readonly FormatHelper _formatHelper = new();
     private readonly PropertyChangedDelegate _displayPropertyChangedReceiver;
@@ -22,7 +22,7 @@ public class DisplayManager
 
     public delegate Task DisplayChangedFunc(IComparable? value, string format);
 
-    public DisplayManager(SimHubConnection simHubConnection, DisplayChangedFunc displayChangedFunc)
+    public DisplayManager(ISimHubConnection simHubConnection, DisplayChangedFunc displayChangedFunc)
     {
         _simHubConnection = simHubConnection;
         _displayChangedFunc = displayChangedFunc;
