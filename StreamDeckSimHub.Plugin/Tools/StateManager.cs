@@ -14,7 +14,7 @@ public class StateManager
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private readonly PropertyComparer _propertyComparer;
-    private readonly SimHubConnection _simHubConnection;
+    private readonly ISimHubConnection _simHubConnection;
     private readonly StateChangedFunc _stateChangedFunc;
     private readonly bool _useCondition;
     private readonly IPropertyChangedReceiver _statePropertyChangedReceiver;
@@ -28,7 +28,7 @@ public class StateManager
     /// <param name="simHubConnection">SimHub Connection to use</param>
     /// <param name="stateChangedFunc">Called whenever the state has to be updated</param>
     /// <param name="useCondition">If "true", the PropertyComparer will be used to determine the state from a condition. If "false", the property value will be used directly as state.</param>
-    public StateManager(PropertyComparer propertyComparer, SimHubConnection simHubConnection, StateChangedFunc stateChangedFunc, bool useCondition = true)
+    public StateManager(PropertyComparer propertyComparer, ISimHubConnection simHubConnection, StateChangedFunc stateChangedFunc, bool useCondition = true)
     {
         _propertyComparer = propertyComparer;
         _simHubConnection = simHubConnection;

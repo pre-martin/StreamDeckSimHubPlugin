@@ -87,7 +87,7 @@ public class PropertyInformation
 /// <p>This connection does not support multiplexing. Thus it is only used to receive "Property Changed" messages from the
 /// SimHub Property Server. Other receiving communication has to be handled in a different connection.</p>
 /// </remarks>
-public class SimHubConnection
+public class SimHubConnection : ISimHubConnection
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private readonly PropertyParser _propertyParser;
@@ -160,7 +160,7 @@ public class SimHubConnection
         }
     }
 
-    internal async Task Subscribe(string propertyName, IPropertyChangedReceiver propertyChangedReceiver)
+    public async Task Subscribe(string propertyName, IPropertyChangedReceiver propertyChangedReceiver)
     {
         await _semaphore.WaitAsync();
 
@@ -205,7 +205,7 @@ public class SimHubConnection
         }
     }
 
-    internal async Task Unsubscribe(string propertyName, IPropertyChangedReceiver propertyChangedReceiver)
+    public async Task Unsubscribe(string propertyName, IPropertyChangedReceiver propertyChangedReceiver)
     {
         await _semaphore.WaitAsync();
 
