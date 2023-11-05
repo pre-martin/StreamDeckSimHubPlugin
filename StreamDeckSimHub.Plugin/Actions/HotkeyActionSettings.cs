@@ -13,7 +13,7 @@ public class HotkeyActionSettings : HotkeyBaseActionSettings
 
     public override string ToString()
     {
-        return $"{base.ToString()}, TitleSimHubProperty: {TitleSimHubProperty}, TitleFormat: {TitleFormat}";
+        return $"{base.ToString()}, TitleSimHubProperty: {TitleSimHubProperty}, TitleFormat: {TitleFormat.Replace("\n", "<CR>")}";
     }
 
 }

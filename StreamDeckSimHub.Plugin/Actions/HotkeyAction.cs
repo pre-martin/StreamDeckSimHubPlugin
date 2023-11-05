@@ -1,16 +1,17 @@
 ﻿// Copyright (C) 2023 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
-using Newtonsoft.Json;
 using SharpDeck;
 using SharpDeck.PropertyInspectors;
 using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.SimHub;
+using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.Actions;
 
 /// <summary>
 /// Arguments sent from the Property Inspector for the event "fetchShakeItBassStructure" and "fetchShakeItMotorsStructure".
+/// We send it back in the answer so that the PI knows for which element this answer is.
 /// </summary>
 public class FetchShakeItStructureArgs
 {
@@ -24,21 +25,20 @@ public class FetchShakeItStructureArgs
 [StreamDeckAction("net.planetrenner.simhub.hotkey")]
 public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
 {
-    private readonly PropertyComparer _propertyComparer;
     private readonly ShakeItStructureFetcher _shakeItStructureFetcher;
-    private ConditionExpression? _conditionExpression;
-    private readonly IPropertyChangedReceiver _titlePropertyChangedReceiver;
-    private string _titleFormat = "${0}";
-    private PropertyChangedArgs? _lastTitlePropertyChangedEvent;
-    private readonly FormatHelper _formatHelper = new();
+    private readonly DisplayManager _displayManager;
 
     public HotkeyAction(
         SimHubConnection simHubConnection, PropertyComparer propertyComparer, ShakeItStructureFetcher shakeItStructureFetcher
-    ) : base(simHubConnection)
+    ) : base(simHubConnection, propertyComparer, true)
     {
-        _propertyComparer = propertyComparer;
         _shakeItStructureFetcher = shakeItStructureFetcher;
-        _titlePropertyChangedReceiver = new PropertyChangedDelegate(TitlePropertyChanged);
+        _displayManager = new DisplayManager(simHubConnection, DisplayChangedFunc);
+    }
+
+    private async Task DisplayChangedFunc(IComparable? value, string format)
+    {
+        await SetTitle(value, format);
     }
 
     /// <summary>
@@ -65,95 +65,20 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
 
     protected override async Task SetSettings(HotkeyActionSettings ac, bool forceSubscribe)
     {
-        var newCondExpr = _propertyComparer.Parse(ac.SimHubProperty);
-        // If we have an existing condition and receive a new one, where the PropertyName was not changed (because this change will
-        // trigger a unsubscribe+subscribe), but the Operator or the CompareValue has changed, we have to recalculate the
-        // state of the action.
-        var recalc = _conditionExpression != null &&
-                     newCondExpr.Property == _conditionExpression.Property &&
-                     (newCondExpr.Operator != _conditionExpression.Operator ||
-                      newCondExpr.CompareValue != _conditionExpression.CompareValue);
-        _conditionExpression = newCondExpr;
-        if (recalc)
-        {
-            await RefirePropertyChanged();
-        }
+        await _displayManager.HandleDisplayProperties(ac.TitleSimHubProperty, ac.TitleFormat, forceSubscribe);
 
-        var newTitleFormat = _formatHelper.CompleteFormatString(ac.TitleFormat);
-        // Redisplay the title if the format for the title has changed.
-        var recalcTitle = newTitleFormat != _titleFormat;
-        _titleFormat = newTitleFormat;
-        if (recalcTitle)
-        {
-            await RefireTitlePropertyChanged();
-        }
-
-        // The field "ac.SimHubProperty" may contain an expression, which is not understood by the base class. So we
-        // construct a new instance without expression.
-        var acSerialized = JsonConvert.SerializeObject(ac);
-        var acNew = JsonConvert.DeserializeObject<HotkeyActionSettings>(acSerialized);
-        acNew!.SimHubProperty = _conditionExpression.Property;
-
-        // Unsubscribe previous SimHub "Title" property, if it was set and is different than the new one.
-        if (!string.IsNullOrEmpty(HotkeySettings.TitleSimHubProperty) && HotkeySettings.TitleSimHubProperty != ac.TitleSimHubProperty)
-        {
-            await SimHubConnection.Unsubscribe(HotkeySettings.TitleSimHubProperty, _titlePropertyChangedReceiver);
-            // In case of the new "Title" property being invalid or empty, we remove the old title value.
-            _lastTitlePropertyChangedEvent = null;
-            await SetTitleProperty(null);
-        }
-
-        // Subscribe SimHub "Title" property, if it is set and different than the previous one.
-        if (!string.IsNullOrEmpty(ac.TitleSimHubProperty) && (ac.TitleSimHubProperty != HotkeySettings.TitleSimHubProperty ||
-                                                              forceSubscribe))
-        {
-            await SimHubConnection.Subscribe(ac.TitleSimHubProperty, _titlePropertyChangedReceiver);
-        }
-
-        await base.SetSettings(acNew, forceSubscribe);
+        await base.SetSettings(ac, forceSubscribe);
     }
 
     protected override async Task Unsubscribe()
     {
-        if (!string.IsNullOrEmpty(HotkeySettings.TitleSimHubProperty))
-        {
-            await SimHubConnection.Unsubscribe(HotkeySettings.TitleSimHubProperty, _titlePropertyChangedReceiver);
-        }
-
+        _displayManager.Deactivate();
         await base.Unsubscribe();
     }
 
-    protected override int ValueToState(PropertyType propertyType, IComparable? propertyValue)
+    private async Task SetTitle(IComparable? value, string format)
     {
-        if (_conditionExpression == null)
-        {
-            return 0;
-        }
-
-        var isActive = _propertyComparer.Evaluate(propertyType, propertyValue, _conditionExpression);
-        return isActive ? 1 : 0;
-    }
-
-    private async Task TitlePropertyChanged(PropertyChangedArgs args)
-    {
-        _lastTitlePropertyChangedEvent = args;
-        await SetTitleProperty(args.PropertyValue);
-    }
-
-    /// <summary>
-    /// Refire the last "TitlePropertyChanged" event that was received from SimHub.
-    /// </summary>
-    private async Task RefireTitlePropertyChanged()
-    {
-        if (_lastTitlePropertyChangedEvent != null)
-        {
-            await TitlePropertyChanged(_lastTitlePropertyChangedEvent);
-        }
-    }
-
-    private async Task SetTitleProperty(IComparable? property)
-    {
-        if (property == null)
+        if (value == null)
         {
             await SetTitleAsync(string.Empty);
         }
@@ -161,11 +86,11 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
         {
             try
             {
-                await SetTitleAsync(string.Format(_titleFormat, property));
+                await SetTitleAsync(string.Format(format, value));
             }
             catch (FormatException)
             {
-                await SetTitleAsync(property.ToString());
+                await SetTitleAsync(value.ToString());
             }
         }
     }
