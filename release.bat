@@ -16,10 +16,9 @@ mkdir build
 xcopy StreamDeckSimHub.Plugin\bin\%CONFIG%\net6.0\win-x64\publish build\net.planetrenner.simhub.sdPlugin /e /i /q
 
 cd build
-rem DistributionTool fails with SVG images (see https://github.com/orgs/elgatosf/discussions/76) :-(
-rem ..\..\DistributionTool.exe -b -i net.planetrenner.simhub.sdPlugin -o .
-7z.exe a -bd net.planetrenner.simhub.streamDeckPlugin.zip
-ren net.planetrenner.simhub.streamDeckPlugin.zip net.planetrenner.simhub.streamDeckPlugin
+..\..\DistributionTool.exe -b -i net.planetrenner.simhub.sdPlugin -o .
+rem 7z.exe a -bd net.planetrenner.simhub.streamDeckPlugin.zip
+rem ren net.planetrenner.simhub.streamDeckPlugin.zip net.planetrenner.simhub.streamDeckPlugin
 goto end
 
 :endFailure
