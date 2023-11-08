@@ -16,10 +16,10 @@ namespace StreamDeckSimHub.Plugin.Actions;
 [StreamDeckAction("net.planetrenner.simhub.dial")]
 public class DialAction : StreamDeckAction<DialActionSettings>
 {
-    private readonly SimHubConnection _simHubConnection;
     private readonly ImageUtils _imageUtils;
     private readonly StateManager _stateManager;
     private readonly DisplayManager _displayManager;
+    private readonly SimHubManager _simHubManager;
     private DialActionSettings _settings = new();
     private KeyboardUtils.Hotkey? _hotkey;
     private KeyboardUtils.Hotkey? _hotkeyLeft;
@@ -29,12 +29,12 @@ public class DialAction : StreamDeckAction<DialActionSettings>
 
     public DialAction(SimHubConnection simHubConnection, PropertyComparer propertyComparer, ImageUtils imageUtils, ShakeItStructureFetcher shakeItStructureFetcher)
     {
-        _simHubConnection = simHubConnection;
         _imageUtils = imageUtils;
         _keyQueue = new KeyQueue(simHubConnection);
         _shakeItStructureFetcher = shakeItStructureFetcher;
         _stateManager = new StateManager(propertyComparer, simHubConnection, StateChangedFunc);
         _displayManager = new DisplayManager(simHubConnection, DisplayChangedFunc);
+        _simHubManager = new SimHubManager(simHubConnection);
     }
 
     private async Task StateChangedFunc(int _)
@@ -85,6 +85,7 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         _keyQueue.Stop();
         _stateManager.Deactivate();
         _displayManager.Deactivate();
+        await _simHubManager.Deactivate();
 
         await base.OnWillDisappear(args);
     }
@@ -113,10 +114,10 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         switch (args.Payload.Ticks)
         {
             case < 0:
-                _keyQueue.Enqueue(_hotkeyLeft, _settings.SimHubControlLeft, -args.Payload.Ticks);
+                _keyQueue.Enqueue(_hotkeyLeft, _settings.SimHubControlLeft, (Context, _settings.SimHubRoleLeft), -args.Payload.Ticks);
                 break;
             case > 0:
-                _keyQueue.Enqueue(_hotkeyRight, _settings.SimHubControlRight, args.Payload.Ticks);
+                _keyQueue.Enqueue(_hotkeyRight, _settings.SimHubControlRight, (Context, _settings.SimHubRoleRight), args.Payload.Ticks);
                 break;
         }
 
@@ -130,18 +131,14 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         if (args.Payload.Pressed)
         {
             KeyboardUtils.KeyDown(_hotkey);
-            if (!string.IsNullOrWhiteSpace(_settings.SimHubControl))
-            {
-                await _simHubConnection.SendTriggerInputPressed(_settings.SimHubControl);
-            }
+            await _simHubManager.TriggerInputPressed(_settings.SimHubControl);
+            await _simHubManager.RolePressed(Context, _settings.SimHubRole);
         }
         else
         {
             KeyboardUtils.KeyUp(_hotkey);
-            if (!string.IsNullOrWhiteSpace(_settings.SimHubControl))
-            {
-                await _simHubConnection.SendTriggerInputReleased(_settings.SimHubControl);
-            }
+            await _simHubManager.TriggerInputReleased(_settings.SimHubControl);
+            await _simHubManager.RoleReleased(Context, _settings.SimHubRole);
         }
     }
 

@@ -18,19 +18,18 @@ namespace StreamDeckSimHub.Plugin.Actions;
 /// </remarks>
 public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> where TSettings : HotkeyBaseActionSettings, new()
 {
-    private readonly SimHubConnection _simHubConnection;
     private TSettings _hotkeySettings;
     private KeyboardUtils.Hotkey? _hotkey;
     private KeyboardUtils.Hotkey? _longKeypressHotkey;
     private readonly StateManager _stateManager;
-    private bool _simHubTriggerActive;
+    private readonly SimHubManager _simHubManager;
     private readonly ShortAndLongPressHandler _salHandler;
 
     protected HotkeyBaseAction(SimHubConnection simHubConnection, PropertyComparer propertyComparer, bool useCondition)
     {
         _hotkeySettings = new TSettings();
-        _simHubConnection = simHubConnection;
-        _stateManager = new StateManager(propertyComparer, _simHubConnection, StateChangedFunc, useCondition);
+        _stateManager = new StateManager(propertyComparer, simHubConnection, StateChangedFunc, useCondition);
+        _simHubManager = new SimHubManager(simHubConnection);
         _salHandler = new ShortAndLongPressHandler(OnShortPress, OnLongPress, OnLongReleased);
     }
 
@@ -51,14 +50,6 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
     {
         Logger.LogInformation("OnWillDisappear ({coords}): {settings}", args.Payload.Coordinates, _hotkeySettings);
         await Unsubscribe();
-
-        // Just to be sure that there are no dangling input triggers. Actually we should not reach this code.
-        if (_simHubTriggerActive)
-        {
-            Logger.LogWarning("SimHub trigger still active. Sending \"released\" command");
-            _simHubTriggerActive = false;
-            await _simHubConnection.SendTriggerInputReleased(_hotkeySettings.SimHubControl);
-        }
 
         await base.OnWillDisappear(args);
     }
@@ -117,11 +108,9 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
         // Hotkey
         KeyboardUtils.KeyDown(_hotkey);
         // SimHubControl
-        if (!string.IsNullOrWhiteSpace(_hotkeySettings.SimHubControl))
-        {
-            _simHubTriggerActive = true;
-            await _simHubConnection.SendTriggerInputPressed(_hotkeySettings.SimHubControl);
-        }
+        await _simHubManager.TriggerInputPressed(_hotkeySettings.SimHubControl);
+        // SimHubRole
+        await _simHubManager.RolePressed(Context, _hotkeySettings.SimHubRole);
     }
 
     private async Task UpNormal()
@@ -129,12 +118,9 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
         // Hotkey
         KeyboardUtils.KeyUp(_hotkey);
         // SimHubControl
-        if (!string.IsNullOrWhiteSpace(_hotkeySettings.SimHubControl))
-        {
-            // Let's hope that nobody changed the settings since the "pressed" command...
-            _simHubTriggerActive = false;
-            await _simHubConnection.SendTriggerInputReleased(_hotkeySettings.SimHubControl);
-        }
+        await _simHubManager.TriggerInputReleased(_hotkeySettings.SimHubControl);
+        // SimHubRole
+        await _simHubManager.RoleReleased(Context, _hotkeySettings.SimHubRole);
         // Stream Deck always toggles the state for each keypress (at "key up", to be precise). So we have to set the
         // state again to the correct one, after Stream Deck has done its toggling stuff.
         await SetStateAsync(_stateManager.State);
@@ -145,11 +131,9 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
         // Hotkey
         KeyboardUtils.KeyDown(_longKeypressHotkey);
         // SimHubControl
-        if (!string.IsNullOrWhiteSpace(_hotkeySettings.SimHubControl))
-        {
-            _simHubTriggerActive = true;
-            await _simHubConnection.SendTriggerInputPressed(_hotkeySettings.SimHubControl);
-        }
+        await _simHubManager.TriggerInputPressed(_hotkeySettings.SimHubControl);
+        // SimHubRole
+        await _simHubManager.RolePressed(Context, _hotkeySettings.SimHubRole);
     }
 
     private async Task UpLong()
@@ -157,12 +141,9 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
         // Hotkey
         KeyboardUtils.KeyUp(_longKeypressHotkey);
         // SimHubControl
-        if (!string.IsNullOrWhiteSpace(_hotkeySettings.SimHubControl))
-        {
-            // Let's hope that nobody changed the settings since the "pressed" command...
-            _simHubTriggerActive = false;
-            await _simHubConnection.SendTriggerInputReleased(_hotkeySettings.SimHubControl);
-        }
+        await _simHubManager.TriggerInputReleased(_hotkeySettings.SimHubControl);
+        // SimHubRole
+        await _simHubManager.RoleReleased(Context, _hotkeySettings.SimHubRole);
         // Stream Deck always toggles the state for each keypress (at "key up", to be precise). So we have to set the
         // state again to the correct one, after Stream Deck has done its toggling stuff.
         await SetStateAsync(_stateManager.State);
@@ -186,9 +167,9 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
     /// <summary>
     /// This method has to unsubscribe all properties, which have been subscribed by this instance.
     /// </summary>
-    protected virtual Task Unsubscribe()
+    protected virtual async Task Unsubscribe()
     {
         _stateManager.Deactivate();
-        return Task.CompletedTask;
+        await _simHubManager.Deactivate();
     }
 }

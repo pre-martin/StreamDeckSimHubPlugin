@@ -8,16 +8,17 @@ namespace StreamDeckSimHub.Plugin.Actions;
 /// </summary>
 public class HotkeyBaseActionSettings : HotkeySettings
 {
-    public string SimHubControl { get; init; } = string.Empty;
     public string SimHubProperty { get; set; } = string.Empty;
-    public bool HasLongKeypress { get; init; } = false;
-    public HotkeySettings LongKeypressSettings { get; init; } = new();
-    public uint LongKeypressShortHoldTime { get; } = 50;
-    public uint LongKeypressTimeSpan { get; } = 500;
+    public bool HasLongKeypress { get; set; } = false;
+    public HotkeySettings LongKeypressSettings { get; set; } = new();
+    public uint LongKeypressShortHoldTime { get; set; } = 50;
+    public uint LongKeypressTimeSpan { get; set; } = 500;
 
     public override string ToString()
     {
-        return $"{base.ToString()}, SimHubControl: {SimHubControl}, SimHubProperty: {SimHubProperty}, HasLongKeypress: {HasLongKeypress}, " +
+        return
+            $"{base.ToString()}, SimHubProperty: {SimHubProperty}, " +
+            $"HasLongKeypress: {HasLongKeypress}, " +
             $"LongKeypressSettings: {LongKeypressSettings}, LongKeypressTimeSpan: {LongKeypressTimeSpan}, " +
             $"LongKeypressShortHoldTime: {LongKeypressShortHoldTime}";
     }

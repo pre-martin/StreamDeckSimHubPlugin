@@ -11,6 +11,7 @@ public class KeyQueueEntry
 {
     internal KeyboardUtils.Hotkey? Hotkey { get; init; }
     internal string? SimHubControl { get; init; }
+    internal (string owner, string? role) SimHubRole { get; init; }
 }
 
 /// <summary>
@@ -19,14 +20,14 @@ public class KeyQueueEntry
 public class KeyQueue
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-    private readonly SimHubConnection _simHubConnection;
+    private readonly SimHubManager _simHubManager;
     private readonly ConcurrentQueue<KeyQueueEntry> _hotkeyQueue = new();
     private Thread? _workerThread;
     private readonly AutoResetEvent _waitHandle = new(false);
 
     public KeyQueue(SimHubConnection simHubConnection)
     {
-        _simHubConnection = simHubConnection;
+        _simHubManager = new SimHubManager(simHubConnection);
     }
 
     public void Start()
@@ -43,12 +44,12 @@ public class KeyQueue
         _workerThread?.Interrupt();
     }
 
-    internal void Enqueue(KeyboardUtils.Hotkey? hotkey, string? simHubControl, int count)
+    internal void Enqueue(KeyboardUtils.Hotkey? hotkey, string? simHubControl, (string owner, string? role) simHubRole, int? count)
     {
         Logger.Debug("Adding entries to queue");
         for (var i = 0; i < count; i++)
         {
-            _hotkeyQueue.Enqueue(new KeyQueueEntry { Hotkey = hotkey, SimHubControl = simHubControl});
+            _hotkeyQueue.Enqueue(new KeyQueueEntry { Hotkey = hotkey, SimHubControl = simHubControl, SimHubRole = simHubRole });
         }
         _waitHandle.Set();
     }
@@ -61,7 +62,7 @@ public class KeyQueue
             {
                 if (_hotkeyQueue.TryDequeue(out var queueEntry))
                 {
-                    Press(queueEntry.Hotkey, queueEntry.SimHubControl).Wait();
+                    Press(queueEntry.Hotkey, queueEntry.SimHubControl, queueEntry.SimHubRole).Wait();
                 }
                 else
                 {
@@ -76,21 +77,17 @@ public class KeyQueue
         }
     }
 
-    private async Task Press(KeyboardUtils.Hotkey? hotkey, string? simHubControl)
+    private async Task Press(KeyboardUtils.Hotkey? hotkey, string? simHubControl, (string owner, string? role) simHubRole)
     {
         KeyboardUtils.KeyDown(hotkey);
-        if (!string.IsNullOrWhiteSpace(simHubControl))
-        {
-            await _simHubConnection.SendTriggerInputPressed(simHubControl);
-        }
+        await _simHubManager.TriggerInputPressed(simHubControl);
+        await _simHubManager.RolePressed(simHubRole.owner, simHubRole.role);
 
         await Task.Delay(TimeSpan.FromMilliseconds(20));
 
         KeyboardUtils.KeyUp(hotkey);
-        if (!string.IsNullOrWhiteSpace(simHubControl))
-        {
-            await _simHubConnection.SendTriggerInputReleased(simHubControl);
-        }
+        await _simHubManager.TriggerInputReleased(simHubControl);
+        await _simHubManager.RoleReleased(simHubRole.owner, simHubRole.role);
     }
 
 }

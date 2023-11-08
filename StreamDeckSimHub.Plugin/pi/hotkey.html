@@ -35,6 +35,10 @@
         <div class="sdpi-item-label">SimHub Control</div>
         <input class="sdpi-item-value" id="simhubControl" value="" placeholder="Enter unique control name" oninput="saveSettingsDelayed()">
     </div>
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">SimHub Role</div>
+        <select class="sdpi-item-value select" id="simhubRole" onchange="saveSettings()"></select>
+    </div>
 
     <div class="sdpi-heading">Long Keypress</div>
 
@@ -114,6 +118,7 @@
 <script src="libs/js/property-inspector.js"></script>
 <script src="libs/js/utils.js"></script>
 <script src="js/shakeit.js"></script>
+<script src="js/simhubrole.js"></script>
 <script src="js/hotkey.js"></script>
 
 </body>

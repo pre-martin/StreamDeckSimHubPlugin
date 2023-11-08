@@ -96,6 +96,7 @@ public class SimHubConnection : ISimHubConnection
     private readonly SemaphoreSlim _semaphore = new(1);
     // Mapping from SimHub property name to PropertyInformation.
     private readonly Dictionary<string, PropertyInformation> _subscriptions = new();
+    private readonly HttpClient _apiClient = new() { Timeout = TimeSpan.FromSeconds(2) };
 
     public SimHubConnection(PropertyParser propertyParser)
     {
@@ -245,14 +246,36 @@ public class SimHubConnection : ISimHubConnection
         }
     }
 
-    internal async Task SendTriggerInputPressed(string inputName)
+    public async Task SendTriggerInputPressed(string inputName)
     {
         await WriteToServer($"trigger-input-pressed {inputName}");
     }
 
-    internal async Task SendTriggerInputReleased(string inputName)
+    public async Task SendTriggerInputReleased(string inputName)
     {
         await WriteToServer($"trigger-input-released {inputName}");
+    }
+
+    public async Task<bool> SendControlMapperRole(string ownerId, string roleName, bool isStart)
+    {
+        var dict = new Dictionary<string, string>
+        {
+            { "ownerId", ownerId },
+            { "roleName", roleName }
+        };
+        using var formContent = new FormUrlEncodedContent(dict);
+        var action = isStart ? "StartRole" : "StopRole";
+        try
+        {
+            using var response = await _apiClient.PostAsync($"http://localhost:8888/api/ControlMapper/{action}/", formContent);
+            response.EnsureSuccessStatusCode();
+            return true;
+        }
+        catch (Exception e)
+        {
+            Logger.Warn($"Could not send role to SimHub Control Mapper api: {e}");
+            return false;
+        }
     }
 
     private async Task SendSubscribe(string propertyName)

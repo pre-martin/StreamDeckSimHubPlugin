@@ -12,14 +12,16 @@ public class HotkeySettings
     public bool Ctrl { get; init; }
     public bool Alt { get; init; }
     public bool Shift { get; init; }
+    public string SimHubControl { get; set; } = string.Empty;
+    public string SimHubRole { get; set; } = string.Empty;
 
-    protected string HotkeyString(string hotkey, bool ctrl, bool alt, bool shift)
+    protected static string HotkeyString(string hotkey, bool ctrl, bool alt, bool shift, string simHubControl, string simHubRole)
     {
-        return $"Hotkey: {hotkey}, Modifier: {(ctrl ? 'C' : '-')}{(alt ? 'A' : '-')}{(shift ? 'S' : '-')}";
+        return $"Hotkey: {hotkey}, Modifier: {(ctrl ? 'C' : '-')}{(alt ? 'A' : '-')}{(shift ? 'S' : '-')}, SimHubControl: {simHubControl}, SimHubRole: {simHubRole}";
     }
 
     public override string ToString()
     {
-        return $"{HotkeyString(Hotkey, Ctrl, Alt, Shift)}";
+        return $"{HotkeyString(Hotkey, Ctrl, Alt, Shift, SimHubControl, SimHubRole)}";
     }
 }
