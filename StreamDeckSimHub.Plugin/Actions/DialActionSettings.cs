@@ -5,16 +5,13 @@ namespace StreamDeckSimHub.Plugin.Actions;
 
 public class DialActionSettings : HotkeySettings
 {
-    #region Press
-    public string SimHubControl { get; init; } = string.Empty;
-    #endregion
-
     #region CCW
     public string HotkeyLeft { get; init; } = string.Empty;
     public bool CtrlLeft { get; init; }
     public bool AltLeft { get; init; }
     public bool ShiftLeft { get; init; }
     public string SimHubControlLeft { get; init; } = string.Empty;
+    public string SimHubRoleLeft { get; init; } = string.Empty;
     #endregion
 
     #region CW
@@ -23,6 +20,7 @@ public class DialActionSettings : HotkeySettings
     public bool AltRight { get; init; }
     public bool ShiftRight { get; init; }
     public string SimHubControlRight { get; init; } = string.Empty;
+    public string SimHubRoleRight { get; init; } = string.Empty;
     #endregion
 
     #region State
@@ -36,9 +34,9 @@ public class DialActionSettings : HotkeySettings
 
     public override string ToString()
     {
-        return $"(Press: {base.ToString()}, SimHubControl: {SimHubControl}), " +
-               $"(CCW: {HotkeyString(HotkeyLeft, CtrlLeft, AltLeft, ShiftLeft)}, SimHubControlLeft: {SimHubControlLeft}), " +
-               $"(CW: {HotkeyString(HotkeyRight, CtrlRight, AltRight, ShiftRight)}, SimHubControlRight: {SimHubControlRight}), " +
+        return $"(Press: {base.ToString()}), " +
+               $"(CCW: {HotkeyString(HotkeyLeft, CtrlLeft, AltLeft, ShiftLeft, SimHubControlLeft, SimHubRoleLeft)}), " +
+               $"(CW: {HotkeyString(HotkeyRight, CtrlRight, AltRight, ShiftRight, SimHubControlRight, SimHubRoleRight)}), " +
                $"(State: SimHubProperty: {SimHubProperty}), " +
                $"(Display: DisplaySimHubProperty: {DisplaySimHubProperty}, DisplayFormat: {DisplayFormat.Replace("\n", "<CR>")})";
     }

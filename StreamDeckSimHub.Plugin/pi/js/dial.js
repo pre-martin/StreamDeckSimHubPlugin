@@ -1,4 +1,4 @@
-$PI.onConnected(jsn => {
+$PI.onConnected(async jsn => {
     loadSettings(jsn.actionInfo.payload.settings);
 
     // Event handler that handles the events from our child window (sib.html).
@@ -23,6 +23,11 @@ $PI.onConnected(jsn => {
             $PI.logMessage('Received unknown message from plugin');
         }
     });
+
+    const roleList = await $SimHubRole.fetchSimHubRoles();
+    $SimHubRole.updateSimHubRoles('simhubRole', roleList, jsn.actionInfo.payload.settings['simhubRole']);
+    $SimHubRole.updateSimHubRoles('simhubRoleLeft', roleList, jsn.actionInfo.payload.settings['simhubRoleLeft']);
+    $SimHubRole.updateSimHubRoles('simhubRoleRight', roleList, jsn.actionInfo.payload.settings['simhubRoleRight']);
 });
 
 function loadSettings(settings) {
@@ -50,9 +55,9 @@ const saveSettingsDelayed = Utils.debounce(500, () => saveSettings());
 
 function saveSettings() {
     const settingIds = [
-        'hotkeyLeft', 'ctrlLeft', 'altLeft', 'shiftLeft', 'simhubControlLeft',
-        'hotkeyRight', 'ctrlRight', 'altRight', 'shiftRight', 'simhubControlRight',
-        'hotkey', 'ctrl', 'alt', 'shift', 'simhubControl',
+        'hotkeyLeft', 'ctrlLeft', 'altLeft', 'shiftLeft', 'simhubControlLeft', 'simhubRoleLeft',
+        'hotkeyRight', 'ctrlRight', 'altRight', 'shiftRight', 'simhubControlRight', 'simhubRoleRight',
+        'hotkey', 'ctrl', 'alt', 'shift', 'simhubControl', 'simhubRole',
         'simhubProperty', 'simhubPropertyClearNameCache',
         'displaySimhubProperty', 'displaySimhubPropertyClearNameCache', 'displayFormat'
     ];

@@ -17,18 +17,37 @@ This action is very similar to the "Hotkey" action, with the difference that the
 
 * Send a keystroke event to the active window, if a rotary knob is rotated or pressed.
 * Send an input trigger to SimHub, if a rotary knob is rotated or pressed.
+* Send a mapped SimHub control mapper role, if a rotary knob is rotated or pressed.
 * Show the value of a SimHub property on the display
 
 The fields of this action are as follows:
 
-* *Hotkey (Rotate counterclockwise)* +
+Section Rotate CCW::
+
+* *Hotkey* +
 This optional field takes a key, which should be sent to the active window, when the rotary knob is turned counterclockwise. Please see the description of the link:../hotkey/Hotkey.adoc[Hotkey.adoc] for details.
-* *SimHub Control (Rotate counterclockwise)* +
+* *SimHub Control* +
 This optional field may take a *unique* string. This string will be sent as an input trigger to SimHub, when die rotary knob is turned counterclockwise. Again, see link:../hotkey/Hotkey.adoc[Hotkey.adoc] for details.
-* *Hotkey* and *SimHub Control* (*Rotate clockwise*) +
+* *SimHub (Control Mapper) Role* +
+Allows the mapping of predefined roles from the SimHub Control Mapper plugin. See link:../hotkey/Hotkey.adoc[Hotkey.adoc] for details.
+
+Section Rotate CW::
+
+* *Hotkey*, *SimHub Control* and *SimHub (Control Mapper) Role* +
 Same as above, but for clockwise rotation of the knob.
-* *Hotkey* and *SimHub Control* (*Press*) +
+
+Section Press::
+
+* *Hotkey*, *SimHub Control* and *SimHub (Control Mapper) Role* +
 Same as above, but when the rotary knob is pressed.
+
+Section State::
+
+* *SimHub Property (for state)* +
+This optional field allows to enter the name of a SimHub property or even a logical expression with a SimHub property. The SimHub property or the result of the logical expression will be used to set the state of the button to either "on" or "off". The section link:../hotkey/Hotkey.adoc[Hotkey.adoc] contains extensive documentation for this topic.
+
+Section Display::
+
 * *SimHub Property (for display)* +
 This optional field allows to specify a SimHub property, which will be shown in the display of the rotary knob. The section link:../hotkey/Hotkey.adoc[Hotkey.adoc] contains extensive documentation on the use of SimHub properties.
 * *Display Format (for display)* +

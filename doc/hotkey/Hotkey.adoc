@@ -16,7 +16,8 @@ This action offers the same functionality as the built-in action "Hotkey", but w
 
 * Send a keystroke event to the active window (like the built-in "Hotkey")
 * Send an input trigger to SimHub
-* Allow different keystrokes and SimHub triggers for short and long button presses
+* Assign SimHub control mapper roles to Stream Deck keys
+* Allow different keystrokes for short and long button presses
 * Bind the state of the button ("on" or "off") to the real state of a SimHub property
 * Show the value of a SimHub property on the button
 
@@ -41,6 +42,8 @@ Please note, that not all entries in "VirtualKeyShort" make sense in the field "
   Modifiers like Ctrl, Alt and Shift have to be specified by using the corresponding checkbox.
 * *SimHub Control* +
   This optional field may take a *unique* string. This string will be sent as an input trigger to SimHub, where it is used to identify this Stream Deck button. See link:../inputtrigger/InputTrigger.adoc[InputTrigger.adoc] for details about input triggers.
+* *SimHub (Control Mapper) Role* +
+  SimHub allows the abstraction of input devices with its Control Mapper plugin. This dropdown field shows all available roles that have been defined in SimHub. Important: SimHub has to be running because the available roles are fetched online from SimHub.
 
 Section Long Keypress::
 

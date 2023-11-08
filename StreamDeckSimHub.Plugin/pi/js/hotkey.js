@@ -1,4 +1,4 @@
-$PI.onConnected(jsn => {
+$PI.onConnected(async jsn => {
     loadSettings(jsn.actionInfo.payload.settings);
 
 
@@ -16,14 +16,16 @@ $PI.onConnected(jsn => {
     $PI.onSendToPropertyInspector(jsn.actionInfo.action, jsn => {
         if (jsn.payload?.message === 'shakeItBassStructure') {
             $ShakeIt.showShakeItStructure('sib', jsn.payload.profiles, jsn.payload.sourceId);
-        }
-        else if (jsn.payload?.message === 'shakeItMotorsStructure') {
+        } else if (jsn.payload?.message === 'shakeItMotorsStructure') {
             $ShakeIt.showShakeItStructure('sim', jsn.payload.profiles, jsn.payload.sourceId);
         } else {
             console.log('Received unknown message from plugin', jsn);
             $PI.logMessage('Received unknown message from plugin');
         }
     });
+
+    const roleList = await $SimHubRole.fetchSimHubRoles();
+    $SimHubRole.updateSimHubRoles('simhubRole', roleList, jsn.actionInfo.payload.settings['simhubRole']);
 });
 
 function loadSettings(settings) {
@@ -60,7 +62,7 @@ const saveSettingsDelayed = Utils.debounce(500, () => saveSettings());
 function saveSettings() {
     const settingIds = [
         'hotkey', 'ctrl', 'alt', 'shift',
-        'simhubControl',
+        'simhubControl', 'simhubRole',
         'simhubProperty', 'simhubPropertyClearNameCache',
         'hasLongKeypress', 'longHotkey', 'longCtrl', 'longAlt', 'longShift', 'longKeypressShortHoldTime', 'longKeypressTimeSpan',
         'titleSimhubProperty', 'titleSimhubPropertyClearNameCache', 'titleFormat'

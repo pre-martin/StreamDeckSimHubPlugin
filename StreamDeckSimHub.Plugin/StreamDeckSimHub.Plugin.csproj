@@ -51,6 +51,9 @@
       <None Update="pi\js\shakeit.js">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="pi\js\simhubrole.js">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="pi\js\hotkey.js">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
