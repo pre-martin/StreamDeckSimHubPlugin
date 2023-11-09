@@ -31,6 +31,8 @@ This optional field may take a *unique* string. This string will be sent as an i
 * *SimHub (Control Mapper) Role* +
 Allows the mapping of predefined roles from the SimHub Control Mapper plugin. See link:../hotkey/Hotkey.adoc[Hotkey.adoc] for details.
 
+Usually only one of the options Hotkey, SimHub Control or SimHub Role is used.
+
 Section Rotate CW::
 
 * *Hotkey*, *SimHub Control* and *SimHub (Control Mapper) Role* +

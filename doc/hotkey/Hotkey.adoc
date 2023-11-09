@@ -43,7 +43,9 @@ Please note, that not all entries in "VirtualKeyShort" make sense in the field "
 * *SimHub Control* +
   This optional field may take a *unique* string. This string will be sent as an input trigger to SimHub, where it is used to identify this Stream Deck button. See link:../inputtrigger/InputTrigger.adoc[InputTrigger.adoc] for details about input triggers.
 * *SimHub (Control Mapper) Role* +
-  SimHub allows the abstraction of input devices with its Control Mapper plugin. This dropdown field shows all available roles that have been defined in SimHub. Important: SimHub has to be running because the available roles are fetched online from SimHub.
+  SimHub allows the abstraction of input devices with its Control Mapper plugin. This optional dropdown field shows all available roles that have been defined in SimHub. Important: SimHub has to be running because the available roles are fetched online from SimHub.
+
+Usually only one of the options Hotkey, SimHub Control or SimHub Role is used.
 
 Section Long Keypress::
 
