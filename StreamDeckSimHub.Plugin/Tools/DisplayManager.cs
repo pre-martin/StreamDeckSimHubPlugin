@@ -17,7 +17,7 @@ public class DisplayManager
     private readonly PropertyChangedDelegate _displayPropertyChangedReceiver;
     private PropertyChangedArgs? _lastDisplayPropertyChangedEvent;
     private string _displayProperty = string.Empty;
-    public string DisplayFormat { get; private set; } = "${0}";
+    public string DisplayFormat { get; private set; } = string.Empty;
     public IComparable? LastDisplayValue { get; private set; }
 
     public delegate Task DisplayChangedFunc(IComparable? value, string format);
@@ -43,6 +43,10 @@ public class DisplayManager
         if (!string.IsNullOrEmpty(displayProperty) &&
             (displayProperty != _displayProperty || forceSubscribe))
         {
+            // If SimHub is not running, we will not receive "PropertyChanged" with the value of the prop. So we display
+            // a fake "null" value.
+            await _displayPropertyChangedReceiver.PropertyChanged(new PropertyChangedArgs(displayProperty, PropertyType.Integer));
+            // Subscribe
             await _simHubConnection.Subscribe(displayProperty, _displayPropertyChangedReceiver);
         }
 
