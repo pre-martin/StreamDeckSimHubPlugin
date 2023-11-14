@@ -78,20 +78,14 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
 
     private async Task SetTitle(IComparable? value, string format)
     {
-        if (value == null)
+        var displayValue = value ?? string.Empty;
+        try
         {
-            await SetTitleAsync(string.Empty);
+            await SetTitleAsync(string.Format(format, displayValue));
         }
-        else
+        catch (FormatException)
         {
-            try
-            {
-                await SetTitleAsync(string.Format(format, value));
-            }
-            catch (FormatException)
-            {
-                await SetTitleAsync(value.ToString());
-            }
+            await SetTitleAsync(displayValue.ToString());
         }
     }
 }

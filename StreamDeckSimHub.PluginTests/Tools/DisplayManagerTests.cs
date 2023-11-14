@@ -79,4 +79,33 @@ public class DisplayManagerTests
             return Task.CompletedTask;
         }
     }
+
+    [Test]
+    public async Task TestWithoutSimHub()
+    {
+        var simHubMock = new Mock<ISimHubConnection>();
+
+        IComparable? lastValue = null;
+        var lastFormat = "";
+        var displayManager = new DisplayManager(simHubMock.Object, DisplayChangedFunc);
+
+        // Setup
+        await displayManager.HandleDisplayProperties("acc.graphics.WiperLV", "Wiper {:D}", false);
+
+        // Subscribe must have been called on the SimHubConnection
+        simHubMock.Verify(shc => shc.Subscribe("acc.graphics.WiperLV", It.IsAny<IPropertyChangedReceiver>()), Times.Exactly(1));
+        // And the DisplayManager must have fired a fake property value
+        Assert.That(lastFormat, Is.EqualTo("Wiper {0:D}"));
+        Assert.That(lastValue, Is.Null);
+
+
+        return;
+
+        Task DisplayChangedFunc(IComparable? value, string format)
+        {
+            lastValue = value;
+            lastFormat = format;
+            return Task.CompletedTask;
+        }
+    }
 }
