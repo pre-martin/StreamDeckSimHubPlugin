@@ -173,7 +173,7 @@ public class SimHubConnection : ISimHubConnection
                 // We already have a subscription for this property. So just add the new action to the existing set.
                 if (receivers.Contains(propertyChangedReceiver))
                 {
-                    Logger.Info($"Action is already subscribed to {propertyName}, ignoring subscribe request");
+                    Logger.Warn($"Action is already subscribed to {propertyName}, ignoring subscribe request");
                 }
                 else
                 {

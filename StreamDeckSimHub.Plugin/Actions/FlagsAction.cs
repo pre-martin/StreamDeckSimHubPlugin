@@ -70,7 +70,6 @@ public class FlagsAction : StreamDeckAction
         await _simHubConnection.Subscribe("dcp.gd.Flag_Orange", _propertyChangedReceiver);
         await _simHubConnection.Subscribe("dcp.gd.Flag_White", _propertyChangedReceiver);
         await _simHubConnection.Subscribe("dcp.gd.Flag_Yellow", _propertyChangedReceiver);
-        await _simHubConnection.Subscribe("dcp.gd.Flag_Yellow", _propertyChangedReceiver);
 
         await base.OnWillAppear(args);
     }
