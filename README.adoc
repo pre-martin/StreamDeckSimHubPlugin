@@ -21,22 +21,27 @@ This means, that actions can be bound to SimHub properties. If the value of a bo
 
 This plugin depends on the https://github.com/pre-martin/SimHubPropertyServer[SimHub Property Server plugin], which has to be installed in SimHub.
 
-This video shows some of the features:
+This *video* shows some of the features:
 
 ifdef::env-github[]
-image::images/teaser/video-1-thumpnail.png[link=https://youtu.be/st_pZHmmHxY,800]
+[.text-center]
+image:images/teaser/video-1-thumpnail.png[link=https://youtu.be/st_pZHmmHxY,800] +
+https://youtu.be/st_pZHmmHxY[Watch on YouTube]
 endif::[]
 
 ifndef::env-github[]
+[.text-center]
 video::st_pZHmmHxY[youtube,800,450]
 endif::[]
 
 In the screenshot below, icons are green because they are "on" in the simulation or in SimHub.
 
+[.text-center]
 image::images/teaser/Teaser-1.png[Teaser 1,800]
 
 In this screenshot, TC, TCC and ABS are mapped to Stream Deck buttons. The current values are also displayed, as well as Brake Bias.
 
+[.text-center]
 image::images/teaser/Teaser-2.png[Teaser 2,800]
 
 
