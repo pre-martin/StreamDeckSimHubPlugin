@@ -14,6 +14,8 @@ public enum PropertyType
     Integer,
     Long,
     Double,
+    TimeSpan,
+    String,
     Object
 }
 
@@ -54,6 +56,15 @@ public static class PropertyTypeEx
             {
                 var result = double.TryParse(propertyValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var doubleResult);
                 return result ? doubleResult : 0.0d;
+            }
+            case PropertyType.TimeSpan:
+            {
+                var result = TimeSpan.TryParse(propertyValue, CultureInfo.InvariantCulture, out var timeSpanResult);
+                return result ? timeSpanResult : null;
+            }
+            case PropertyType.String:
+            {
+                return propertyValue;
             }
             case PropertyType.Object:
             {
