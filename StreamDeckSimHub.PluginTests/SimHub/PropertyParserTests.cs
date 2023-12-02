@@ -32,6 +32,39 @@ public class PropertyParserTests
     }
 
     [Test]
+    public void ParseTimeSpan()
+    {
+        var result1 = _parser.ParseLine("Property dcp.gd.SessionTimeLeft timespan (null)");
+        Assert.That(result1, Is.Not.Null);
+        Assert.That(result1.Value.name, Is.EqualTo("dcp.gd.SessionTimeLeft"));
+        Assert.That(result1.Value.type, Is.EqualTo(PropertyType.TimeSpan));
+        Assert.That(result1.Value.value, Is.Null);
+
+
+        var result2 = _parser.ParseLine("Property dcp.gd.SessionTimeLeft timespan 00:04:10.8570000");
+        Assert.That(result2, Is.Not.Null);
+        Assert.That(result2.Value.name, Is.EqualTo("dcp.gd.SessionTimeLeft"));
+        Assert.That(result2.Value.type, Is.EqualTo(PropertyType.TimeSpan));
+        Assert.That(result2.Value.value, Is.EqualTo(TimeSpan.FromSeconds(4 * 60 + 10) + TimeSpan.FromMilliseconds(857)));
+    }
+
+    [Test]
+    public void ParseString()
+    {
+        var result1 = _parser.ParseLine("Property dcp.gd.Gear string (null)");
+        Assert.That(result1, Is.Not.Null);
+        Assert.That(result1.Value.name, Is.EqualTo("dcp.gd.Gear"));
+        Assert.That(result1.Value.type, Is.EqualTo(PropertyType.String));
+        Assert.That(result1.Value.value, Is.Null);
+
+        var result2 = _parser.ParseLine("Property dcp.gd.Gear string N");
+        Assert.That(result2, Is.Not.Null);
+        Assert.That(result2.Value.name, Is.EqualTo("dcp.gd.Gear"));
+        Assert.That(result2.Value.type, Is.EqualTo(PropertyType.String));
+        Assert.That(result2.Value.value, Is.EqualTo("N"));
+    }
+
+    [Test]
     public void ParseWhitespace()
     {
         var result1 = _parser.ParseLine("Property DataCorePlugin.ExternalScript.BlinkingGear object  ");

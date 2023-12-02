@@ -228,6 +228,8 @@ Technically, the above syntax is the inner part of a C# format string. For detai
 * https://learn.microsoft.com/en-us/dotnet/api/system.string.format?view=net-6.0#the-format-item
 * https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-numeric-format-strings
 * https://learn.microsoft.com/en-us/dotnet/standard/base-types/custom-numeric-format-strings
+* https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-timespan-format-strings
+* https://learn.microsoft.com/en-us/dotnet/standard/base-types/custom-timespan-format-strings
 
 Here are a few examples for the "Display Format" that should already cover a large number of cases. `_` is used in these examples to indicate a space in the generated output:
 

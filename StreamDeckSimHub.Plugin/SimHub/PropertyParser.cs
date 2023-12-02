@@ -32,6 +32,8 @@ public class PropertyParser
             "integer" => PropertyType.Integer,
             "long" => PropertyType.Long,
             "double" => PropertyType.Double,
+            "timespan" => PropertyType.TimeSpan,
+            "string" => PropertyType.String,
             "object" => PropertyType.Object,
             _ => PropertyType.Double // Should not happen. But best guess should always be "double".
         };
