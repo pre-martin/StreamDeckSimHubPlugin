@@ -293,7 +293,7 @@ In this example, the ignition is turned on in the game, so the button is in the 
 
 === Button to toggle the Engine in ACC
 
-;apped to "S" by default.
+Mapped to "S" by default.
 
 image::Example-Engine.png[Engine]
 
