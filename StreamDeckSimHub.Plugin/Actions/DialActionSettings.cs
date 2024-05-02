@@ -23,6 +23,15 @@ public class DialActionSettings : HotkeySettings
     public string SimHubRoleRight { get; init; } = string.Empty;
     #endregion
 
+    #region TouchTap
+    public string HotkeyTouchTap { get; init;  } = string.Empty;
+    public bool CtrlTouchTap { get; init; }
+    public bool AltTouchTap { get; init; }
+    public bool ShiftTouchTap { get; init; }
+    public string SimHubControlTouchTap { get; init; } = string.Empty;
+    public string SimHubRoleTouchTap { get; init; } = string.Empty;
+    #endregion
+
     #region State
     public string SimHubProperty { get; init; } = string.Empty;
     #endregion
@@ -35,6 +44,7 @@ public class DialActionSettings : HotkeySettings
     public override string ToString()
     {
         return $"(Press: {base.ToString()}), " +
+               $"(TouchTap: {HotkeyString(HotkeyTouchTap, CtrlTouchTap, AltTouchTap, ShiftTouchTap, SimHubControlTouchTap, SimHubRoleTouchTap)}), " +
                $"(CCW: {HotkeyString(HotkeyLeft, CtrlLeft, AltLeft, ShiftLeft, SimHubControlLeft, SimHubRoleLeft)}), " +
                $"(CW: {HotkeyString(HotkeyRight, CtrlRight, AltRight, ShiftRight, SimHubControlRight, SimHubRoleRight)}), " +
                $"(State: SimHubProperty: {SimHubProperty}), " +

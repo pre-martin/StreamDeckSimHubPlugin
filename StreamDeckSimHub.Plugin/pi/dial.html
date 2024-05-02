@@ -85,6 +85,29 @@
         <select class="sdpi-item-value select" id="simhubRole" onchange="saveSettings()"></select>
     </div>
 
+    <div class="sdpi-heading">Touch Tap</div>
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">Hotkey</div>
+        <div class="sdpi-item-value hotkey-field">
+            <input class="sdpi-item-value" id="hotkeyTouchTap" value="" placeholder="Enter hotkey" oninput="saveSettings()">
+            <input id="ctrlTouchTap" type="checkbox" value="ctrl" oninput="saveSettings()">
+            <label for="ctrlTouchTap" class="sdpi-item-label"><span></span>Ctrl</label>
+            <input id="altTouchTap" type="checkbox" value="alt" oninput="saveSettings()">
+            <label for="altTouchTap" class="sdpi-item-label"><span></span>Alt</label>
+            <input id="shiftTouchTap" type="checkbox" value="shift" oninput="saveSettings()">
+            <label for="shiftTouchTap" class="sdpi-item-label"><span></span>Shift</label>
+        </div>
+    </div>
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">SimHub Control</div>
+        <input class="sdpi-item-value" id="simhubControlTouchTap" value="" placeholder="Enter unique control name" oninput="saveSettingsDelayed()">
+    </div>
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">SimHub Role</div>
+        <select class="sdpi-item-value select" id="simhubRoleTouchTap" onchange="saveSettings()"></select>
+    </div>
+
     <div class="sdpi-heading">State</div>
 
     <div class="sdpi-item">

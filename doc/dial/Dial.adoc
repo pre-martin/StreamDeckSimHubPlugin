@@ -13,11 +13,11 @@ TIP: Always read the *correct version* of the documentation, which matches the v
 
 == Description
 
-This action is very similar to the "Hotkey" action, with the difference that the "Dial" action can be used for the rotary encoders of the Stream Deck Plus. The features are as follows:
+This action is very similar to the "Hotkey" action, with the difference that the "Dial" action can be used for the rotary encoders and the touch strip of the Stream Deck Plus. The features are as follows:
 
-* Send a keystroke event to the active window, if a rotary knob is rotated or pressed.
-* Send an input trigger to SimHub, if a rotary knob is rotated or pressed.
-* Send a mapped SimHub control mapper role, if a rotary knob is rotated or pressed.
+* Send a keystroke event to the active window, if a rotary knob is rotated or pressed, or the touch strip is touched.
+* Send an input trigger to SimHub, if a rotary knob is rotated or pressed, or the touch strip is touched.
+* Send a mapped SimHub control mapper role, if a rotary knob is rotated or pressed, or a touch strip is touched.
 * Show the value of a SimHub property on the display
 
 The fields of this action are as follows:
@@ -42,6 +42,11 @@ Section Press::
 
 * *Hotkey*, *SimHub Control* and *SimHub (Control Mapper) Role* +
 Same as above, but when the rotary knob is pressed.
+
+Section Touch Tap::
+
+* *Hotkey*, *SimHub Control* and *SimHub (Control Mapper) Role* +
+Same as above, but when the touch strip is touched.
 
 Section State::
 

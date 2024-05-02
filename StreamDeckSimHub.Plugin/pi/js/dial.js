@@ -26,6 +26,7 @@ $PI.onConnected(async jsn => {
 
     const roleList = await $SimHubRole.fetchSimHubRoles();
     $SimHubRole.updateSimHubRoles('simhubRole', roleList, jsn.actionInfo.payload.settings['simhubRole']);
+    $SimHubRole.updateSimHubRoles('simhubRoleTouchTap', roleList, jsn.actionInfo.payload.settings['simhubRoleTouchTap']);
     $SimHubRole.updateSimHubRoles('simhubRoleLeft', roleList, jsn.actionInfo.payload.settings['simhubRoleLeft']);
     $SimHubRole.updateSimHubRoles('simhubRoleRight', roleList, jsn.actionInfo.payload.settings['simhubRoleRight']);
 });
@@ -58,6 +59,7 @@ function saveSettings() {
         'hotkeyLeft', 'ctrlLeft', 'altLeft', 'shiftLeft', 'simhubControlLeft', 'simhubRoleLeft',
         'hotkeyRight', 'ctrlRight', 'altRight', 'shiftRight', 'simhubControlRight', 'simhubRoleRight',
         'hotkey', 'ctrl', 'alt', 'shift', 'simhubControl', 'simhubRole',
+        'hotkeyTouchTap', 'ctrlTouchTap', 'altTouchTap', 'shiftTouchTap', 'simhubControlTouchTap', 'simhubRoleTouchTap',
         'simhubProperty', 'simhubPropertyClearNameCache',
         'displaySimhubProperty', 'displaySimhubPropertyClearNameCache', 'displayFormat'
     ];

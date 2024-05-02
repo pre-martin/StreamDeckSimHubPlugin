@@ -22,6 +22,7 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     private readonly SimHubManager _simHubManager;
     private DialActionSettings _settings = new();
     private KeyboardUtils.Hotkey? _hotkey;
+    private KeyboardUtils.Hotkey? _hotkeyTouchTap;
     private KeyboardUtils.Hotkey? _hotkeyLeft;
     private KeyboardUtils.Hotkey? _hotkeyRight;
     private readonly ShakeItStructureFetcher _shakeItStructureFetcher;
@@ -142,12 +143,26 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         await _simHubManager.RoleReleased(Context, _settings.SimHubRole);
     }
 
+    protected override async Task OnTouchTap(ActionEventArgs<TouchTapPayload> args)
+    {
+        Logger.LogInformation("OnTouchTap ({coords})", args.Payload.Coordinates);
+
+        KeyboardUtils.KeyDown(_hotkeyTouchTap);
+        await _simHubManager.TriggerInputPressed(_settings.SimHubControlTouchTap);
+        await _simHubManager.RolePressed(Context, _settings.SimHubRoleTouchTap);
+
+        KeyboardUtils.KeyUp(_hotkeyTouchTap);
+        await _simHubManager.TriggerInputReleased(_settings.SimHubControlTouchTap);
+        await _simHubManager.RoleReleased(Context, _settings.SimHubRoleTouchTap);
+    }
+
     private async Task SetSettings(DialActionSettings settings, bool forceSubscribe)
     {
         await _stateManager.HandleExpression(settings.SimHubProperty, forceSubscribe);
         await _displayManager.HandleDisplayProperties(settings.DisplaySimHubProperty, settings.DisplayFormat, forceSubscribe);
 
         _hotkey = KeyboardUtils.CreateHotkey(settings.Ctrl, settings.Alt, settings.Shift, settings.Hotkey);
+        _hotkeyTouchTap = KeyboardUtils.CreateHotkey(settings.CtrlTouchTap, settings.AltTouchTap, settings.ShiftTouchTap, settings.HotkeyTouchTap);
         _hotkeyLeft = KeyboardUtils.CreateHotkey(settings.CtrlLeft, settings.AltLeft, settings.ShiftLeft, settings.HotkeyLeft);
         _hotkeyRight = KeyboardUtils.CreateHotkey(settings.CtrlRight, settings.AltRight, settings.ShiftRight, settings.HotkeyRight);
 
