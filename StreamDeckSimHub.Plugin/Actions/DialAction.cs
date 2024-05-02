@@ -108,7 +108,7 @@ public class DialAction : StreamDeckAction<DialActionSettings>
 
     protected override Task OnDialRotate(ActionEventArgs<DialRotatePayload> args)
     {
-        Logger.LogInformation("OnDialRotate ({coords}): Ticks: {ticks}, Pressed {pressed}", args.Payload.Coordinates, args.Payload.Ticks, args.Payload.Pressed);
+        Logger.LogInformation("OnDialRotate ({coords}): Ticks: {ticks}", args.Payload.Coordinates, args.Payload.Ticks);
         // Rotate events can appear faster than they are processed (because we have a delay between "key down" and "key up".
         // Thus we have to place them into a queue, where they are processed by a different thread.
         switch (args.Payload.Ticks)
@@ -124,22 +124,22 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         return Task.CompletedTask;
     }
 
-    protected override async Task OnDialPress(ActionEventArgs<DialPayload> args)
+    protected override async Task OnDialDown(ActionEventArgs<DialPayload> args)
     {
-        Logger.LogInformation("OnDialPress ({coords}): Pressed {pressed}", args.Payload.Coordinates, args.Payload.Pressed);
+        Logger.LogInformation("OnDialDown ({coords})", args.Payload.Coordinates);
 
-        if (args.Payload.Pressed)
-        {
-            KeyboardUtils.KeyDown(_hotkey);
-            await _simHubManager.TriggerInputPressed(_settings.SimHubControl);
-            await _simHubManager.RolePressed(Context, _settings.SimHubRole);
-        }
-        else
-        {
-            KeyboardUtils.KeyUp(_hotkey);
-            await _simHubManager.TriggerInputReleased(_settings.SimHubControl);
-            await _simHubManager.RoleReleased(Context, _settings.SimHubRole);
-        }
+        KeyboardUtils.KeyDown(_hotkey);
+        await _simHubManager.TriggerInputPressed(_settings.SimHubControl);
+        await _simHubManager.RolePressed(Context, _settings.SimHubRole);
+    }
+
+    protected override async Task OnDialUp(ActionEventArgs<DialPayload> args)
+    {
+        Logger.LogInformation("OnDialUp ({coords})", args.Payload.Coordinates);
+
+        KeyboardUtils.KeyUp(_hotkey);
+        await _simHubManager.TriggerInputReleased(_settings.SimHubControl);
+        await _simHubManager.RoleReleased(Context, _settings.SimHubRole);
     }
 
     private async Task SetSettings(DialActionSettings settings, bool forceSubscribe)

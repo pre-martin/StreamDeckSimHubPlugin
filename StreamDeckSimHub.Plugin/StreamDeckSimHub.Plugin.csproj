@@ -17,9 +17,12 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="NLog" Version="5.1.0" />
         <PackageReference Include="NLog.Extensions.Logging" Version="5.2.0" />
-        <PackageReference Include="SharpDeck" Version="7.0.0-beta1" />
+        <Reference Include="SharpDeck">
+          <HintPath>..\lib\SharpDeck.dll</HintPath>
+        </Reference>
         <PackageReference Include="SkiaSharp" Version="2.88.6" />
     </ItemGroup>
 
