@@ -151,6 +151,8 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         await _simHubManager.TriggerInputPressed(_settings.SimHubControlTouchTap);
         await _simHubManager.RolePressed(Context, _settings.SimHubRoleTouchTap);
 
+        await Task.Delay(100);
+
         KeyboardUtils.KeyUp(_hotkeyTouchTap);
         await _simHubManager.TriggerInputReleased(_settings.SimHubControlTouchTap);
         await _simHubManager.RoleReleased(Context, _settings.SimHubRoleTouchTap);
