@@ -23,7 +23,7 @@
         <Reference Include="SharpDeck">
           <HintPath>..\lib\SharpDeck.dll</HintPath>
         </Reference>
-        <PackageReference Include="SkiaSharp" Version="2.88.6" />
+        <PackageReference Include="SkiaSharp" Version="2.88.8" />
     </ItemGroup>
 
     <Target Name="CustomAfterPublish" AfterTargets="Publish" DependsOnTargets="GetBuildVersion">
