@@ -25,14 +25,13 @@ public class HotkeyActionTests
         Assert.That(ce.Operator, Is.EqualTo(ConditionOperator.Gt));
         Assert.That(ce.CompareValue, Is.EqualTo("0"));
 
-        // If "EngineStarted" would be an "Integer" property, the old logic was:
+        // If "EngineStarted" is an "Integer" property, the old logic was:
         // - PropertyValue from SimHub > 0: True
         // - else: False
-        // We simulate also that we have received the values from SimHub. This ensures the old logic is still valid.
-        var propValueOne = PropertyType.Integer.ParseFromSimHub("1");
-        var propValueTwo = PropertyType.Integer.ParseFromSimHub("2");
-        var propValueZero = PropertyType.Integer.ParseFromSimHub("0");
-        var propValueMinusOne = PropertyType.Integer.ParseFromSimHub("-1");
+        var propValueOne = PropertyType.Integer.Parse("1");
+        var propValueTwo = PropertyType.Integer.Parse("2");
+        var propValueZero = PropertyType.Integer.Parse("0");
+        var propValueMinusOne = PropertyType.Integer.Parse("-1");
         Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, propValueOne, ce), Is.True);
         Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, propValueTwo, ce), Is.True);
         Assert.That(_propertyComparer.Evaluate(PropertyType.Integer, propValueZero, ce), Is.False);
@@ -46,12 +45,11 @@ public class HotkeyActionTests
         Assert.That(ce.Operator, Is.EqualTo(ConditionOperator.Gt));
         Assert.That(ce.CompareValue, Is.EqualTo("0"));
 
-        // If "EngineStarted" would be a "Boolean" property, the old logic was:
+        // If "EngineStarted" is a "Boolean" property, the old logic was:
         // - PropertyValue from SimHub = "True": > True
         // - else: False
-        // We simulate also that we have received the values from SimHub. This ensures the old logic is still valid.
-        var propValueTrue = PropertyType.Boolean.ParseFromSimHub("True");
-        var propValueFalse = PropertyType.Boolean.ParseFromSimHub("False");
+        var propValueTrue = PropertyType.Boolean.Parse("True");
+        var propValueFalse = PropertyType.Boolean.Parse("False");
         Assert.That(_propertyComparer.Evaluate(PropertyType.Boolean, propValueTrue, ce), Is.True);
         Assert.That(_propertyComparer.Evaluate(PropertyType.Boolean, propValueFalse, ce), Is.False);
     }

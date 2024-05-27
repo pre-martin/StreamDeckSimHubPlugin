@@ -141,20 +141,31 @@ public class SimHubConnection : ISimHubConnection
                 {
                     Logger.Info($"Established connection to {Sanitize(line)}");
                     Connected = true;
-                    foreach (var propertyName in _subscriptions.Keys)
-                    {
-                        await SendSubscribe(propertyName);
-                    }
-
-                    await ReadFromServer();
                 }
             }
             catch (Exception e)
             {
-                Logger.Info($"Connection failed: {e.Message}");
+                Logger.Info($"Connection failed: {e}");
             }
 
-            if (!Connected)
+            if (Connected)
+            {
+                Logger.Info("Sending queued subscriptions and starting poll loop");
+                try
+                {
+                    foreach (var propertyName in _subscriptions.Keys)
+                    {
+                        await SendSubscribe(propertyName);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logger.Error(e, "Exception while subscribing queued subscriptions");
+                }
+
+                await ReadFromServer();
+            }
+            else
             {
                 await Task.Delay(TimeSpan.FromSeconds(4));
             }
@@ -346,7 +357,14 @@ public class SimHubConnection : ISimHubConnection
                 Logger.Debug($"Received from server: {Sanitize(line)}");
                 if (line.StartsWith("Property "))
                 {
-                    await ParseProperty(line);
+                    try
+                    {
+                        await ParseProperty(line);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Error(e, $"Unhandled exception while processing data from server. Received line was: \"{Sanitize(line)}\"");
+                    }
                 }
             }
 
@@ -356,7 +374,7 @@ public class SimHubConnection : ISimHubConnection
         catch (IOException ioe)
         {
             // IOException: Fall through to "CloseAndReconnect".
-            Logger.Warn($"Received IOException while waiting for data: {ioe.Message}");
+            Logger.Warn($"Received IOException while waiting for data: {ioe}");
         }
 
         await CloseAndReconnect();

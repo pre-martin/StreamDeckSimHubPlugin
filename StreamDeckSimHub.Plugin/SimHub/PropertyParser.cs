@@ -26,6 +26,7 @@ public class PropertyParser
         if (valueAsString == "(null)") valueAsString = null;
 
         // See https://github.com/pre-martin/SimHubPropertyServer/blob/main/PropertyServer.Plugin/Property/SimHubProperty.cs
+        // Keep PropertyTypeTests.cs in sync with this list.
         var type = typeAsString switch
         {
             "boolean" => PropertyType.Boolean,
@@ -37,7 +38,7 @@ public class PropertyParser
             "object" => PropertyType.Object,
             _ => PropertyType.Double // Should not happen. But best guess should always be "double".
         };
-        var value = type.ParseFromSimHub(valueAsString);
+        var value = type.Parse(valueAsString);
 
         return (name, type, value);
     }

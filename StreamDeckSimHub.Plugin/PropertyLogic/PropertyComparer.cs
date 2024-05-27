@@ -7,7 +7,7 @@ using StreamDeckSimHub.Plugin.SimHub;
 namespace StreamDeckSimHub.Plugin.PropertyLogic;
 
 /// <summary>
-/// Parses expressions like <c>some.property==5</c> and evaluates their resuls.
+/// Parses expressions like <c>some.property==5</c> and evaluates their results.
 /// </summary>
 public class PropertyComparer
 {
@@ -86,14 +86,10 @@ public class PropertyComparer
             return false;
         }
 
-        // When we arrive here with a SimHub property of type "object", it could be interpreted
-        // as "double" or "string" (see PropertyType.ParseFromSimHub and .ParseLiberally).
-        // Both values (property value and compare value) have to be of the same type, otherwise they are unequal.
-
         var compareFunction = expression.Operator.CompareFunction();
         if (expression.Operator != ConditionOperator.Between)
         {
-            var compareValue = propertyType.ParseLiberally(expression.CompareValue);
+            var compareValue = propertyType.Parse(expression.CompareValue) ?? "";
             if (propertyValue.GetType() != compareValue.GetType())
             {
                 _logger.LogDebug("Property value and compare value are of different types, returning 'false'");
@@ -109,8 +105,8 @@ public class PropertyComparer
             return false;
         }
 
-        var compareValue1 = propertyType.ParseLiberally(values[0]);
-        var compareValue2 = propertyType.ParseLiberally(values[1]);
+        var compareValue1 = propertyType.Parse(values[0]) ?? "";
+        var compareValue2 = propertyType.Parse(values[1]) ?? "";
         if (propertyValue.GetType() != compareValue1.GetType() || propertyValue.GetType() != compareValue2.GetType())
         {
             _logger.LogDebug("Property value and compare value are of different types, returning 'false'");
