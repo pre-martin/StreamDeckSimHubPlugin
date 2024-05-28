@@ -104,11 +104,9 @@ After how many milliseconds of holding down the Stream Deck key, it will be reco
 
 This field allows to bind the button to a SimHub property, which will be used to determine the state of the button.
 
-All properties, that are listed in SimHub under "Available properties" (around 2000+ properties) can be used. But the plugin allows access to even more properties, and for use in these Stream Deck actions, it is better to use "_typed_" properties instead of "_generic_" properties.
+All properties, that are listed in SimHub under "Available properties" (around 2000+ properties) can be used. But the plugin allows access to even more properties, like the ShakeIt properties.
 
 TIP: Be sure to read the documentation of the https://github.com/pre-martin/SimHubPropertyServer[SimHub Property Server plugin], especially the section about the available properties!
-
-TIP: "Generic" properties are received untyped as `object` (see SimHubPropertyServer plugin). This plugin tries to interpret them as a `double` value. If this is not possible, they are treated as strings.
 
 === Simple SimHub Property
 
@@ -116,6 +114,12 @@ Enter the name of a SimHub property. E.g.
 
 ----
 dcp.gd.EngineIgnitionOn
+----
+
+or (if you prefer the generic version of the property)
+
+----
+DataCorePlugin.GameData.EngineIgnitionOn
 ----
 
 The value of this SimHub property will update the state of the button.
@@ -158,35 +162,21 @@ The following table shows the comparison logic for different SimHub property typ
 |===
 | SimHub property type | supported comparison values | evaluation rules
 
-| boolean
-| "true", "false"
-| should be self explanatory
+| boolean | "true", "false"         | should be self-explanatory
+|         | any integer value       | comp. value == 0: "false" +
+                                      comp. value > 0: "true"
 
-|
-| any integer value
-| comp. value == 0: "false" +
-comp. value > 0: "true"
+| integer | any integer value       | should be self-explanatory
+|         | "true", "false"         | prop. value == 1: "true" +
+                                      all other prop. values: "false"
 
-| integer
-| any integer value
-| should be self explanatory
+| long    | same as "integer"       | same as integer
 
-|
-| "true", "false"
-| prop. value == 1: "true" +
-all other prop. values: "false"
+| double  | any integer or floating | should be self-explanatory
 
-| long
-| same as "integer"
-| same as integer
+| string  | any string              | should be self-explanatory
 
-| double
-| any integer or floating
-| should be self explanatory
-
-| object
-| anything
-| The types of the property value and the comparision value have to be the same, otherwise they are treated as "not equal". The plugin tries to interpret property values of type "object" as "double". If this is possible, the comparison value should be also of type "double", otherwise they are "not equal".
+| object  | anything                | The types of the property value and the comparision value have to be the same, otherwise they are treated as "not equal". The plugin first tries to interpret property values of type "object" as "double". If this is possible, the comparison value should be also of type "double", otherwise they are "not equal". If interpretation as "double" is not possible, the plugin returns the property value as "string".
 
 |===
 
@@ -200,6 +190,8 @@ So the following expressions are all valid:
   `acc.physics.Gear~2;4`
 * Generic SimHub property: +
   `DataCorePlugin.GameData.SpotterCarLeft>0` or just `DataCorePlugin.GameData.SpotterCarLeft`
+* Another generic property: +
+  `MotionPlugin.Global.DeviceState != Disabled`
 
 
 [#displayFormatForTitle]
