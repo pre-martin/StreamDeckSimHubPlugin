@@ -24,68 +24,15 @@ public enum PropertyType
 /// </summary>
 public static class PropertyTypeEx
 {
-    /// <summary>
-    /// Converts a string value into a typed value, which is returned as <c>IComparable</c>. The method assumes that the
-    /// string value was received from SimHub Property Plugin.
-    /// </summary>
-    public static IComparable? ParseFromSimHub(this PropertyType propertyType, string? propertyValue)
+    /// Converts a string value into a typed value, which is returned as <c>IComparable</c>. This method works for data
+    /// received from SimHub, but also for user supplied values, like compare values.
+    public static IComparable? Parse(this PropertyType propertyType, string? propertyValue)
     {
         if (propertyValue == null)
         {
             return null;
         }
 
-        switch (propertyType)
-        {
-            case PropertyType.Boolean:
-            {
-                var result = bool.TryParse(propertyValue, out var boolResult);
-                return result ? boolResult : false;
-            }
-            case PropertyType.Integer:
-            {
-                var result = int.TryParse(propertyValue, out var intResult);
-                return result ? intResult : 0;
-            }
-            case PropertyType.Long:
-            {
-                var result = long.TryParse(propertyValue, out var longResult);
-                return result ? longResult : 0L;
-            }
-            case PropertyType.Double:
-            {
-                var result = double.TryParse(propertyValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var doubleResult);
-                return result ? doubleResult : 0.0d;
-            }
-            case PropertyType.TimeSpan:
-            {
-                var result = TimeSpan.TryParse(propertyValue, CultureInfo.InvariantCulture, out var timeSpanResult);
-                return result ? timeSpanResult : null;
-            }
-            case PropertyType.String:
-            {
-                return propertyValue;
-            }
-            case PropertyType.Object:
-            {
-                // Try to parse as double.
-                var result = double.TryParse(propertyValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var doubleResult);
-                if (result) return doubleResult;
-                // If not possible, return as string
-                return propertyValue;
-            }
-            default:
-                throw new ArgumentOutOfRangeException(nameof(propertyType), propertyType, null);
-        }
-    }
-
-    /// Converts a string value into a typed value, which is returned as <c>IComparable</c>. The method is more liberal
-    /// than <c>ParseFromSimHub</c> and accepts a wider range of property values.
-    /// <remarks>
-    /// This method should be used to parse user input.
-    /// </remarks>
-    public static IComparable ParseLiberally(this PropertyType propertyType, string propertyValue)
-    {
         switch (propertyType)
         {
             case PropertyType.Boolean:
@@ -120,6 +67,15 @@ public static class PropertyTypeEx
                 var result = double.TryParse(propertyValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var doubleResult);
                 return result ? doubleResult : 0.0d;
             }
+            case PropertyType.TimeSpan:
+            {
+                var result = TimeSpan.TryParse(propertyValue, CultureInfo.InvariantCulture, out var timeSpanResult);
+                return result ? timeSpanResult : null;
+            }
+            case PropertyType.String:
+            {
+                return propertyValue;
+            }
             case PropertyType.Object:
             {
                 // Try to parse as double.
@@ -129,7 +85,7 @@ public static class PropertyTypeEx
                 return propertyValue;
             }
             default:
-                throw new ArgumentOutOfRangeException(nameof(propertyType), propertyType, null);
+                throw new ArgumentOutOfRangeException(nameof(propertyType), propertyType, "PropertyType parser not implemented for type");
         }
     }
 }
