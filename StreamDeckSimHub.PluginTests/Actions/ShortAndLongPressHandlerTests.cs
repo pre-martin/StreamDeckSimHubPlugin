@@ -87,8 +87,8 @@ public class ShortAndLongPressHandlerTests
         {
             Assert.Multiple(() =>
             {
-                Assert.That(_shortWasCalled, Is.EqualTo(expectedShort), "Short {0} be called", expectedShort ? "must" : "must not");
-                Assert.That(_longWasCalled, Is.EqualTo(expectedLong), "Long {0} be called", expectedLong ? "must" : "must not");
+                Assert.That(_shortWasCalled, Is.EqualTo(expectedShort), $"Short {(expectedShort ? "must" : "must not")} be called");
+                Assert.That(_longWasCalled, Is.EqualTo(expectedLong), $"Long {(expectedLong ? "must" : "must not")} be called");
             });
             _shortWasCalled = false;
             _longWasCalled = false;
