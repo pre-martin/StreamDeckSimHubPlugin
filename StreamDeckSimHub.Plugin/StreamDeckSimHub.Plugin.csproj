@@ -209,7 +209,7 @@
       </None>
     </ItemGroup>
 
-    <ItemGroup Label="PISample Libs">
+    <ItemGroup Label="streamdeck-javascript-sdk">
       <None Update="pi\libs\assets\caret.svg">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
@@ -229,6 +229,9 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="pi\libs\assets\rcheck.svg">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="pi\libs\assets\tick.svg">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="pi\libs\css\sdpi.css">

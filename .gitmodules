@@ -1,0 +1,3 @@
+[submodule "StreamDeckSimHub.Plugin/pi/libs"]
+	path = StreamDeckSimHub.Plugin/pi/libs
+	url = https://github.com/elgatosf/streamdeck-javascript-sdk
