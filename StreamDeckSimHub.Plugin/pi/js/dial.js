@@ -32,21 +32,7 @@ $PI.onConnected(async jsn => {
 });
 
 function loadSettings(settings) {
-    for (const id in settings) {
-        try {
-            const element = document.getElementById(id);
-            if (!element) continue;
-
-            if (element.getAttribute('type') === 'checkbox') {
-                element.checked = settings[id];
-            } else {
-                element.value = settings[id];
-            }
-        } catch (err) {
-            console.log('loadSettings failed for id ' + id + ': ' + err);
-            $PI.logMessage('loadSettings failed for id ' + id + ': ' + err);
-        }
-    }
+    restoreSettings(settings);
 
     $ShakeIt.resolvePropertyNameFromCache(document.getElementById('simhubProperty'));
     $ShakeIt.resolvePropertyNameFromCache(document.getElementById('displaySimhubProperty'));
@@ -64,16 +50,7 @@ function saveSettings() {
         'displaySimhubProperty', 'displaySimhubPropertyClearNameCache', 'displayFormat'
     ];
 
-    let payload = {};
-    for (const id of settingIds) {
-        const element = document.getElementById(id);
-        if (element.getAttribute('type') === 'checkbox') {
-            payload[id] = element.checked;
-        } else {
-            payload[id] = element.value;
-        }
-    }
-
+    const payload = buildSettings(settingIds);
     $PI.setSettings(payload);
 }
 

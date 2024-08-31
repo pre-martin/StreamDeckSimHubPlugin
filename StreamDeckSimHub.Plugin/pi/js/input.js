@@ -5,18 +5,7 @@ $PI.onConnected(jsn => {
 });
 
 function loadSettings(settings) {
-    for (const id in settings) {
-        try {
-            const element = document.getElementById(id);
-            if (element.getAttribute('type') === 'checkbox') {
-                element.checked = settings[id];
-            } else {
-                element.value = settings[id];
-            }
-        } catch (err) {
-            $PI.logMessage('loadSettings failed for id ' + id + ': ' + err);
-        }
-    }
+    restoreSettings(settings);
 }
 
 const saveSettingsDelayed = Utils.debounce(500, () => saveSettings());
@@ -24,15 +13,6 @@ const saveSettingsDelayed = Utils.debounce(500, () => saveSettings());
 function saveSettings() {
     const settingIds = ['simhubControl'];
 
-    let payload = {};
-    for (const id of settingIds) {
-        const element = document.getElementById(id);
-        if (element.getAttribute('type') === 'checkbox') {
-            payload[id] = element.checked;
-        } else {
-            payload[id] = element.value;
-        }
-    }
-
+    const payload = buildSettings(settingIds);
     $PI.setSettings(payload);
 }

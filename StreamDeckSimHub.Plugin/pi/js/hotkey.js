@@ -37,22 +37,7 @@ function loadSettings(settings) {
         settings['longKeypressTimeSpan'] = 500;
     }
 
-    for (const id in settings) {
-        try {
-            const element = document.getElementById(id);
-            if (!element) continue;
-
-            if (element.getAttribute('type') === 'checkbox') {
-                element.checked = settings[id];
-            } else {
-                element.value = settings[id];
-            }
-        } catch (err) {
-            console.log('loadSettings failed for id ' + id + ': ' + err);
-            $PI.logMessage('loadSettings failed for id ' + id + ': ' + err);
-        }
-    }
-
+    restoreSettings(settings);
     $ShakeIt.resolvePropertyNameFromCache(document.getElementById('simhubProperty'));
     $ShakeIt.resolvePropertyNameFromCache(document.getElementById('titleSimhubProperty'));
 }
@@ -68,21 +53,7 @@ function saveSettings() {
         'titleSimhubProperty', 'titleSimhubPropertyClearNameCache', 'titleFormat'
     ];
 
-    let payload = {};
-    for (const id of settingIds) {
-        const element = document.getElementById(id);
-        if (!element) {
-            console.log('Save: Could not find element ' + id + ' on page!');
-            $PI.logMessage('Save: Could not find element ' + id + ' on page');
-            continue;
-        }
-        if (element.getAttribute('type') === 'checkbox') {
-            payload[id] = element.checked;
-        } else {
-            payload[id] = element.value;
-        }
-    }
-
+    let payload = buildSettings(settingIds);
     // Adjust flat object so that it fits to the server side JSON object. This also means that these settings will be saved
     // twice, but that is not a problem.
     payload['longKeypressSettings'] = {};
