@@ -15,7 +15,9 @@ class SimHubRole {
 
         let seenCurrentRole = false;
         selectElement.innerHTML = '';
+
         this.addRoleName(selectElement, SimHubRole.placeholder);
+        seenCurrentRole = SimHubRole.placeholder === currentRole;
         roleList.forEach(roleName => {
             this.addRoleName(selectElement, roleName);
             if (roleName === currentRole) {
