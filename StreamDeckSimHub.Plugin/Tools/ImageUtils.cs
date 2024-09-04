@@ -3,7 +3,11 @@
 
 using System.Text.RegularExpressions;
 using NLog;
-using SkiaSharp;
+using SixLabors.Fonts;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace StreamDeckSimHub.Plugin.Tools;
 
@@ -39,11 +43,13 @@ public class ImageUtils
     }
 
     /// <summary>
-    /// Prepends the mime type to a given PNG image. Stream Deck expects it like that.
+    /// Converts the given Image into the PNG format and prepends the mime type. Stream Deck expects it like that.
     /// </summary>
-    public string EncodePng(byte[] png)
+    private string EncodePng(Image image)
     {
-        return "data:image/png;base64," + Convert.ToBase64String(png);
+        using var stream = new MemoryStream();
+        image.SaveAsPng(stream);
+        return "data:image/png;base64," + Convert.ToBase64String(stream.ToArray());
     }
 
     /// <summary>
@@ -51,22 +57,15 @@ public class ImageUtils
     /// </summary>
     public string GenerateDialImage(string title)
     {
-        var imageInfo = new SKImageInfo(72, 72);
-        using var surface = SKSurface.Create(imageInfo);
-        var canvas = surface.Canvas;
+        using var image = new Image<Rgba32>(72, 72);
+        var font = SystemFonts.CreateFont("Arial", 20, FontStyle.Bold);
+        var textOptions = new RichTextOptions(font)
+        {
+            Origin = new PointF(36, 36), HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        image.Mutate(x => x.DrawText(textOptions, title, Color.White));
 
-        using var paint = new SKPaint();
-        paint.Color = SKColors.White;
-        paint.TextSize = 20f;
-        paint.IsAntialias = true;
-        paint.Typeface = SKTypeface.FromFamilyName("Arial", SKFontStyleWeight.SemiBold, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
-        paint.TextAlign = SKTextAlign.Center;
-
-        canvas.DrawText(title, imageInfo.Width / 2f, 42f, paint);
-
-        using var image = surface.Snapshot();
-        using var data = image.Encode(SKEncodedImageFormat.Png, 90);
-
-        return EncodePng(data.ToArray());
+        return EncodePng(image);
     }
 }
