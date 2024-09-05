@@ -27,10 +27,12 @@ internal class FlagState
 /// Displays the flags on a Stream Deck key.
 /// </summary>
 [StreamDeckAction("net.planetrenner.simhub.flags")]
-public class FlagsAction : StreamDeckAction
+public class FlagsAction : StreamDeckAction<FlagsSettings>
 {
     private readonly SimHubConnection _simHubConnection;
+    private readonly ImageManager _imageManager;
     private readonly IPropertyChangedReceiver _propertyChangedReceiver;
+    private DeviceInfo? _deviceInfo;
     private bool _gameRunning;
     private FlagState _flagState = new();
     private readonly string _noFlag;
@@ -42,9 +44,10 @@ public class FlagsAction : StreamDeckAction
     private readonly string _whiteFlag;
     private readonly string _yellowFlag;
 
-    public FlagsAction(SimHubConnection simHubConnection, ImageUtils imageUtils)
+    public FlagsAction(SimHubConnection simHubConnection, ImageUtils imageUtils, ImageManager imageManager)
     {
         _simHubConnection = simHubConnection;
+        _imageManager = imageManager;
         _propertyChangedReceiver = new PropertyChangedDelegate(PropertyChanged);
 
         _noFlag = imageUtils.EncodeSvg("<svg viewBox=\"0 0 70 70\" />");
@@ -59,8 +62,13 @@ public class FlagsAction : StreamDeckAction
 
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
     {
-        Logger.LogInformation("OnWillAppear ({coords})", args.Payload.Coordinates);
-        await SetImageAsync(_checkeredFlag);
+        var settings = args.Payload.GetSettings<FlagsSettings>();
+        Logger.LogInformation("OnWillAppear ({coords}): {settings}", args.Payload.Coordinates, settings);
+
+        _deviceInfo = StreamDeck.Info.Devices.FirstOrDefault(deviceInfo => deviceInfo.Id == args.Device);
+
+        var checkeredFlag = _imageManager.GetCustomImageEncoded(settings.CheckeredFlag, _deviceInfo);
+        await SetImageAsync(checkeredFlag);
 
         await _simHubConnection.Subscribe("dcp.GameRunning", _propertyChangedReceiver);
         await _simHubConnection.Subscribe("dcp.gd.Flag_Black", _propertyChangedReceiver);
@@ -76,7 +84,7 @@ public class FlagsAction : StreamDeckAction
 
     protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
     {
-        Logger.LogInformation("OnWillDisappear ({coords})", args.Payload.Coordinates);
+        Logger.LogInformation("OnWillDisappear ({coords}): {settings}", args.Payload.Coordinates, args.Payload.GetSettings<DialActionSettings>());
 
         await _simHubConnection.Unsubscribe("dcp.GameRunning", _propertyChangedReceiver);
         await _simHubConnection.Unsubscribe("dcp.gd.Flag_Black", _propertyChangedReceiver);
@@ -90,6 +98,22 @@ public class FlagsAction : StreamDeckAction
         await SetImageAsync(_checkeredFlag);
 
         await base.OnWillAppear(args);
+    }
+
+    protected override async Task OnDidReceiveSettings(ActionEventArgs<ActionPayload> args, FlagsSettings settings)
+    {
+        Logger.LogInformation("OnDidReceiveSettings ({coords}): {settings}", args.Payload.Coordinates, settings);
+        // TODO load images from settings
+
+        await base.OnDidReceiveSettings(args, settings);
+    }
+
+    protected override async Task OnPropertyInspectorDidAppear(ActionEventArgs args)
+    {
+        Logger.LogInformation("OnPropertyInspectorDidAppear");
+
+        var images = _imageManager.ListCustomImages();
+        await SendToPropertyInspectorAsync(new { message = "customImages", images });
     }
 
     /// <summary>

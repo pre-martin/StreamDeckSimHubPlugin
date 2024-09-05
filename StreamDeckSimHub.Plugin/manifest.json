@@ -20,6 +20,7 @@
     {
       "Icon": "images/actions/flag",
       "Name": "Flags",
+      "PropertyInspectorPath": "pi/flags.html",
       "States": [
         {
           "Image": "images/icons/flag-checkered",
@@ -28,7 +29,6 @@
       ],
       "Tooltip": "Flags",
       "SupportedInMultiActions": false,
-      "UserTitleEnabled": false,
       "UUID": "net.planetrenner.simhub.flags"
     },
     {

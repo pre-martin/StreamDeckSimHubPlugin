@@ -17,6 +17,16 @@ public class ImageUtils
     private readonly Regex _lineBreakRegex = new("[\r\n]+");
 
     /// <summary>
+    /// A SVG image with a red cross.
+    /// </summary>
+    public const string ErrorSvg = """
+                                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 70">
+                                       <line x1="5" y1="5" x2="65" y2="65" stroke-width="8" stroke="red" />
+                                       <line x1="65" y1="5" x2="5" y2="65" stroke-width="8" stroke="red" />
+                                   </svg>
+                                   """;
+
+    /// <summary>
     /// Loads a given SVG file from the file system and removes all line breaks. This is important so that
     /// Stream Deck can handle the SVG image.
     /// </summary>
@@ -29,7 +39,7 @@ public class ImageUtils
         }
         catch (Exception e)
         {
-            Logger.Warn($"Could not find file '{svgFile}' : {e.Message}");
+            Logger.Warn($"Could not read file '{svgFile}' : {e.Message}");
             return EncodeSvg("<svg viewBox=\"0 0 70 70\"><rect x=\"20\" y=\"20\" width=\"30\" height=\"30\" stroke=\"red\" fill=\"red\" /></svg>");
         }
     }
@@ -45,11 +55,16 @@ public class ImageUtils
     /// <summary>
     /// Converts the given Image into the PNG format and prepends the mime type. Stream Deck expects it like that.
     /// </summary>
-    private string EncodePng(Image image)
+    public string EncodePng(Image image)
     {
         using var stream = new MemoryStream();
         image.SaveAsPng(stream);
         return "data:image/png;base64," + Convert.ToBase64String(stream.ToArray());
+    }
+
+    public string EncodeGif(byte[] gif)
+    {
+        return "data:image/gif;base64," + Convert.ToBase64String(gif);
     }
 
     /// <summary>

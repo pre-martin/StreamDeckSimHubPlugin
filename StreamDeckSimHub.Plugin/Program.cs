@@ -35,4 +35,5 @@ void ConfigureServices(IServiceCollection serviceCollection)
     serviceCollection.AddSingleton<ShakeItStructureFetcher>();
     serviceCollection.AddSingleton<PropertyComparer>();
     serviceCollection.AddSingleton<ImageUtils>();
+    serviceCollection.AddSingleton<ImageManager>();
 }
