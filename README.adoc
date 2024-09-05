@@ -47,9 +47,11 @@ image::images/teaser/Teaser-2.png[Teaser 2,800]
 
 == Installation
 
-WARNING: To download, do not use the green button! Instead click on "Releases" on the right side and download the file with extension `streamDeckPlugin`.
+WARNING: To download, do not use the green button! Instead, click on "Releases" on the right side and download the file with extension `streamDeckPlugin`.
 
 Be sure to have the SimHub Property Server plugin installed into SimHub (see above). When updating this plugin, be sure to also check the SimHub Property Server plugin for updates.
+
+TIP: For the usage of this plugin, the https://dotnet.microsoft.com/en-us/download/dotnet/8.0[.NET Runtime 8.0] has to be installed. Without this, the plugin won't even start. Download ".NET Desktop Runtime 8.0.x (x64)" from Microsoft.
 
 Download the file `net.planetrenner.simhub.streamDeckPlugin` from the GitHub "Releases" page and double-click it to install it into Stream Deck.
 
