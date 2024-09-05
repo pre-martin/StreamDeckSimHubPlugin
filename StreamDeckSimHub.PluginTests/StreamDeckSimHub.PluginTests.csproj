@@ -14,7 +14,7 @@
         <PackageReference Include="NUnit" Version="4.2.1" />
         <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
         <PackageReference Include="NUnit.Analyzers" Version="4.3.0" />
-        <PackageReference Include="coverlet.collector" Version="3.1.2" />
+        <PackageReference Include="coverlet.collector" Version="6.0.2" />
         <Reference Include="SharpDeck">
             <HintPath>..\lib\SharpDeck.dll</HintPath>
         </Reference>
