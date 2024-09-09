@@ -3,7 +3,6 @@
 
 using SharpDeck.Enums;
 using SharpDeck.Events.Received;
-using ShimSkiaSharp;
 
 namespace StreamDeckSimHub.Plugin.Tools;
 

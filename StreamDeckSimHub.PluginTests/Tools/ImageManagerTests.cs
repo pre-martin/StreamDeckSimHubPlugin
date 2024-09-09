@@ -17,11 +17,11 @@ public class ImageManagerTests
         var imageUtils = Mock.Of<ImageUtils>();
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
         {
-            { @"images\custom\test.svg", new MockFileData(string.Empty) },
-            { @"images\custom\subDir\testSub.svg", new MockFileData(string.Empty) },
-            { @"images\custom\image1.png", new MockFileData(string.Empty) },
-            { @"images\custom\image1@2x.png", new MockFileData(string.Empty) },
-            { @"images\custom\img@2x.png", new MockFileData(string.Empty) },
+            { Path.Combine("images", "custom", "test.svg"), new MockFileData(string.Empty) },
+            { Path.Combine("images", "custom", "subDir", "testSub.svg"), new MockFileData(string.Empty) },
+            { Path.Combine("images", "custom", "image1.png"), new MockFileData(string.Empty) },
+            { Path.Combine("images", "custom", "image1@2x.png"), new MockFileData(string.Empty) },
+            { Path.Combine("images", "custom", "img@2x.png"), new MockFileData(string.Empty) },
         });
 
         var imageManager = new ImageManager(fileSystem, imageUtils);
@@ -39,7 +39,7 @@ public class ImageManagerTests
     {
         var imageUtils = new Mock<ImageUtils>();
         imageUtils
-            .Setup(iu => iu.FromSvgFile(@"C:\images\custom\sub\test.svg", It.IsAny<StreamDeckKeyInfo>()))
+            .Setup(iu => iu.FromSvgFile(It.IsAny<string>(), It.IsAny<StreamDeckKeyInfo>()))
             .Returns((string _, StreamDeckKeyInfo sdki) => new Image<Rgba32>(sdki.KeySize.width, sdki.KeySize.height));
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
         {
@@ -52,7 +52,8 @@ public class ImageManagerTests
         using var image = imageManager.GetCustomImage("sub/test.svg", sdXl);
 
         // ImageUtils must have been called - especially not with "@2x" even for the Hires XL, because SVGs have no suffix.
-        imageUtils.Verify(iu => iu.FromSvgFile(@"C:\images\custom\sub\test.svg", sdXl));
+        var customImages = fileSystem.DirectoryInfo.New(Path.Combine("images", "custom")).FullName;
+        imageUtils.Verify(iu => iu.FromSvgFile(Path.Combine(customImages, "sub", "test.svg"), sdXl));
         Assert.That(image, Is.Not.Null);
     }
 

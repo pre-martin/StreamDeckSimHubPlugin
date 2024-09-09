@@ -12,7 +12,7 @@ public class ImageManager(IFileSystem fileSystem, ImageUtils imageUtils)
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private static readonly string[] SupportedExtensions = [".svg", ".png", ".jpg", ".jpeg", ".gif"];
-    private readonly IDirectoryInfo _customImagesDirectory = fileSystem.DirectoryInfo.New(@"images\custom");
+    private readonly IDirectoryInfo _customImagesDirectory = fileSystem.DirectoryInfo.New(Path.Combine("images", "custom"));
 
     /// <summary>
     /// Returns an array with all custom images. The images are returned with their relative path inside
@@ -49,7 +49,7 @@ public class ImageManager(IFileSystem fileSystem, ImageUtils imageUtils)
     /// <returns>The image in encoded form, or a default error image, if it could not be loaded.</returns>
     public Image GetCustomImage(string relativePath, StreamDeckKeyInfo sdKeyInfo)
     {
-        relativePath = relativePath.Replace('/', '\\');
+        relativePath = relativePath.Replace('/', Path.DirectorySeparatorChar);
         if (Path.GetExtension(relativePath).Equals(".svg", StringComparison.InvariantCultureIgnoreCase))
         {
             // No quality suffix for SVG files.
