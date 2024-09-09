@@ -7,6 +7,9 @@
     orangeFlag: 'flags/flag-orange.svg',
     whiteFlag: 'flags/flag-white.svg',
     yellowFlag: 'flags/flag-yellow.svg',
+    yellowFlagSec1: 'flags/flag-yellow-s1.png',
+    yellowFlagSec2: 'flags/flag-yellow-s2.png',
+    yellowFlagSec3: 'flags/flag-yellow-s3.png',
 }
 
 $PI.onConnected(async jsn => {
@@ -48,6 +51,9 @@ const fillImageSelectBoxes = (images) => {
     fillImageSelectBox('orangeFlag', images);
     fillImageSelectBox('whiteFlag', images);
     fillImageSelectBox('yellowFlag', images);
+    fillImageSelectBox('yellowFlagSec1', images);
+    fillImageSelectBox('yellowFlagSec2', images);
+    fillImageSelectBox('yellowFlagSec3', images);
 }
 
 const fillImageSelectBox = (id, images) => {

@@ -29,6 +29,7 @@
         <PackageReference Include="NLog.Extensions.Logging" Version="5.3.10" />
         <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.4" />
         <PackageReference Include="Svg.Skia" Version="2.0.0.1" />
+        <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" Version="21.0.29" />
         <Reference Include="SharpDeck">
           <HintPath>..\lib\SharpDeck.dll</HintPath>
         </Reference>
@@ -228,6 +229,24 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="images\custom\flags\flag-yellow.svg">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="images\custom\flags\flag-yellow-s1.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="images\custom\flags\flag-yellow-s2.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="images\custom\flags\flag-yellow-s3.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="images\custom\flags\flag-yellow-s1@2x.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="images\custom\flags\flag-yellow-s2@2x.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="images\custom\flags\flag-yellow-s3@2x.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>

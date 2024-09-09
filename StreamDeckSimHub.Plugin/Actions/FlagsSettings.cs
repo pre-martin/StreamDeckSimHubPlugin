@@ -13,10 +13,13 @@ public class FlagsSettings
     public string OrangeFlag { get; set; } = "flags/flag-orange.svg";
     public string WhiteFlag { get; set; } = "flags/flag-white.svg";
     public string YellowFlag { get; set; } = "flags/flag-yellow.svg";
+    public string YellowFlagSec1 { get; set; } = "flags/flag-yellow-s1.png";
+    public string YellowFlagSec2 { get; set; } = "flags/flag-yellow-s2.png";
+    public string YellowFlagSec3 { get; set; } = "flags/flag-yellow-s3.png";
 
     public override string ToString()
     {
         return
-            $"No: {NoFlag}, Black: {BlackFlag}, Blue: {BlueFlag}, Checkered: {CheckeredFlag}, Green: {GreenFlag}, Orange: {OrangeFlag}, White: {WhiteFlag}, Yellow: {YellowFlag}";
+            $"No: {NoFlag}, Black: {BlackFlag}, Blue: {BlueFlag}, Checkered: {CheckeredFlag}, Green: {GreenFlag}, Orange: {OrangeFlag}, White: {WhiteFlag}, Yellow: {YellowFlag}, YellowFlagSec1: {YellowFlagSec1}, YellowFlagSec2: {YellowFlagSec2}, YellowFlagSec3: {YellowFlagSec3}";
     }
 }

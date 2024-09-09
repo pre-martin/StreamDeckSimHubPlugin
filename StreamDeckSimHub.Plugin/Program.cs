@@ -1,6 +1,7 @@
 ﻿// Copyright (C) 2023 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using System.IO.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -36,4 +37,5 @@ void ConfigureServices(IServiceCollection serviceCollection)
     serviceCollection.AddSingleton<PropertyComparer>();
     serviceCollection.AddSingleton<ImageUtils>();
     serviceCollection.AddSingleton<ImageManager>();
+    serviceCollection.AddSingleton<IFileSystem>(new FileSystem());
 }

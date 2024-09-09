@@ -1,17 +1,18 @@
 ﻿// Copyright (C) 2024 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using NLog;
 using SixLabors.ImageSharp;
 
 namespace StreamDeckSimHub.Plugin.Tools;
 
-public class ImageManager(ImageUtils imageUtils)
+public class ImageManager(IFileSystem fileSystem, ImageUtils imageUtils)
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-    private static readonly DirectoryInfo CustomImagesDirectory = new(@"images\custom");
     private static readonly string[] SupportedExtensions = [".svg", ".png", ".jpg", ".jpeg", ".gif"];
+    private readonly IDirectoryInfo _customImagesDirectory = fileSystem.DirectoryInfo.New(@"images\custom");
 
     /// <summary>
     /// Returns an array with all custom images. The images are returned with their relative path inside
@@ -19,15 +20,18 @@ public class ImageManager(ImageUtils imageUtils)
     /// </summary>
     public string[] ListCustomImages()
     {
-        var imageQualityRegex = new Regex(@"@{\d}x\."); // "image@2x.png", "image@3x.png", ...
+        var imageQualityRegex = new Regex(@"@\dx\."); // "image@2x.png", "image@3x.png", ...
         try
         {
-            var fn = CustomImagesDirectory.FullName;
-            return CustomImagesDirectory.GetFiles("*.*", SearchOption.AllDirectories)
-                .Where(fileInfo => SupportedExtensions.Contains(fileInfo.Extension.ToLower()))
-                .Where(fileInfo => !imageQualityRegex.IsMatch(fileInfo.Name))
+            var fn = _customImagesDirectory.FullName;
+            return _customImagesDirectory.GetFiles("*.*", SearchOption.AllDirectories)
+                .Where(fileInfo => SupportedExtensions.Contains(fileInfo.Extension.ToLowerInvariant()))
                 .Select(fileInfo => fileInfo.FullName[(fn.Length + 1)..])
+                .Select(fileName => imageQualityRegex.Replace(fileName, "."))
                 .Select(fileName => fileName.Replace(@"\", "/"))
+                .ToList()
+                .Distinct()
+                .OrderBy(fileName => fileName.Count(c => c == '/') + fileName)
                 .ToArray();
         }
         catch (Exception e)
@@ -49,15 +53,16 @@ public class ImageManager(ImageUtils imageUtils)
         if (Path.GetExtension(relativePath).Equals(".svg", StringComparison.InvariantCultureIgnoreCase))
         {
             // No quality suffix for SVG files.
-            var fn = Path.Combine(CustomImagesDirectory.FullName, relativePath);
+            var fn = Path.Combine(_customImagesDirectory.FullName, relativePath);
             return imageUtils.FromSvgFile(fn, sdKeyInfo);
         }
 
-        var newName = FindResolutionForKeyInfo(relativePath, sdKeyInfo);
-        var newFn = Path.Combine(CustomImagesDirectory.FullName, newName);
+        var newName = FindResolutionForKeyInfo(_customImagesDirectory.FullName, relativePath, sdKeyInfo);
+        var newFn = Path.Combine(_customImagesDirectory.FullName, newName);
         try
         {
-            return Image.Load(newFn);
+            using var stream = fileSystem.File.OpenRead(newFn);
+            return Image.Load(stream);
         }
         catch (Exception e)
         {
@@ -66,13 +71,13 @@ public class ImageManager(ImageUtils imageUtils)
         }
     }
 
-    private string FindResolutionForKeyInfo(string relativePath, StreamDeckKeyInfo sdKeyInfo)
+    private string FindResolutionForKeyInfo(string baseDir, string relativePath, StreamDeckKeyInfo sdKeyInfo)
     {
         if (sdKeyInfo.IsHighRes)
         {
             var extension = Path.GetExtension(relativePath);
             var hqFile = relativePath[..relativePath.LastIndexOf('.')] + "@2x" + extension;
-            if (File.Exists(hqFile)) return hqFile;
+            if (fileSystem.File.Exists(Path.Combine(baseDir, hqFile))) return hqFile;
         }
 
         return relativePath;

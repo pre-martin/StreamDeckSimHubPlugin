@@ -6,6 +6,8 @@ using SharpDeck;
 using SharpDeck.Events.Received;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using StreamDeckSimHub.Plugin.SimHub;
 using StreamDeckSimHub.Plugin.Tools;
 
@@ -23,6 +25,9 @@ internal class FlagState
     internal bool Orange;
     internal bool White;
     internal bool Yellow;
+    internal bool YellowSec1;
+    internal bool YellowSec2;
+    internal bool YellowSec3;
 }
 
 /// <summary>
@@ -45,6 +50,9 @@ public class FlagsAction : StreamDeckAction<FlagsSettings>
     private Image _orangeFlag;
     private Image _whiteFlag;
     private Image _yellowFlag;
+    private Image _yellowFlagSec1;
+    private Image _yellowFlagSec2;
+    private Image _yellowFlagSec3;
 
     public FlagsAction(SimHubConnection simHubConnection, ImageUtils imageUtils, ImageManager imageManager)
     {
@@ -60,6 +68,9 @@ public class FlagsAction : StreamDeckAction<FlagsSettings>
         _orangeFlag = imageUtils.GetEmptyImage();
         _whiteFlag = imageUtils.GetEmptyImage();
         _yellowFlag = imageUtils.GetEmptyImage();
+        _yellowFlagSec1 = imageUtils.GetEmptyImage();
+        _yellowFlagSec2 = imageUtils.GetEmptyImage();
+        _yellowFlagSec3 = imageUtils.GetEmptyImage();
     }
 
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
@@ -105,7 +116,7 @@ public class FlagsAction : StreamDeckAction<FlagsSettings>
 
         await SetImageAsync(_checkeredFlag.ToBase64String(PngFormat.Instance));
 
-        await base.OnWillAppear(args);
+        await base.OnWillDisappear(args);
     }
 
     protected override async Task OnDidReceiveSettings(ActionEventArgs<ActionPayload> args, FlagsSettings settings)
@@ -168,6 +179,15 @@ public class FlagsAction : StreamDeckAction<FlagsSettings>
             case "DataCorePlugin.GameData.Flag_Yellow":
                 _flagState.Yellow = Equals(args.PropertyValue, 1);
                 break;
+            case "DataCorePlugin.GameRawData.Graphics.globalYellow1":
+                _flagState.YellowSec1 = Equals(args.PropertyValue, 1);
+                break;
+            case "DataCorePlugin.GameRawData.Graphics.globalYellow2":
+                _flagState.YellowSec2 = Equals(args.PropertyValue, 1);
+                break;
+            case "DataCorePlugin.GameRawData.Graphics.globalYellow3":
+                _flagState.YellowSec3 = Equals(args.PropertyValue, 1);
+                break;
         }
 
         // "Green" must be after other flags, because several flags can be "on" in the same time. We want to have
@@ -196,6 +216,27 @@ public class FlagsAction : StreamDeckAction<FlagsSettings>
         {
             await SetImageAsync(_yellowFlag.ToBase64String(PngFormat.Instance));
         }
+        else if (_flagState.YellowSec1 || _flagState.YellowSec2 || _flagState.YellowSec3)
+        {
+            // We have to combine them on a new image with the same size
+            var image = new Image<Rgba32>(_yellowFlagSec1.Width, _yellowFlagSec1.Height);
+            if (_flagState.YellowSec1)
+            {
+                image.Mutate(x => x.DrawImage(_yellowFlagSec1, 1f));
+            }
+
+            if (_flagState.YellowSec2)
+            {
+                image.Mutate(x => x.DrawImage(_yellowFlagSec2, 1f));
+            }
+
+            if (_flagState.YellowSec3)
+            {
+                image.Mutate(x => x.DrawImage(_yellowFlagSec3, 1f));
+            }
+
+            await SetImageAsync(image.ToBase64String(PngFormat.Instance));
+        }
         else if (_flagState.Green)
         {
             await SetImageAsync(_greenFlag.ToBase64String(PngFormat.Instance));
@@ -216,5 +257,8 @@ public class FlagsAction : StreamDeckAction<FlagsSettings>
         _orangeFlag = _imageManager.GetCustomImage(settings.OrangeFlag, sdKeyInfo);
         _whiteFlag = _imageManager.GetCustomImage(settings.WhiteFlag, sdKeyInfo);
         _yellowFlag = _imageManager.GetCustomImage(settings.YellowFlag, sdKeyInfo);
+        _yellowFlagSec1 = _imageManager.GetCustomImage(settings.YellowFlagSec1, sdKeyInfo);
+        _yellowFlagSec2 = _imageManager.GetCustomImage(settings.YellowFlagSec2, sdKeyInfo);
+        _yellowFlagSec3 = _imageManager.GetCustomImage(settings.YellowFlagSec3, sdKeyInfo);
     }
 }

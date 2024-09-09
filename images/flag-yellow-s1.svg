@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 70 70"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="flag-yellow-s1.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="25.985714"
+     inkscape:cx="35"
+     inkscape:cy="35"
+     inkscape:window-width="3840"
+     inkscape:window-height="2054"
+     inkscape:window-x="3829"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <defs
+     id="defs1">
+    <style
+       type="text/css"
+       id="style1"><!--
+            @import url('https://fonts.googleapis.com/css?family=Roboto:700&amp;text=123');
+            -> curl -o font.woff2 "https://fonts.gstatic.com/l/font?kit=KFOlCnqEu92Fr1MmWUlvBgU-G_PB&skey=c06e7213f788649e&v=v32"
+            -> base64 -w0 font.woff
+            -->
+
+            @font-face {
+                font-family: 'Roboto';
+                src: url('data:application/font-woff;charset=utf-8;base64,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') format('woff2');
+                font-weight: 700;
+            }
+        </style>
+  </defs>
+  <rect
+     x="5"
+     y="15"
+     width="20"
+     height="40"
+     stroke-width="1"
+     stroke="yellow"
+     fill="yellow"
+     id="rect1" />
+  <text
+     x="15"
+     y="41"
+     text-anchor="middle"
+     alignment-baseline="central"
+     font-family="Roboto"
+     font-weight="700"
+     font-size="18px"
+     id="text1">1</text>
+</svg>
