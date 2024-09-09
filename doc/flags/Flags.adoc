@@ -3,9 +3,11 @@
 :sectnums:
 ifdef::env-github[]
 :tip-caption: :bulb:
+:warning-caption: :warning:
 endif::[]
 ifndef::env-github[]
 :tip-caption: 💡
+:warning-caption: ⚠️
 endif::[]
 
 TIP: Always read the *correct version* of the documentation, which matches the version of the plugin that you have installed. To do so, use the dropdown in the top left, which usually contains the value "main". Select the "tag" that matches your installed version.
@@ -31,6 +33,8 @@ The plugin lists all images which are in the following directory and its subdire
 This string can be copied like it is into the address bar of the File Explorer, which will open the directory `C:\Users\yourname\AppData\Roaming\...`.
 
 Custom images can be copied into this directory or a subdirectory. The folder `images\custom` will not be deleted during upgrades of the plugin.
+
+WARNING: Images that were originally delivered by the plugin will be overwritten during the update! It is therefore advisable to create a folder “my-flags” (or similar) for your own flags. Do not modify existing images or your changes will be lost after an upgrade.
 
 The plugin supports the following file formats:
 
