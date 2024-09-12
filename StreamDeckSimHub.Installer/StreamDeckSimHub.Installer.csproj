@@ -22,6 +22,10 @@
         <PackageReference Include="NLog" Version="5.3.3" />
     </ItemGroup>
 
+    <Target Name="RenameInstaller" AfterTargets="Publish">
+        <Copy SourceFiles="$(PublishDir)\StreamDeckSimHub.Installer.exe" DestinationFiles="$(PublishDir)\StreamDeckSimHub.Installer-v$(BuildVersion3Components).exe" />
+    </Target>
+
     <ItemGroup>
         <EmbeddedResource Include="NLog.config" />
         <EmbeddedResource Include="..\build\net.planetrenner.simhub.streamDeckPlugin" />
