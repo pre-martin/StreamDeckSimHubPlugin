@@ -70,8 +70,8 @@ jobs:
 
     - name: Build
       run: |
-        dotnet build --no-restore StreamDeckSimHub.Plugin/StreamDeckSimHub.Plugin.csproj
-        dotnet build --no-restore StreamDeckSimHub.PluginTests/StreamDeckSimHub.PluginTests.csproj
+        dotnet build StreamDeckSimHub.Plugin/StreamDeckSimHub.Plugin.csproj
+        dotnet build StreamDeckSimHub.PluginTests/StreamDeckSimHub.PluginTests.csproj
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
