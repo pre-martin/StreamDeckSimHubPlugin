@@ -1,9 +1,13 @@
-﻿// Copyright (C) 2023 Martin Renner
+﻿// Copyright (C) 2024 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using Microsoft.Extensions.Logging;
 using SharpDeck;
 using SharpDeck.Events.Received;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using StreamDeckSimHub.Plugin.SimHub;
 using StreamDeckSimHub.Plugin.Tools;
 
@@ -14,82 +18,124 @@ namespace StreamDeckSimHub.Plugin.Actions;
 /// </summary>
 internal class FlagState
 {
-    internal bool black;
-    internal bool blue;
-    internal bool checkered;
-    internal bool green;
-    internal bool orange;
-    internal bool white;
-    internal bool yellow;
+    internal bool Black;
+    internal bool Blue;
+    internal bool Checkered;
+    internal bool Green;
+    internal bool Orange;
+    internal bool White;
+    internal bool Yellow;
+    internal bool YellowSec1;
+    internal bool YellowSec2;
+    internal bool YellowSec3;
 }
 
 /// <summary>
 /// Displays the flags on a Stream Deck key.
 /// </summary>
 [StreamDeckAction("net.planetrenner.simhub.flags")]
-public class FlagsAction : StreamDeckAction
+public class FlagsAction : StreamDeckAction<FlagsSettings>
 {
     private readonly SimHubConnection _simHubConnection;
+    private readonly ImageManager _imageManager;
     private readonly IPropertyChangedReceiver _propertyChangedReceiver;
+    private StreamDeckKeyInfo? _sdKeyInfo;
     private bool _gameRunning;
     private FlagState _flagState = new();
-    private readonly string _noFlag;
-    private readonly string _blackFlag;
-    private readonly string _blueFlag;
-    private readonly string _checkeredFlag;
-    private readonly string _greenFlag;
-    private readonly string _orangeFlag;
-    private readonly string _whiteFlag;
-    private readonly string _yellowFlag;
+    private Image _noFlag;
+    private Image _blackFlag;
+    private Image _blueFlag;
+    private Image _checkeredFlag;
+    private Image _greenFlag;
+    private Image _orangeFlag;
+    private Image _whiteFlag;
+    private Image _yellowFlag;
+    private Image _yellowFlagSec1;
+    private Image _yellowFlagSec2;
+    private Image _yellowFlagSec3;
 
-    public FlagsAction(SimHubConnection simHubConnection, ImageUtils imageUtils)
+    public FlagsAction(SimHubConnection simHubConnection, ImageUtils imageUtils, ImageManager imageManager)
     {
         _simHubConnection = simHubConnection;
+        _imageManager = imageManager;
         _propertyChangedReceiver = new PropertyChangedDelegate(PropertyChanged);
 
-        _noFlag = imageUtils.EncodeSvg("<svg viewBox=\"0 0 70 70\" />");
-        _blackFlag = imageUtils.LoadSvg("images/icons/flag-black.svg");
-        _blueFlag = imageUtils.LoadSvg("images/icons/flag-blue.svg");
-        _checkeredFlag = imageUtils.LoadSvg("images/icons/flag-checkered.svg");
-        _greenFlag = imageUtils.LoadSvg("images/icons/flag-green.svg");
-        _orangeFlag = imageUtils.LoadSvg("images/icons/flag-orange.svg");
-        _whiteFlag = imageUtils.LoadSvg("images/icons/flag-white.svg");
-        _yellowFlag = imageUtils.LoadSvg("images/icons/flag-yellow.svg");
+        _noFlag = imageUtils.GetEmptyImage();
+        _blackFlag = imageUtils.GetEmptyImage();
+        _blueFlag = imageUtils.GetEmptyImage();
+        _checkeredFlag = imageUtils.GetEmptyImage();
+        _greenFlag = imageUtils.GetEmptyImage();
+        _orangeFlag = imageUtils.GetEmptyImage();
+        _whiteFlag = imageUtils.GetEmptyImage();
+        _yellowFlag = imageUtils.GetEmptyImage();
+        _yellowFlagSec1 = imageUtils.GetEmptyImage();
+        _yellowFlagSec2 = imageUtils.GetEmptyImage();
+        _yellowFlagSec3 = imageUtils.GetEmptyImage();
     }
 
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
     {
-        Logger.LogInformation("OnWillAppear ({coords})", args.Payload.Coordinates);
-        await SetImageAsync(_checkeredFlag);
+        var settings = args.Payload.GetSettings<FlagsSettings>();
+        Logger.LogInformation("OnWillAppear ({coords}): {settings}", args.Payload.Coordinates, settings);
 
-        await _simHubConnection.Subscribe("dcp.GameRunning", _propertyChangedReceiver);
-        await _simHubConnection.Subscribe("dcp.gd.Flag_Black", _propertyChangedReceiver);
-        await _simHubConnection.Subscribe("dcp.gd.Flag_Blue", _propertyChangedReceiver);
-        await _simHubConnection.Subscribe("dcp.gd.Flag_Checkered", _propertyChangedReceiver);
-        await _simHubConnection.Subscribe("dcp.gd.Flag_Green", _propertyChangedReceiver);
-        await _simHubConnection.Subscribe("dcp.gd.Flag_Orange", _propertyChangedReceiver);
-        await _simHubConnection.Subscribe("dcp.gd.Flag_White", _propertyChangedReceiver);
-        await _simHubConnection.Subscribe("dcp.gd.Flag_Yellow", _propertyChangedReceiver);
+        _sdKeyInfo = StreamDeckKeyInfoBuilder.Build(StreamDeck.Info, args.Device, args.Payload.Controller);
+        PopulateImages(settings, _sdKeyInfo);
+
+        await SetImageAsync(_checkeredFlag.ToBase64String(PngFormat.Instance));
+
+        await _simHubConnection.Subscribe("DataCorePlugin.GameRunning", _propertyChangedReceiver);
+        await _simHubConnection.Subscribe("DataCorePlugin.GameData.Flag_Black", _propertyChangedReceiver);
+        await _simHubConnection.Subscribe("DataCorePlugin.GameData.Flag_Blue", _propertyChangedReceiver);
+        await _simHubConnection.Subscribe("DataCorePlugin.GameData.Flag_Checkered", _propertyChangedReceiver);
+        await _simHubConnection.Subscribe("DataCorePlugin.GameData.Flag_Green", _propertyChangedReceiver);
+        await _simHubConnection.Subscribe("DataCorePlugin.GameData.Flag_Orange", _propertyChangedReceiver);
+        await _simHubConnection.Subscribe("DataCorePlugin.GameData.Flag_White", _propertyChangedReceiver);
+        await _simHubConnection.Subscribe("DataCorePlugin.GameData.Flag_Yellow", _propertyChangedReceiver);
+        await _simHubConnection.Subscribe("DataCorePlugin.GameRawData.Graphics.globalYellow1", _propertyChangedReceiver);
+        await _simHubConnection.Subscribe("DataCorePlugin.GameRawData.Graphics.globalYellow2", _propertyChangedReceiver);
+        await _simHubConnection.Subscribe("DataCorePlugin.GameRawData.Graphics.globalYellow3", _propertyChangedReceiver);
 
         await base.OnWillAppear(args);
     }
 
     protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
     {
-        Logger.LogInformation("OnWillDisappear ({coords})", args.Payload.Coordinates);
+        Logger.LogInformation("OnWillDisappear ({coords}): {settings}", args.Payload.Coordinates, args.Payload.GetSettings<DialActionSettings>());
 
-        await _simHubConnection.Unsubscribe("dcp.GameRunning", _propertyChangedReceiver);
-        await _simHubConnection.Unsubscribe("dcp.gd.Flag_Black", _propertyChangedReceiver);
-        await _simHubConnection.Unsubscribe("dcp.gd.Flag_Blue", _propertyChangedReceiver);
-        await _simHubConnection.Unsubscribe("dcp.gd.Flag_Checkered", _propertyChangedReceiver);
-        await _simHubConnection.Unsubscribe("dcp.gd.Flag_Green", _propertyChangedReceiver);
-        await _simHubConnection.Unsubscribe("dcp.gd.Flag_Orange", _propertyChangedReceiver);
-        await _simHubConnection.Unsubscribe("dcp.gd.Flag_White", _propertyChangedReceiver);
-        await _simHubConnection.Unsubscribe("dcp.gd.Flag_Yellow", _propertyChangedReceiver);
+        await _simHubConnection.Unsubscribe("DataCorePlugin.GameRunning", _propertyChangedReceiver);
+        await _simHubConnection.Unsubscribe("DataCorePlugin.GameData.Flag_Black", _propertyChangedReceiver);
+        await _simHubConnection.Unsubscribe("DataCorePlugin.GameData.Flag_Blue", _propertyChangedReceiver);
+        await _simHubConnection.Unsubscribe("DataCorePlugin.GameData.Flag_Checkered", _propertyChangedReceiver);
+        await _simHubConnection.Unsubscribe("DataCorePlugin.GameData.Flag_Green", _propertyChangedReceiver);
+        await _simHubConnection.Unsubscribe("DataCorePlugin.GameData.Flag_Orange", _propertyChangedReceiver);
+        await _simHubConnection.Unsubscribe("DataCorePlugin.GameData.Flag_White", _propertyChangedReceiver);
+        await _simHubConnection.Unsubscribe("DataCorePlugin.GameData.Flag_Yellow", _propertyChangedReceiver);
+        await _simHubConnection.Unsubscribe("DataCorePlugin.GameRawData.Graphics.globalYellow1", _propertyChangedReceiver);
+        await _simHubConnection.Unsubscribe("DataCorePlugin.GameRawData.Graphics.globalYellow2", _propertyChangedReceiver);
+        await _simHubConnection.Unsubscribe("DataCorePlugin.GameRawData.Graphics.globalYellow3", _propertyChangedReceiver);
 
-        await SetImageAsync(_checkeredFlag);
+        await SetImageAsync(_checkeredFlag.ToBase64String(PngFormat.Instance));
 
-        await base.OnWillAppear(args);
+        await base.OnWillDisappear(args);
+    }
+
+    protected override async Task OnDidReceiveSettings(ActionEventArgs<ActionPayload> args, FlagsSettings settings)
+    {
+        Logger.LogInformation("OnDidReceiveSettings ({coords}): {settings}", args.Payload.Coordinates, settings);
+
+        PopulateImages(settings, _sdKeyInfo!);
+
+        await SetImageAsync(_checkeredFlag.ToBase64String(PngFormat.Instance));
+
+        await base.OnDidReceiveSettings(args, settings);
+    }
+
+    protected override async Task OnPropertyInspectorDidAppear(ActionEventArgs args)
+    {
+        Logger.LogInformation("OnPropertyInspectorDidAppear");
+
+        var images = _imageManager.ListCustomImages();
+        await SendToPropertyInspectorAsync(new { message = "customImages", images });
     }
 
     /// <summary>
@@ -97,76 +143,122 @@ public class FlagsAction : StreamDeckAction
     /// </summary>
     private async Task PropertyChanged(PropertyChangedArgs args)
     {
-        if (args.PropertyName == "dcp.GameRunning")
+        if (args.PropertyName == "DataCorePlugin.GameRunning")
         {
-            _gameRunning = Equals(args.PropertyValue, true);
+            _gameRunning = Equals(args.PropertyValue, 1);
         }
 
         if (!_gameRunning)
         {
             // game not running, show checked flag as placeholder
-            _flagState = new();
-            await SetImageAsync(_checkeredFlag);
+            _flagState = new FlagState();
+            await SetImageAsync(_checkeredFlag.ToBase64String(PngFormat.Instance));
             return;
         }
 
-
         switch (args.PropertyName)
         {
-            case "dcp.gd.Flag_Black":
-                _flagState.black = Equals(args.PropertyValue, 1);
+            case "DataCorePlugin.GameData.Flag_Black":
+                _flagState.Black = Equals(args.PropertyValue, 1);
                 break;
-            case "dcp.gd.Flag_Blue":
-                _flagState.blue = Equals(args.PropertyValue, 1);
+            case "DataCorePlugin.GameData.Flag_Blue":
+                _flagState.Blue = Equals(args.PropertyValue, 1);
                 break;
-            case "dcp.gd.Flag_Checkered":
-                _flagState.checkered = Equals(args.PropertyValue, 1);
+            case "DataCorePlugin.GameData.Flag_Checkered":
+                _flagState.Checkered = Equals(args.PropertyValue, 1);
                 break;
-            case "dcp.gd.Flag_Green":
-                _flagState.green = Equals(args.PropertyValue, 1);
+            case "DataCorePlugin.GameData.Flag_Green":
+                _flagState.Green = Equals(args.PropertyValue, 1);
                 break;
-            case "dcp.gd.Flag_Orange":
-                _flagState.orange = Equals(args.PropertyValue, 1);
+            case "DataCorePlugin.GameData.Flag_Orange":
+                _flagState.Orange = Equals(args.PropertyValue, 1);
                 break;
-            case "dcp.gd.Flag_White":
-                _flagState.white = Equals(args.PropertyValue, 1);
+            case "DataCorePlugin.GameData.Flag_White":
+                _flagState.White = Equals(args.PropertyValue, 1);
                 break;
-            case "dcp.gd.Flag_Yellow":
-                _flagState.yellow = Equals(args.PropertyValue, 1);
+            case "DataCorePlugin.GameData.Flag_Yellow":
+                _flagState.Yellow = Equals(args.PropertyValue, 1);
+                break;
+            case "DataCorePlugin.GameRawData.Graphics.globalYellow1":
+                _flagState.YellowSec1 = Equals(args.PropertyValue, 1);
+                break;
+            case "DataCorePlugin.GameRawData.Graphics.globalYellow2":
+                _flagState.YellowSec2 = Equals(args.PropertyValue, 1);
+                break;
+            case "DataCorePlugin.GameRawData.Graphics.globalYellow3":
+                _flagState.YellowSec3 = Equals(args.PropertyValue, 1);
                 break;
         }
 
-        if (_flagState.black)
+        // "Green" must be after other flags, because several flags can be "on" in the same time. We want to have
+        // "Green" after "Yellow".
+        if (_flagState.Black)
         {
-            await SetImageAsync(_blackFlag);
+            await SetImageAsync(_blackFlag.ToBase64String(PngFormat.Instance));
         }
-        else if (_flagState.blue)
+        else if (_flagState.Blue)
         {
-            await SetImageAsync(_blueFlag);
+            await SetImageAsync(_blueFlag.ToBase64String(PngFormat.Instance));
         }
-        else if (_flagState.checkered)
+        else if (_flagState.Checkered)
         {
-            await SetImageAsync(_checkeredFlag);
+            await SetImageAsync(_checkeredFlag.ToBase64String(PngFormat.Instance));
         }
-        else if (_flagState.green)
+        else if (_flagState.Orange)
         {
-            await SetImageAsync(_greenFlag);
+            await SetImageAsync(_orangeFlag.ToBase64String(PngFormat.Instance));
         }
-        else if (_flagState.orange)
+        else if (_flagState.White)
         {
-            await SetImageAsync(_orangeFlag);
+            await SetImageAsync(_whiteFlag.ToBase64String(PngFormat.Instance));
         }
-        else if (_flagState.white)
+        else if (_flagState.Yellow)
         {
-            await SetImageAsync(_whiteFlag);
+            await SetImageAsync(_yellowFlag.ToBase64String(PngFormat.Instance));
         }
-        else if (_flagState.yellow)
+        else if (_flagState.YellowSec1 || _flagState.YellowSec2 || _flagState.YellowSec3)
         {
-            await SetImageAsync(_yellowFlag);
+            // We have to combine them on a new image with the same size
+            var image = new Image<Rgba32>(_yellowFlagSec1.Width, _yellowFlagSec1.Height);
+            if (_flagState.YellowSec1)
+            {
+                image.Mutate(x => x.DrawImage(_yellowFlagSec1, 1f));
+            }
+
+            if (_flagState.YellowSec2)
+            {
+                image.Mutate(x => x.DrawImage(_yellowFlagSec2, 1f));
+            }
+
+            if (_flagState.YellowSec3)
+            {
+                image.Mutate(x => x.DrawImage(_yellowFlagSec3, 1f));
+            }
+
+            await SetImageAsync(image.ToBase64String(PngFormat.Instance));
+        }
+        else if (_flagState.Green)
+        {
+            await SetImageAsync(_greenFlag.ToBase64String(PngFormat.Instance));
         }
         else
         {
-            await SetImageAsync(_noFlag);
+            await SetImageAsync(_noFlag.ToBase64String(PngFormat.Instance));
         }
+    }
+
+    private void PopulateImages(FlagsSettings settings, StreamDeckKeyInfo sdKeyInfo)
+    {
+        _noFlag = _imageManager.GetCustomImage(settings.NoFlag, sdKeyInfo);
+        _blackFlag = _imageManager.GetCustomImage(settings.BlackFlag, sdKeyInfo);
+        _blueFlag = _imageManager.GetCustomImage(settings.BlueFlag, sdKeyInfo);
+        _checkeredFlag = _imageManager.GetCustomImage(settings.CheckeredFlag, sdKeyInfo);
+        _greenFlag = _imageManager.GetCustomImage(settings.GreenFlag, sdKeyInfo);
+        _orangeFlag = _imageManager.GetCustomImage(settings.OrangeFlag, sdKeyInfo);
+        _whiteFlag = _imageManager.GetCustomImage(settings.WhiteFlag, sdKeyInfo);
+        _yellowFlag = _imageManager.GetCustomImage(settings.YellowFlag, sdKeyInfo);
+        _yellowFlagSec1 = _imageManager.GetCustomImage(settings.YellowFlagSec1, sdKeyInfo);
+        _yellowFlagSec2 = _imageManager.GetCustomImage(settings.YellowFlagSec2, sdKeyInfo);
+        _yellowFlagSec3 = _imageManager.GetCustomImage(settings.YellowFlagSec3, sdKeyInfo);
     }
 }

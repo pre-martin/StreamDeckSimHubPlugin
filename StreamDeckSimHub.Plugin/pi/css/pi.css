@@ -19,3 +19,7 @@
     /* Reset min-width which was set from sdpi.css "input[type="checkbox"]+label" */
     margin-right: auto;
 }
+
+.sdpi-item>img {
+    align-self: center;
+}
