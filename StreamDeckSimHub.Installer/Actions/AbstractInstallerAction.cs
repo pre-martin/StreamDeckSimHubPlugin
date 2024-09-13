@@ -16,26 +16,30 @@ public abstract partial class AbstractInstallerAction : ObservableObject, IInsta
     private string _message = string.Empty;
 
     [ObservableProperty]
-    private Brush _actionState = ActionStates.InactiveBrush;
+    private Brush _actionResultColor = ActionColors.InactiveBrush;
 
     public async Task<ActionResult> Execute()
     {
         _logger.Info($"Starting action {GetType().Name}");
 
-        ActionState = ActionStates.RunningBrush;
+        ActionResultColor = ActionColors.RunningBrush;
         try
         {
             var result = await ExecuteInternal();
-            ActionState = result switch
+            ActionResultColor = result switch
             {
-                ActionResult.Success => ActionStates.SuccessBrush,
-                ActionResult.Error => ActionStates.ErrorBrush,
-                ActionResult.NotRequired => ActionStates.InactiveBrush,
-                _ => ActionState
+                ActionResult.Success => ActionColors.SuccessBrush,
+                ActionResult.Error => ActionColors.ErrorBrush,
+                ActionResult.NotRequired => ActionColors.InactiveBrush,
+                ActionResult.Warning => ActionColors.WarningBrush,
+                _ => throw new ArgumentOutOfRangeException()
             };
 
             _logger.Info($"Finished action {GetType().Name} with result {result}");
+
+            // Give the user a tiny moment to realize that there is something going on.
             await Task.Delay(1000);
+
             return result;
         }
         catch (Exception e)

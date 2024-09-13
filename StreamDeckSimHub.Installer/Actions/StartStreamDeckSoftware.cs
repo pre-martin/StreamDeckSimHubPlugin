@@ -16,16 +16,16 @@ public class StartStreamDeckSoftware : AbstractInstallerAction
 
     protected override Task<ActionResult> ExecuteInternal()
     {
-        var installDir = GetStreamDeckInstallationPath();
-        ProcessTools.StartProcess(Path.Combine(installDir, "StreamDeck.exe"), installDir);
+        var installFolder = GetStreamDeckInstallFolder();
+        ProcessTools.StartProcess(Path.Combine(installFolder, "StreamDeck.exe"), installFolder);
 
         SetAndLogInfo("Stream Deck software started");
         return Task.FromResult(ActionResult.Success);
     }
 
-    private string GetStreamDeckInstallationPath()
+    private string GetStreamDeckInstallFolder()
     {
-        var installPath = (string?) Registry.GetValue(Configuration.StreamDeckRegistryFolder, "InstallDir", null);
+        var installPath = (string?) Registry.GetValue(Configuration.StreamDeckRegistryFolder, Configuration.StreamDeckRegistryInstallFolder, null);
         if (!string.IsNullOrEmpty(installPath))
         {
             SetAndLogInfo($"Found Stream Deck directory in registry: {installPath}");
@@ -33,6 +33,6 @@ public class StartStreamDeckSoftware : AbstractInstallerAction
         }
 
         SetAndLogInfo($"Could not find Stream Deck directory in registry. Using default.");
-        return Path.Combine("C:", "Program Files", "Elgato", "StreamDeck");
+        return Configuration.StreamDeckDefaultInstallFolder;
     }
 }

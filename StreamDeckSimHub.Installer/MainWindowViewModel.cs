@@ -13,6 +13,7 @@ public partial class MainWindowViewModel : ObservableObject
 {
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
     private static readonly Brush SuccessBrush = Brushes.Green;
+    private static readonly Brush WarningBrush = Brushes.Orange;
     private static readonly Brush ErrorBrush = Brushes.Red;
 
     public string Version => ThisAssembly.AssemblyFileVersion;
@@ -41,17 +42,41 @@ public partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        var result = true;
+        var result = ActionResult.Success;
         var installStreamDeckPlugin = new InstallStreamDeckPlugin();
         InstallerSteps.Add(installStreamDeckPlugin);
-        result &= await installStreamDeckPlugin.Execute() != ActionResult.Error;
+        result = SetHigherResultLevel(await installStreamDeckPlugin.Execute(), result);
 
         var startStreamDeck = new StartStreamDeckSoftware();
         InstallerSteps.Add(startStreamDeck);
-        result &= await startStreamDeck.Execute() != ActionResult.Error;
+        result = SetHigherResultLevel(await startStreamDeck.Execute(), result);
 
-        if (result) SetSuccessResultText();
-        else SetErrorResultText();
+        var verifySimHubPlugin = new VerifySimHubPlugin();
+        InstallerSteps.Add(verifySimHubPlugin);
+        result = SetHigherResultLevel(await verifySimHubPlugin.Execute(), result);
+
+        switch (result)
+        {
+            case ActionResult.NotRequired:
+            case ActionResult.Success:
+                SetSuccessResultText();
+                break;
+            case ActionResult.Warning:
+                SetWarningResultText();
+                break;
+            case ActionResult.Error:
+                SetErrorResultText();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    private ActionResult SetHigherResultLevel(ActionResult result, ActionResult existingResult)
+    {
+        var v1 = (int)result;
+        var v2 = (int)existingResult;
+        return v1 > v2 ? result : existingResult;
     }
 
     private void ClearResultText()
@@ -64,6 +89,12 @@ public partial class MainWindowViewModel : ObservableObject
     {
         Result = "The plugin was installed successfully. You can exit the program now.";
         ResultBrush = SuccessBrush;
+    }
+
+    private void SetWarningResultText()
+    {
+        Result = "There have been warnings during the installation. Please check the steps above.";
+        ResultBrush = WarningBrush;
     }
 
     private void SetErrorResultText()
