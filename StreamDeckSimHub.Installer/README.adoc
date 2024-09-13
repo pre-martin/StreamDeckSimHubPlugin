@@ -1,0 +1,6 @@
+﻿= Installer
+
+. Build the plugin: `release.bat` or `release.bat debug`
+
+. Build the installer: `dotnet publish StreamDeckSimHub.Installer\StreamDeckSimHub.Installer.csproj`
+

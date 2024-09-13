@@ -1,14 +1,17 @@
 = Release Process
 
-. If there is no release branch yet for the current version: +  
+. If there is no release branch yet for the current version: +
    `nbgv prepare-release`
-. Switch to the release branch: +  
+. Switch to the release branch: +
    `git switch release/v1.2`
 . Push the release branch
-. Create a tag and push it afterwards:
+. Create a tag and push it afterward:
     - `nbgv tag`
     - `git push origin v1.2`
 . Build the plugin:
-    - `release.bat`
-. Create a release in GitHub from the tag and attach the file `net.planetrenner.simhub.streamDeckPlugin`
+    - `dotnet build StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c Release`
+    - `dotnet publish StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c Release`
+. Build the installer:
+    - `dotnet publish StreamDeckSimHub.Installer\StreamDeckSimHub.Installer.csproj -c Release`
+. Create a release in GitHub from the tag and attach the file `StreamDeckSimHub.Installer-vX.Y.z.exe`
 . Push the main branch.
