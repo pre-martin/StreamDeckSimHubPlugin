@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <PublishSingleFile>true</PublishSingleFile>
+        <SelfContained>false</SelfContained>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UseWPF>true</UseWPF>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <DebugType>embedded</DebugType>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <DebugType>embedded</DebugType>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+        <PackageReference Include="NLog" Version="5.3.3" />
+    </ItemGroup>
+
+    <Target Name="RenameInstaller" AfterTargets="Publish">
+        <Copy SourceFiles="$(PublishDir)\StreamDeckSimHub.Installer.exe" DestinationFiles="$(PublishDir)\StreamDeckSimHub.Installer-v$(BuildVersion3Components).exe" />
+    </Target>
+
+    <ItemGroup>
+        <EmbeddedResource Include="NLog.config" />
+        <EmbeddedResource Include="..\build\net.planetrenner.simhub.streamDeckPlugin" />
+    </ItemGroup>
+</Project>

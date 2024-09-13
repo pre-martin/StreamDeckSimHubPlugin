@@ -6,4 +6,7 @@
       <Version>3.6.143</Version>
     </PackageReference>
   </ItemGroup>
+  <PropertyGroup>
+    <GitVersionBaseDirectory>$(MSBuildThisFileDirectory)</GitVersionBaseDirectory>
+  </PropertyGroup>
 </Project>

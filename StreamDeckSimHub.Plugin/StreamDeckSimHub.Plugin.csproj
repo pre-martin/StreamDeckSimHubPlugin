@@ -5,7 +5,6 @@
         <TargetFramework>net8.0</TargetFramework>
         <PublishSingleFile>true</PublishSingleFile>
         <SelfContained>false</SelfContained>
-        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AssemblyName>StreamDeckSimHub</AssemblyName>
@@ -33,13 +32,15 @@
         </Reference>
     </ItemGroup>
 
-    <Target Name="CustomAfterPublish" AfterTargets="Publish" DependsOnTargets="GetBuildVersion">
+    <Target Name="SetManifestVersionAndBundle" AfterTargets="Publish">
         <PropertyGroup>
             <PowerShell Condition="!$([MSBuild]::IsOSUnixLike())">powershell.exe</PowerShell>
             <PowerShell Condition="$([MSBuild]::IsOSUnixLike())">pwsh</PowerShell>
         </PropertyGroup>
         <!-- Replace version in manifest.json with the version from nbgv -->
         <Exec Command="$(PowerShell) -NonInteractive -ExecutionPolicy Bypass -Command &quot;&amp; '.\ReplaceVersion.ps1' '$(PublishDir)manifest.json' '$(AssemblyFileVersion)' &quot;" />
+        <!-- Bundle as Stream Deck plugin if running on Windows -->
+        <Exec Command="$(PowerShell) -NonInteractive -ExecutionPolicy Bypass -Command &quot;&amp; '.\Bundle.ps1' '$(PublishDir)' &quot;" Condition="$([MSBuild]::IsOSPlatform('Windows'))"/>
     </Target>
 
     <ItemGroup>
