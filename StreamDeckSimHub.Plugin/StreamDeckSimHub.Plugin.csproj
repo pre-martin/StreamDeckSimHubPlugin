@@ -25,8 +25,8 @@
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-        <PackageReference Include="NLog" Version="5.3.3" />
-        <PackageReference Include="NLog.Extensions.Logging" Version="5.3.10" />
+        <PackageReference Include="NLog" Version="5.3.4" />
+        <PackageReference Include="NLog.Extensions.Logging" Version="5.3.13" />
         <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.4" />
         <Reference Include="SharpDeck">
           <HintPath>..\lib\SharpDeck.dll</HintPath>
