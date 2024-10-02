@@ -22,6 +22,17 @@ image::Flags.png[Flags]
 All flags can be customized by selecting different images.
 
 
+== Flashing Flags
+
+Flashing can optionally be configured for each individual flag. This attracts more attention when the Stream Deck is not directly in the field of vision.
+
+To do this, the “Flash” checkbox must be activated. Multiples of 100 milliseconds can be entered in the “On” and “Off” fields to define how many milliseconds the flag should be visible or hidden.
+
+Example: If “3” and “1” are entered, the flag is displayed for 300 milliseconds and then hidden for 100 milliseconds. The cycle is then repeated.
+
+The smallest time value is “1” (for 100 milliseconds), the largest value is “50” (for 5000 milliseconds or 5 seconds).
+
+
 == Custom Images
 
 The plugin lists all images which are in the following directory and its subdirectories:
@@ -90,6 +101,6 @@ The button currently supports the following flags (depending on the simulation):
 
 == Sector Flags
 
-If the game supports yellow flags for sectors (ACC does), the plugin will derive an image from "Yellow Sec 1", "Yellow Sec 2" and "Yellow Sec 3". For example, if yellow flags are active in sector 1 and 3, the plugin will combine the images "Sec 1" and "Sec 3" into a new image, which will then be displayed on the button.
+If the game supports yellow flags for sectors (ACC does), the plugin derives an overall image from the 3 individual images, depending on the sectors in which yellow flags are currently shown. For example, if yellow flags are active in sector 1 and 3, the plugin will combine the first image and the third image by drawing one onto the other, which will then be displayed on the button.
 
 It must therefore be ensured that these three images can be stacked visually on top of each other.

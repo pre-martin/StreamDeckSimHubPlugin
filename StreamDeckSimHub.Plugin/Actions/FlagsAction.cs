@@ -42,35 +42,16 @@ public class FlagsAction : StreamDeckAction<FlagsSettings>
     private StreamDeckKeyInfo? _sdKeyInfo;
     private bool _gameRunning;
     private FlagState _flagState = new();
-    private Image _noFlag;
-    private Image _blackFlag;
-    private Image _blueFlag;
-    private Image _checkeredFlag;
-    private Image _greenFlag;
-    private Image _orangeFlag;
-    private Image _whiteFlag;
-    private Image _yellowFlag;
-    private Image _yellowFlagSec1;
-    private Image _yellowFlagSec2;
-    private Image _yellowFlagSec3;
+    private readonly Flags _flags = new();
+    private int _tickCounter;
+    private Image? _currentImage;
+    private FlagData? _currentFlagData;
 
-    public FlagsAction(SimHubConnection simHubConnection, ImageUtils imageUtils, ImageManager imageManager)
+    public FlagsAction(SimHubConnection simHubConnection, ImageManager imageManager)
     {
         _simHubConnection = simHubConnection;
         _imageManager = imageManager;
         _propertyChangedReceiver = new PropertyChangedDelegate(PropertyChanged);
-
-        _noFlag = imageUtils.GetEmptyImage();
-        _blackFlag = imageUtils.GetEmptyImage();
-        _blueFlag = imageUtils.GetEmptyImage();
-        _checkeredFlag = imageUtils.GetEmptyImage();
-        _greenFlag = imageUtils.GetEmptyImage();
-        _orangeFlag = imageUtils.GetEmptyImage();
-        _whiteFlag = imageUtils.GetEmptyImage();
-        _yellowFlag = imageUtils.GetEmptyImage();
-        _yellowFlagSec1 = imageUtils.GetEmptyImage();
-        _yellowFlagSec2 = imageUtils.GetEmptyImage();
-        _yellowFlagSec3 = imageUtils.GetEmptyImage();
     }
 
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
@@ -79,9 +60,8 @@ public class FlagsAction : StreamDeckAction<FlagsSettings>
         Logger.LogInformation("OnWillAppear ({coords}): {settings}", args.Payload.Coordinates, settings);
 
         _sdKeyInfo = StreamDeckKeyInfoBuilder.Build(StreamDeck.Info, args.Device, args.Payload.Controller);
-        PopulateImages(settings, _sdKeyInfo);
-
-        await SetImageAsync(_checkeredFlag.ToBase64String(PngFormat.Instance));
+        ConvertSettings(settings, _sdKeyInfo);
+        await SetActiveImage(_flags.CheckeredFlag.Image);
 
         await _simHubConnection.Subscribe("DataCorePlugin.GameRunning", _propertyChangedReceiver);
         await _simHubConnection.Subscribe("DataCorePlugin.GameData.Flag_Black", _propertyChangedReceiver);
@@ -96,11 +76,40 @@ public class FlagsAction : StreamDeckAction<FlagsSettings>
         await _simHubConnection.Subscribe("DataCorePlugin.GameRawData.Graphics.globalYellow3", _propertyChangedReceiver);
 
         await base.OnWillAppear(args);
+
+        PeriodicBackgroundService.Tick += OnTick;
+    }
+
+    private async Task OnTick()
+    {
+        // Flash (toggle between image and blank image) if flashing is enabled for the current flag.
+        if (_currentFlagData != null && _currentFlagData.Flash && _currentImage != null)
+        {
+            if (_tickCounter < _currentFlagData.FlashOn)
+            {
+                Logger.LogTrace("OnTick ON ({ticks})...", _tickCounter);
+                await SetImageAsync(_currentImage.ToBase64String(PngFormat.Instance));
+            }
+            else
+            {
+                Logger.LogTrace("OnTick OFF ({ticks})...", _tickCounter);
+                await SetImageAsync(ImageUtils.EmptyImage.ToBase64String(PngFormat.Instance));
+            }
+
+            _tickCounter++;
+            if (_tickCounter >= _currentFlagData.FlashOn + _currentFlagData.FlashOff)
+            {
+                Logger.LogTrace("Resetting tickCounter");
+                _tickCounter = 0;
+            }
+        }
     }
 
     protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
     {
         Logger.LogInformation("OnWillDisappear ({coords}): {settings}", args.Payload.Coordinates, args.Payload.GetSettings<DialActionSettings>());
+
+        PeriodicBackgroundService.Tick -= OnTick;
 
         await _simHubConnection.Unsubscribe("DataCorePlugin.GameRunning", _propertyChangedReceiver);
         await _simHubConnection.Unsubscribe("DataCorePlugin.GameData.Flag_Black", _propertyChangedReceiver);
@@ -114,7 +123,7 @@ public class FlagsAction : StreamDeckAction<FlagsSettings>
         await _simHubConnection.Unsubscribe("DataCorePlugin.GameRawData.Graphics.globalYellow2", _propertyChangedReceiver);
         await _simHubConnection.Unsubscribe("DataCorePlugin.GameRawData.Graphics.globalYellow3", _propertyChangedReceiver);
 
-        await SetImageAsync(_checkeredFlag.ToBase64String(PngFormat.Instance));
+        await SetActiveImage(_flags.CheckeredFlag.Image);
 
         await base.OnWillDisappear(args);
     }
@@ -123,9 +132,8 @@ public class FlagsAction : StreamDeckAction<FlagsSettings>
     {
         Logger.LogInformation("OnDidReceiveSettings ({coords}): {settings}", args.Payload.Coordinates, settings);
 
-        PopulateImages(settings, _sdKeyInfo!);
-
-        await SetImageAsync(_checkeredFlag.ToBase64String(PngFormat.Instance));
+        ConvertSettings(settings, _sdKeyInfo!);
+        await SetActiveImage(_flags.CheckeredFlag.Image);
 
         await base.OnDidReceiveSettings(args, settings);
     }
@@ -152,7 +160,7 @@ public class FlagsAction : StreamDeckAction<FlagsSettings>
         {
             // game not running, show checked flag as placeholder
             _flagState = new FlagState();
-            await SetImageAsync(_checkeredFlag.ToBase64String(PngFormat.Instance));
+            await SetActiveImage(_flags.CheckeredFlag.Image);
             return;
         }
 
@@ -194,71 +202,171 @@ public class FlagsAction : StreamDeckAction<FlagsSettings>
         // "Green" after "Yellow".
         if (_flagState.Black)
         {
-            await SetImageAsync(_blackFlag.ToBase64String(PngFormat.Instance));
+            await SetActiveImage(_flags.BlackFlag);
         }
         else if (_flagState.Blue)
         {
-            await SetImageAsync(_blueFlag.ToBase64String(PngFormat.Instance));
+            await SetActiveImage(_flags.BlueFlag);
         }
         else if (_flagState.Checkered)
         {
-            await SetImageAsync(_checkeredFlag.ToBase64String(PngFormat.Instance));
+            await SetActiveImage(_flags.CheckeredFlag);
         }
         else if (_flagState.Orange)
         {
-            await SetImageAsync(_orangeFlag.ToBase64String(PngFormat.Instance));
+            await SetActiveImage(_flags.OrangeFlag);
         }
         else if (_flagState.White)
         {
-            await SetImageAsync(_whiteFlag.ToBase64String(PngFormat.Instance));
+            await SetActiveImage(_flags.WhiteFlag);
         }
         else if (_flagState.Yellow)
         {
-            await SetImageAsync(_yellowFlag.ToBase64String(PngFormat.Instance));
+            await SetActiveImage(_flags.YellowFlag);
         }
         else if (_flagState.YellowSec1 || _flagState.YellowSec2 || _flagState.YellowSec3)
         {
             // We have to combine them on a new image with the same size
-            var image = new Image<Rgba32>(_yellowFlagSec1.Width, _yellowFlagSec1.Height);
+            var image = new Image<Rgba32>(_flags.SectorFlag.Image.Width, _flags.SectorFlag.Image.Height);
             if (_flagState.YellowSec1)
             {
-                image.Mutate(x => x.DrawImage(_yellowFlagSec1, 1f));
+                image.Mutate(x => x.DrawImage(_flags.SectorFlag.Image, 1f));
             }
 
             if (_flagState.YellowSec2)
             {
-                image.Mutate(x => x.DrawImage(_yellowFlagSec2, 1f));
+                image.Mutate(x => x.DrawImage(_flags.SectorFlag.Image2, 1f));
             }
 
             if (_flagState.YellowSec3)
             {
-                image.Mutate(x => x.DrawImage(_yellowFlagSec3, 1f));
+                image.Mutate(x => x.DrawImage(_flags.SectorFlag.Image3, 1f));
             }
 
-            await SetImageAsync(image.ToBase64String(PngFormat.Instance));
+            await SetActiveImage(image, _flags.SectorFlag);
         }
         else if (_flagState.Green)
         {
-            await SetImageAsync(_greenFlag.ToBase64String(PngFormat.Instance));
+            await SetActiveImage(_flags.GreenFlag);
         }
         else
         {
-            await SetImageAsync(_noFlag.ToBase64String(PngFormat.Instance));
+            await SetActiveImage(_flags.NoFlag);
         }
     }
 
-    private void PopulateImages(FlagsSettings settings, StreamDeckKeyInfo sdKeyInfo)
+    /// <summary>
+    /// Displays the given image. Flashing is not supported.
+    /// </summary>
+    private async Task SetActiveImage(Image image)
     {
-        _noFlag = _imageManager.GetCustomImage(settings.NoFlag, sdKeyInfo);
-        _blackFlag = _imageManager.GetCustomImage(settings.BlackFlag, sdKeyInfo);
-        _blueFlag = _imageManager.GetCustomImage(settings.BlueFlag, sdKeyInfo);
-        _checkeredFlag = _imageManager.GetCustomImage(settings.CheckeredFlag, sdKeyInfo);
-        _greenFlag = _imageManager.GetCustomImage(settings.GreenFlag, sdKeyInfo);
-        _orangeFlag = _imageManager.GetCustomImage(settings.OrangeFlag, sdKeyInfo);
-        _whiteFlag = _imageManager.GetCustomImage(settings.WhiteFlag, sdKeyInfo);
-        _yellowFlag = _imageManager.GetCustomImage(settings.YellowFlag, sdKeyInfo);
-        _yellowFlagSec1 = _imageManager.GetCustomImage(settings.YellowFlagSec1, sdKeyInfo);
-        _yellowFlagSec2 = _imageManager.GetCustomImage(settings.YellowFlagSec2, sdKeyInfo);
-        _yellowFlagSec3 = _imageManager.GetCustomImage(settings.YellowFlagSec3, sdKeyInfo);
+        await SetImageAsync(image.ToBase64String(PngFormat.Instance));
+        _tickCounter = 0;
+        _currentImage = image;
+        _currentFlagData = null;
+    }
+
+    /// <summary>
+    /// Displays the image from <c>FlagData</c>. <c>FlagData</c> is also used for flashing.
+    /// </summary>
+    private async Task SetActiveImage(FlagData fd)
+    {
+        await SetActiveImage(fd.Image);
+        _currentFlagData = fd;
+    }
+
+    /// <summary>
+    /// Displays the image (not from <c>FlagData</c>!). <c>FlagData</c> is used for flashing.
+    /// </summary>
+    private async Task SetActiveImage(Image image, FlagData fd)
+    {
+        await SetActiveImage(image);
+        _currentFlagData = fd;
+    }
+
+    /// <summary>
+    /// Convert the flat property list from <c>FlagsSettings</c> (received from the Property Inspector) into the
+    /// structure <c>Flags</c>. Flash properties are validated during this step.
+    /// </summary>
+    private void ConvertSettings(FlagsSettings fs, StreamDeckKeyInfo sdKeyInfo)
+    {
+        SetImageData(_flags.NoFlag, fs.NoFlag, sdKeyInfo);
+        SetImageData(_flags.BlackFlag, fs.BlackFlag, sdKeyInfo);
+        SetImageData(_flags.BlueFlag, fs.BlueFlag, sdKeyInfo);
+        SetImageData(_flags.CheckeredFlag, fs.CheckeredFlag, sdKeyInfo);
+        SetImageData(_flags.GreenFlag, fs.GreenFlag, sdKeyInfo);
+        SetImageData(_flags.OrangeFlag, fs.OrangeFlag, sdKeyInfo);
+        SetImageData(_flags.WhiteFlag, fs.WhiteFlag, sdKeyInfo);
+        SetImageData(_flags.YellowFlag, fs.YellowFlag, sdKeyInfo);
+        SetImageData(_flags.SectorFlag, fs.YellowSec1, sdKeyInfo);
+        SetSectorImageData(_flags.SectorFlag, fs.YellowSec2, fs.YellowSec3, sdKeyInfo);
+
+        SetFlashData(_flags.NoFlag, fs.NoFlagFlash, fs.NoFlagFlashOn, fs.NoFlagFlashOff);
+        SetFlashData(_flags.BlackFlag, fs.BlackFlagFlash, fs.BlackFlagFlashOn, fs.BlackFlagFlashOff);
+        SetFlashData(_flags.BlueFlag, fs.BlueFlagFlash, fs.BlueFlagFlashOn, fs.BlueFlagFlashOff);
+        SetFlashData(_flags.CheckeredFlag, fs.CheckeredFlagFlash, fs.CheckeredFlagFlashOn, fs.CheckeredFlagFlashOff);
+        SetFlashData(_flags.GreenFlag, fs.GreenFlagFlash, fs.GreenFlagFlashOn, fs.GreenFlagFlashOff);
+        SetFlashData(_flags.OrangeFlag, fs.OrangeFlagFlash, fs.OrangeFlagFlashOn, fs.OrangeFlagFlashOff);
+        SetFlashData(_flags.WhiteFlag, fs.WhiteFlagFlash, fs.WhiteFlagFlashOn, fs.WhiteFlagFlashOff);
+        SetFlashData(_flags.YellowFlag, fs.YellowFlagFlash, fs.YellowFlagFlashOn, fs.YellowFlagFlashOff);
+        SetFlashData(_flags.SectorFlag, fs.YellowSecFlash, fs.YellowSecFlashOn, fs.YellowSecFlashOff);
+    }
+
+    /// <summary>
+    /// Sets the image (filename and data) of a <c>FlagData</c> structure - only if the filename has changed.
+    /// </summary>
+    private void SetImageData(FlagData fd, string fileName, StreamDeckKeyInfo sdKeyInfo)
+    {
+        if (fd.FileName != fileName)
+        {
+            fd.FileName = fileName;
+            fd.Image = string.IsNullOrEmpty(fileName)
+                ? ImageUtils.EmptyImage
+                : _imageManager.GetCustomImage(fileName, sdKeyInfo);
+        }
+    }
+
+    private void SetSectorImageData(SectorFlagData fd, string fileName2, string fileName3, StreamDeckKeyInfo sdKeyInfo)
+    {
+        if (fd.FileName2 != fileName2)
+        {
+            fd.FileName2 = fileName2;
+            fd.Image2 = string.IsNullOrEmpty(fileName2)
+                ? ImageUtils.EmptyImage
+                : _imageManager.GetCustomImage(fileName2, sdKeyInfo);
+        }
+
+        if (fd.FileName3 != fileName3)
+        {
+            fd.FileName3 = fileName3;
+            fd.Image3 = string.IsNullOrEmpty(fileName2)
+                ? ImageUtils.EmptyImage
+                : _imageManager.GetCustomImage(fileName3, sdKeyInfo);
+        }
+    }
+
+    private void SetFlashData(FlagData fd, bool flash, int? flashOn, int? flashOff)
+    {
+        const int min = 1;
+        const int max = 50;
+
+        fd.Flash = flash;
+        fd.FlashOn = flashOn ?? 0;
+        fd.FlashOff = flashOff ?? 0;
+
+        if (flash)
+        {
+            if (fd.FlashOn is < min or > max)
+            {
+                Logger.LogWarning("Value {flashOn} for 'Flash On' is not in the allowed range {min}..{max}", flashOn, min, max);
+                fd.FlashOn = 5;
+            }
+
+            if (fd.FlashOff is < min or > max)
+            {
+                Logger.LogWarning("Value {flashOff} for 'Flash Off' is not in the allowed range {min}..{max}", flashOff, min, max);
+                fd.FlashOff = 5;
+            }
+        }
     }
 }

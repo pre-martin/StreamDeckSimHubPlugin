@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2023 Martin Renner
+﻿// Copyright (C) 2024 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using NLog;
@@ -17,16 +17,20 @@ public class ImageUtils
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+    /// <summary>
+    /// Returns a static image without content. Can be used to initialize images before they are actually loaded.
+    /// </summary>
+    /// <remarks>Do not modify the returned image, because this will affect all instances.</remarks>
+    /// <returns>Always a high-res image. Stream Deck can scale it for us, because there will be no scaling losses.</returns>
+    public static readonly Image EmptyImage = new Image<Rgba32>(144, 144);
+
     private readonly Image _errorSmall;
     private readonly Image _errorLarge;
-    private readonly Image _empty;
 
     public ImageUtils()
     {
         _errorSmall = CreateErrorImage(72, 72);
         _errorLarge = CreateErrorImage(144, 144);
-
-        _empty = new Image<Rgba64>(144, 144);
     }
 
     private Image<Rgba32> CreateErrorImage(int width, int height)
@@ -46,23 +50,13 @@ public class ImageUtils
     }
 
     /// <summary>
-    /// Returns a static image without content. Can be used to initialize images before they are actually loaded.
-    /// </summary>
-    /// <remarks>Do not modify the returned image, because this will affect all instances.</remarks>
-    /// <returns>Always a high-res image. Stream Deck can scale it for us, because there will be no scaling losses.</returns>
-    public Image GetEmptyImage()
-    {
-        return _empty;
-    }
-
-    /// <summary>
     /// Loads an SVG file and coverts it into a JPEG file. Internally, we only handle <c>Image</c> instances, that's the
     /// reason why we convert vector to bitmap data.
     /// </summary>
     /// <param name="svgFileName">The path to the image</param>
     /// <param name="sdKeyInfo">The vector data is scaled for the given <c>StreamDeckKeyInfo</c></param>
     /// <returns>A bitmap image. If the SVG cannot be loaded, a static error image is returned.</returns>
-    public virtual Image FromSvgFile(string svgFileName, StreamDeckKeyInfo sdKeyInfo)
+    public Image FromSvgFile(string svgFileName, StreamDeckKeyInfo sdKeyInfo)
     {
         try
         {
@@ -94,7 +88,7 @@ public class ImageUtils
             if (bitmap is null)
             {
                 // We have a valid SVG file, but no bitmap. This means that the SVG file is empty (empty "svg" element).
-                return _empty;
+                return EmptyImage;
             }
 
             var data = bitmap.Encode(SKEncodedImageFormat.Png, 90);
