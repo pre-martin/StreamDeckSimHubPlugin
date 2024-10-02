@@ -56,7 +56,7 @@ public class ImageUtils
     /// <param name="svgFileName">The path to the image</param>
     /// <param name="sdKeyInfo">The vector data is scaled for the given <c>StreamDeckKeyInfo</c></param>
     /// <returns>A bitmap image. If the SVG cannot be loaded, a static error image is returned.</returns>
-    public Image FromSvgFile(string svgFileName, StreamDeckKeyInfo sdKeyInfo)
+    public virtual Image FromSvgFile(string svgFileName, StreamDeckKeyInfo sdKeyInfo)
     {
         try
         {
