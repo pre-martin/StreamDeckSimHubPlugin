@@ -4,6 +4,19 @@ setlocal
 rem Script to deploy locally.
 rem Also allows to deploy with the same "version" in manifest.json as already installed.
 
+set CONFIG=Release
+if "%1%" == "debug" set CONFIG=Debug
+
+echo.
+echo Building for configuration: %CONFIG%
+echo.
+
+
+dotnet build StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c %CONFIG%
+dotnet publish StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c %CONFIG%
+
+
+
 taskkill /im StreamDeck.exe /t /f
 timeout 1 > nul
 

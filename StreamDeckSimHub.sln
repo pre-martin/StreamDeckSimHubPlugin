@@ -8,7 +8,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFiles", "{E3F720A4-BDC4-4B7D-B604-BF323E7AB170}"
 	ProjectSection(SolutionItems) = preProject
 		README.adoc = README.adoc
-		deploy.bat = deploy.bat
+		deployLocally.bat = deployLocally.bat
+		deployInstaller.bat = deployInstaller.bat
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamDeckSimHub.PluginTests", "StreamDeckSimHub.PluginTests\StreamDeckSimHub.PluginTests.csproj", "{D36BDE59-5F66-4311-9105-ABE072AFED82}"

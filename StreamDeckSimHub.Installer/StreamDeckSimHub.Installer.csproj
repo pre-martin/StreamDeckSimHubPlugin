@@ -23,7 +23,7 @@
     </ItemGroup>
 
     <Target Name="RenameInstaller" AfterTargets="Publish">
-        <Copy SourceFiles="$(PublishDir)\StreamDeckSimHub.Installer.exe" DestinationFiles="$(PublishDir)\StreamDeckSimHub.Installer-v$(BuildVersion3Components).exe" />
+        <Move SourceFiles="$(PublishDir)\StreamDeckSimHub.Installer.exe" DestinationFiles="$(PublishDir)\StreamDeckSimHub.Installer-v$(BuildVersion3Components).exe" />
     </Target>
 
     <ItemGroup>

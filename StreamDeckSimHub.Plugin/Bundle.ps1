@@ -8,12 +8,19 @@ if ($Args.Count -lt 1) {
 
 $PublishDir = $Args[0]
 
-Remove-Item "..\build\*" -Recurse
+try {
+    Remove-Item "..\build\*" -Recurse
 
-Copy-Item "$PublishDir" -Destination "..\build" -Recurse
-Pushd ..\build
-Rename-Item -Path "publish" -NewName "net.planetrenner.simhub.sdPlugin"
+    Copy-Item "$PublishDir" -Destination "..\build" -Recurse
+    Pushd ..\build
+    Rename-Item -Path "publish" -NewName "net.planetrenner.simhub.sdPlugin" -ErrorAction Stop
 
-..\..\DistributionTool.exe -b -i net.planetrenner.simhub.sdPlugin -o .
+    ..\..\DistributionTool.exe -b -i net.planetrenner.simhub.sdPlugin -o .
 
-Popd
+    Popd
+}
+catch {
+    Write-Host "An error occured:"
+    Write-Host $_
+    Exit 1
+}
