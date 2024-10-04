@@ -14,6 +14,7 @@ echo.
 
 dotnet build StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c %CONFIG%
 dotnet publish StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c %CONFIG%
+if %errorlevel% neq 0 exit /b 1
 
 
 
