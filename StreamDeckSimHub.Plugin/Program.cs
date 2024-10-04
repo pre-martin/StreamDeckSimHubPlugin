@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2023 Martin Renner
+﻿// Copyright (C) 2024 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.IO.Abstractions;
@@ -38,4 +38,5 @@ void ConfigureServices(IServiceCollection serviceCollection)
     serviceCollection.AddSingleton<ImageUtils>();
     serviceCollection.AddSingleton<ImageManager>();
     serviceCollection.AddSingleton<IFileSystem>(new FileSystem());
+    serviceCollection.AddHostedService<PeriodicBackgroundService>();
 }
