@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 70 70">
+
+    <rect x="10" y="8" width="4" height="54" stroke-width="1" stroke="white" fill="white"/>
+
+    <rect x="15" y="8" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="25" y="8" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="35" y="8" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="45" y="8" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="55" y="8" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+
+    <rect x="20" y="13" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="30" y="13" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="40" y="13" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="50" y="13" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+
+    <rect x="15" y="18" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="25" y="18" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="35" y="18" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="45" y="18" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="55" y="18" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+
+    <rect x="20" y="23" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="30" y="23" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="40" y="23" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="50" y="23" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+
+    <rect x="15" y="28" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="25" y="28" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="35" y="28" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="45" y="28" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="55" y="28" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+
+    <rect x="20" y="33" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="30" y="33" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="40" y="33" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="50" y="33" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+
+    <rect x="15" y="38" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="25" y="38" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="35" y="38" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="45" y="38" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+    <rect x="55" y="38" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>
+</svg>

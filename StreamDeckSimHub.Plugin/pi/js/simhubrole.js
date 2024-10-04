@@ -1,14 +1,8 @@
-﻿
+﻿// requires "common.js"
+
 class SimHubRole {
 
     static placeholder = '----'; // use same default value as wotever
-
-    addRoleName = (selectElement, roleName) => {
-        const option = document.createElement('option');
-        option.value = roleName;
-        option.text = roleName;
-        selectElement.add(option);
-    }
 
     updateSimHubRoles = (elementId, roleList, currentRole) => {
         const selectElement = document.getElementById(elementId);
@@ -16,16 +10,16 @@ class SimHubRole {
         let seenCurrentRole = false;
         selectElement.innerHTML = '';
 
-        this.addRoleName(selectElement, SimHubRole.placeholder);
+        addSelectOption(selectElement, SimHubRole.placeholder);
         seenCurrentRole = SimHubRole.placeholder === currentRole;
         roleList.forEach(roleName => {
-            this.addRoleName(selectElement, roleName);
+            addSelectOption(selectElement, roleName);
             if (roleName === currentRole) {
                 seenCurrentRole = true;
             }
         });
         if (!seenCurrentRole && currentRole) {
-            this.addRoleName(selectElement, currentRole);
+            addSelectOption(selectElement, currentRole);
         }
         selectElement.value = currentRole ? currentRole : SimHubRole.placeholder;
     }

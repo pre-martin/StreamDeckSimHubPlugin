@@ -40,3 +40,34 @@ const restoreSettings = (settings) => {
         }
     }
 }
+
+/**
+ * Iterates over "localSettings". The keys are used to find the corresponding HTML element in the DOM, the value of
+ * the element is then set into "localSettings".
+ */
+const domToLocalSettings = (localSettings) => {
+    for (const id in localSettings) {
+        const element = document.getElementById(id);
+        if (!element) {
+            console.log('domToLocalSettings: Could not find element ' + id + ' on page');
+            $PI.logMessage('domToLocalSettings: Could not find element ' + id);
+            continue;
+        }
+        if (element.getAttribute('type') === 'checkbox') {
+            localSettings[id] = element.checked;
+        } else {
+            localSettings[id] = element.value;
+        }
+    }
+}
+
+/**
+ * Creates a new "option" element in a given "select" element.
+ */
+const addSelectOption = (selectElement, optionName) => {
+    const optionElement = document.createElement('option');
+    optionElement.value = optionName;
+    optionElement.text = optionName;
+    selectElement.add(optionElement);
+}
+
