@@ -19,7 +19,7 @@ This is a special button that displays the race flags:
 
 image::Flags.png[Flags]
 
-All flags can be customized by selecting different images.
+All flags can be customized by selecting different images. See below for details about custom images.
 
 
 == Flashing Flags
