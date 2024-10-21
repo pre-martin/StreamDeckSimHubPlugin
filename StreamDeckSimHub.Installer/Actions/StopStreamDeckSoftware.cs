@@ -15,30 +15,38 @@ namespace StreamDeckSimHub.Installer.Actions
 
         protected override async Task<ActionResult> ExecuteInternal()
         {
-            if (!IsStreamDeckRunning())
+            if (IsStreamDeckRunning())
+            {
+                SetAndLogInfo("Stopping Stream Deck software");
+                var process = ProcessTools.GetProcess(Configuration.StreamDeckProcessName);
+                process?.Kill();
+
+                if (!await WaitForStreamDeckKilled())
+                {
+                    SetAndLogError("The Stream Deck software could not be stopped. Please stop it manually and try again.");
+                    return ActionResult.Error;
+                }
+            }
+            else
             {
                 SetAndLogInfo("Stream Deck software is not running. Stopping not required.");
-                return ActionResult.NotRequired;
             }
 
-            if (!IsPluginRunning())
+            if (IsPluginRunning())
+            {
+                SetAndLogInfo("Stopping Stream Deck SimHub Plugin");
+                var process = ProcessTools.GetProcess(Configuration.PluginProcessName);
+                process?.Kill();
+
+                if (!await WaitForPluginKilled())
+                {
+                    SetAndLogError("The Stream Deck SimHub Plugin could not be stopped. Please kill it manually and try again.");
+                    return ActionResult.Error;
+                }
+            }
+            else
             {
                 SetAndLogInfo("Plugin is not running.");
-            }
-
-            var process = ProcessTools.GetProcess(Configuration.StreamDeckProcessName);
-            process?.Kill();
-
-            if (!await WaitForStreamDeckKilled())
-            {
-                SetAndLogError("The Stream Deck software could not be stopped. Please stop it manually and try again.");
-                return ActionResult.Error;
-            }
-
-            if (!await WaitForPluginKilled())
-            {
-                SetAndLogError("The Stream Deck SimHub Plugin could not be stopped. Please kill it manually and try again.");
-                return ActionResult.Error;
             }
 
             SetAndLogInfo("The Stream Deck software stopped.");

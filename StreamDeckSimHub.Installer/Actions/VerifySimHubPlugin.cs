@@ -37,7 +37,7 @@ namespace StreamDeckSimHub.Installer.Actions
                 return Task.FromResult(ActionResult.Warning);
             }
 
-            SetAndLogInfo("Found SimHub and the SimHub Property Server plugin.");
+            SetAndLogInfo($"Found SimHub and the SimHub Property Server plugin version {pluginVersion}.");
             return Task.FromResult(ActionResult.Success);
         }
 
