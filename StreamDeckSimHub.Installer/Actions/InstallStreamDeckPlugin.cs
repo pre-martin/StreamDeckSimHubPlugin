@@ -84,7 +84,13 @@ namespace StreamDeckSimHub.Installer.Actions
                     }
 
                     var archive = new ZipArchive(pluginStream, ZipArchiveMode.Read);
-                    archive.ExtractToDirectory(streamDeckPluginDir);
+                    foreach (var entry in archive.Entries)
+                    {
+                        var fullName = Path.Combine(streamDeckPluginDir, entry.FullName);
+                        var directory = Path.GetDirectoryName(fullName);
+                        if (directory != null && !Directory.Exists(directory)) Directory.CreateDirectory(directory);
+                        if (entry.Name != "") entry.ExtractToFile(fullName, true);
+                    }
                 }
 
                 return true;
