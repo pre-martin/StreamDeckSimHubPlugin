@@ -5,15 +5,16 @@ using System.Reflection;
 using System.Windows;
 using NLog;
 
-namespace StreamDeckSimHub.Installer;
-
-/// <summary>
-/// Interaction logic for App.xaml
-/// </summary>
-public partial class App : Application
+namespace StreamDeckSimHub.Installer
 {
-    private void App_OnStartup(object sender, StartupEventArgs e)
+    /// <summary>
+    /// Interaction logic for App.xaml
+    /// </summary>
+    public partial class App : Application
     {
-        LogManager.Setup().LoadConfigurationFromAssemblyResource(typeof(App).GetTypeInfo().Assembly);
+        private void App_OnStartup(object sender, StartupEventArgs e)
+        {
+            LogManager.Setup().LoadConfigurationFromAssemblyResource(typeof(App).GetTypeInfo().Assembly);
+        }
     }
 }

@@ -1,71 +1,83 @@
 ﻿// Copyright (C) 2024 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using System;
+using System.Threading.Tasks;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace StreamDeckSimHub.Installer.Actions;
-
-public abstract partial class AbstractInstallerAction : ObservableObject, IInstallerAction
+namespace StreamDeckSimHub.Installer.Actions
 {
-    private readonly NLog.Logger _logger = NLog.LogManager.GetCurrentClassLogger();
-
-    public abstract string Name { get; }
-
-    [ObservableProperty]
-    private string _message = string.Empty;
-
-    [ObservableProperty]
-    private Brush _actionResultColor = ActionColors.InactiveBrush;
-
-    public async Task<ActionResult> Execute()
+    public abstract class AbstractInstallerAction : ObservableObject, IInstallerAction
     {
-        _logger.Info($"Starting action {GetType().Name}");
+        private readonly NLog.Logger _logger = NLog.LogManager.GetCurrentClassLogger();
 
-        ActionResultColor = ActionColors.RunningBrush;
-        try
+        public abstract string Name { get; }
+
+        private string _message = string.Empty;
+        public string Message { get => _message; set => SetProperty(ref _message, value); }
+
+        private Brush _actionResultColor = ActionColors.InactiveBrush;
+        public Brush ActionResultColor { get => _actionResultColor; set => SetProperty(ref _actionResultColor, value); }
+
+        public async Task<ActionResult> Execute()
         {
-            var result = await ExecuteInternal();
-            ActionResultColor = result switch
+            _logger.Info($"Starting action {GetType().Name}");
+
+            ActionResultColor = ActionColors.RunningBrush;
+            try
             {
-                ActionResult.Success => ActionColors.SuccessBrush,
-                ActionResult.Error => ActionColors.ErrorBrush,
-                ActionResult.NotRequired => ActionColors.InactiveBrush,
-                ActionResult.Warning => ActionColors.WarningBrush,
-                _ => throw new ArgumentOutOfRangeException()
-            };
+                var result = await ExecuteInternal();
+                switch (result)
+                {
+                    case ActionResult.Success:
+                        ActionResultColor = ActionColors.SuccessBrush;
+                        break;
+                    case ActionResult.Error:
+                        ActionResultColor = ActionColors.ErrorBrush;
+                        break;
+                    case ActionResult.NotRequired:
+                        ActionResultColor = ActionColors.InactiveBrush;
+                        break;
+                    case ActionResult.Warning:
+                        ActionResultColor = ActionColors.WarningBrush;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
 
-            _logger.Info($"Finished action {GetType().Name} with result {result}");
+                _logger.Info($"Finished action {GetType().Name} with result {result}");
 
-            // Give the user a tiny moment to realize that there is something going on.
-            await Task.Delay(1000);
+                // Give the user a tiny moment to realize that there is something going on.
+                await Task.Delay(1000);
 
-            return result;
+                return result;
+            }
+            catch (Exception e)
+            {
+                SetAndLogError(e, $"Action {GetType().Name} failed with exception");
+                return ActionResult.Error;
+            }
         }
-        catch (Exception e)
+
+        protected abstract Task<ActionResult> ExecuteInternal();
+
+        protected void SetAndLogInfo(string message)
         {
-            SetAndLogError(e, $"Action {GetType().Name} failed with exception");
-            return ActionResult.Error;
+            Message = message;
+            _logger.Info(message);
         }
-    }
 
-    protected abstract Task<ActionResult> ExecuteInternal();
+        protected void SetAndLogError(string message)
+        {
+            Message = message;
+            _logger.Info(message);
+        }
 
-    protected void SetAndLogInfo(string message)
-    {
-        Message = message;
-        _logger.Info(message);
-    }
-
-    protected void SetAndLogError(string message)
-    {
-        Message = message;
-        _logger.Info(message);
-    }
-
-    protected void SetAndLogError(Exception e, string message)
-    {
-        Message = message;
-        _logger.Error(e, message);
+        protected void SetAndLogError(Exception e, string message)
+        {
+            Message = message;
+            _logger.Error(e, message);
+        }
     }
 }

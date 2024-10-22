@@ -3,36 +3,38 @@
 
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
-namespace StreamDeckSimHub.Installer.Tools;
-
-public static class ProcessTools
+namespace StreamDeckSimHub.Installer.Tools
 {
-    /// <summary>
-    /// Is a given process running?
-    /// </summary>
-    public static bool IsProcessRunning(string processName)
+    public static class ProcessTools
     {
-        return GetProcess(processName) != null;
-    }
+        /// <summary>
+        /// Is a given process running?
+        /// </summary>
+        public static bool IsProcessRunning(string processName)
+        {
+            return GetProcess(processName) != null;
+        }
 
-    /// <summary>
-    /// Simple wrapper for <c>Process.GetProcessesByName()</c>.
-    /// </summary>
-    public static Process? GetProcess(string processName)
-    {
-        return Process.GetProcessesByName(processName).FirstOrDefault();
-    }
+        /// <summary>
+        /// Simple wrapper for <c>Process.GetProcessesByName()</c>.
+        /// </summary>
+        public static Process GetProcess(string processName)
+        {
+            return Process.GetProcessesByName(processName).FirstOrDefault();
+        }
 
-    /// <summary>
-    /// Starts a new process.
-    /// </summary>
-    public static void StartProcess(string fileName, string? workingDirectory = null)
-    {
-        var process = new Process();
-        process.StartInfo.FileName = fileName;
-        process.StartInfo.WorkingDirectory = workingDirectory ?? Directory.GetCurrentDirectory();
-        process.StartInfo.UseShellExecute = true;
-        process.Start();
+        /// <summary>
+        /// Starts a new process.
+        /// </summary>
+        public static void StartProcess(string fileName, string workingDirectory = null)
+        {
+            var process = new Process();
+            process.StartInfo.FileName = fileName;
+            process.StartInfo.WorkingDirectory = workingDirectory ?? Directory.GetCurrentDirectory();
+            process.StartInfo.UseShellExecute = true;
+            process.Start();
+        }
     }
 }
