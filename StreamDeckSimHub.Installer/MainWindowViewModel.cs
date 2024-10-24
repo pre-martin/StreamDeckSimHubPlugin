@@ -4,16 +4,18 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using NLog;
 using StreamDeckSimHub.Installer.Actions;
 
 namespace StreamDeckSimHub.Installer
 {
     public class MainWindowViewModel : ObservableObject
     {
-        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private static readonly Brush SuccessBrush = Brushes.Green;
         private static readonly Brush WarningBrush = Brushes.Orange;
         private static readonly Brush ErrorBrush = Brushes.Red;
@@ -34,12 +36,26 @@ namespace StreamDeckSimHub.Installer
 
         private async Task Install()
         {
+            // Execute installation in a new task to make the UI more responsive.
+            await Task.Run(InstallTask);
+        }
+
+        private async Task InstallTask()
+        {
             ClearResultText();
-            InstallerSteps.Clear();
+            Application.Current.Dispatcher.Invoke(() => InstallerSteps.Clear());
             Logger.Info("========== Starting installation ==========");
 
+            var checkDotnet = new CheckDotnetRuntime();
+            Application.Current.Dispatcher.Invoke(() => InstallerSteps.Add(checkDotnet));
+            if (await checkDotnet.Execute() == ActionResult.Error)
+            {
+                SetErrorResultText();
+                return;
+            }
+
             var stopStreamDeck = new StopStreamDeckSoftware();
-            InstallerSteps.Add(stopStreamDeck);
+            Application.Current.Dispatcher.Invoke(() => InstallerSteps.Add(stopStreamDeck));
             if (await stopStreamDeck.Execute() == ActionResult.Error)
             {
                 SetErrorResultText();
@@ -48,15 +64,15 @@ namespace StreamDeckSimHub.Installer
 
             var result = ActionResult.Success;
             var installStreamDeckPlugin = new InstallStreamDeckPlugin();
-            InstallerSteps.Add(installStreamDeckPlugin);
+            Application.Current.Dispatcher.Invoke(() => InstallerSteps.Add(installStreamDeckPlugin));
             result = SetHigherResultLevel(await installStreamDeckPlugin.Execute(), result);
 
             var startStreamDeck = new StartStreamDeckSoftware();
-            InstallerSteps.Add(startStreamDeck);
+            Application.Current.Dispatcher.Invoke(() => InstallerSteps.Add(startStreamDeck));
             result = SetHigherResultLevel(await startStreamDeck.Execute(), result);
 
             var verifySimHubPlugin = new VerifySimHubPlugin();
-            InstallerSteps.Add(verifySimHubPlugin);
+            Application.Current.Dispatcher.Invoke(() => InstallerSteps.Add(verifySimHubPlugin));
             result = SetHigherResultLevel(await verifySimHubPlugin.Execute(), result);
 
             switch (result)

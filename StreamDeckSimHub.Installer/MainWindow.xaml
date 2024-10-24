@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:StreamDeckSimHub.Installer"
         xmlns:localActions="clr-namespace:StreamDeckSimHub.Installer.Actions"
         mc:Ignorable="d"
-        Title="Stream Deck SimHub Plugin Installer" MinHeight="580" Width="600" SizeToContent="Height">
+        Title="Stream Deck SimHub Plugin Installer" MinHeight="620" Width="600" SizeToContent="Height">
 
     <Window.DataContext>
         <local:MainWindowViewModel />
@@ -37,6 +37,7 @@
                 <ItemsControl ItemsSource="{Binding InstallerSteps}">
                     <d:ItemsControl.ItemsSource>
                         <x:Array Type="{x:Type localActions:IInstallerAction}">
+                            <localActions:CheckDotnetRuntime Message=".NET runtime is fine" ActionResultColor="{x:Static localActions:ActionColors.SuccessBrush}" />
                             <localActions:StopStreamDeckSoftware Message="Stream Deck software is not running. Stopping not required." ActionResultColor="{x:Static localActions:ActionColors.InactiveBrush}" />
                             <localActions:InstallStreamDeckPlugin Message="Installation successful." ActionResultColor="{x:Static localActions:ActionColors.SuccessBrush}" />
                             <localActions:StartStreamDeckSoftware Message="Some message." ActionResultColor="{x:Static localActions:ActionColors.WarningBrush}" />

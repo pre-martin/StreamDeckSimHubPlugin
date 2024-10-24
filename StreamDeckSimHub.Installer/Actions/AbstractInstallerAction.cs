@@ -62,6 +62,11 @@ namespace StreamDeckSimHub.Installer.Actions
 
         protected abstract Task<ActionResult> ExecuteInternal();
 
+        protected void LogInfo(string message)
+        {
+            _logger.Info(message);
+        }
+
         protected void SetAndLogInfo(string message)
         {
             Message = message;
