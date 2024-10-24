@@ -122,6 +122,10 @@
     </PackageReference>
   </ItemGroup>
 
+  <Target Name="RenameInstaller" AfterTargets="FodyVerifyTarget">
+    <Move SourceFiles="$(BaseOutputPath)\$(Configuration)\$(AssemblyName).exe" DestinationFiles="$(BaseOutputPath)\$(Configuration)\$(AssemblyName)-v$(BuildVersion3Components).exe" />
+  </Target>
+
   <!-- sob: nbgv -->
   <PropertyGroup Condition="'$(_TargetAssemblyProjectName)' != ''">
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
