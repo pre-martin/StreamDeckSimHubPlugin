@@ -1,0 +1,74 @@
+﻿<Window x:Class="StreamDeckSimHub.Installer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:StreamDeckSimHub.Installer"
+        xmlns:localActions="clr-namespace:StreamDeckSimHub.Installer.Actions"
+        mc:Ignorable="d"
+        Title="Stream Deck SimHub Plugin Installer" MinHeight="620" Width="600" SizeToContent="Height">
+
+    <Window.DataContext>
+        <local:MainWindowViewModel />
+    </Window.DataContext>
+
+    <Grid Margin="10,5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" FontSize="14" TextWrapping="WrapWithOverflow">
+            <Span FontWeight="SemiBold" FontSize="16">This program will install the Stream Deck SimHub Plugin into the Stream Deck software.</Span>
+            <LineBreak />
+            <Span>Version:</Span> <Run Text="{Binding Version, Mode=OneWay}" />
+            <LineBreak />
+            <LineBreak />
+            <Span>Your custom images will be preserved.</Span>
+            <LineBreak />
+            <LineBreak />
+            <Span>Run this program with your current user (i.e. do not run as administrator if you are currently not logged in as administrator).</Span>
+        </TextBlock>
+
+        <Border Grid.Row="1" BorderThickness="1" BorderBrush="DarkGray" Margin="0, 20">
+            <StackPanel Orientation="Vertical">
+                <ItemsControl ItemsSource="{Binding InstallerSteps}">
+                    <d:ItemsControl.ItemsSource>
+                        <x:Array Type="{x:Type localActions:IInstallerAction}">
+                            <localActions:CheckDotnetRuntime Message=".NET runtime is fine" ActionResultColor="{x:Static localActions:ActionColors.SuccessBrush}" />
+                            <localActions:StopStreamDeckSoftware Message="Stream Deck software is not running. Stopping not required." ActionResultColor="{x:Static localActions:ActionColors.InactiveBrush}" />
+                            <localActions:InstallStreamDeckPlugin Message="Installation successful." ActionResultColor="{x:Static localActions:ActionColors.SuccessBrush}" />
+                            <localActions:StartStreamDeckSoftware Message="Some message." ActionResultColor="{x:Static localActions:ActionColors.WarningBrush}" />
+                            <localActions:VerifySimHubPlugin Message="Weird result. Something went wrong with this action. We need a very long text here to explain what the user could do in this case" ActionResultColor="{x:Static localActions:ActionColors.ErrorBrush}" />
+                        </x:Array>
+                    </d:ItemsControl.ItemsSource>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,0,0,5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Rectangle Grid.Column="0" Width="10" Fill="{Binding ActionResultColor}" />
+                                <StackPanel Grid.Column="1" Orientation="Vertical">
+                                    <Label FontWeight="DemiBold" Content="{Binding Path=Name}" />
+                                    <TextBox Text="{Binding Path=Message}" Margin="10,0,20,5" TextWrapping="WrapWithOverflow" BorderThickness="0" IsReadOnly="True" />
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <TextBlock Grid.Row="2" FontSize="14" TextWrapping="WrapWithOverflow" MinHeight="50" Foreground="{Binding ResultBrush}">
+            <Run Text="{Binding Result, Mode=OneWay}" d:Text="Installation might have been okay" />
+        </TextBlock>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,25,0,5">
+            <Button FontWeight="SemiBold" FontSize="16" Padding="15,5" Command="{Binding InstallCommand}">Install</Button>
+        </StackPanel>
+    </Grid>
+</Window>

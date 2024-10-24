@@ -1,55 +1,104 @@
-﻿// Copyright (C) 2023 Martin Renner
+﻿// Copyright (C) 2024 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
-using System.Text.RegularExpressions;
 using NLog;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
+using Svg.Skia;
 
 namespace StreamDeckSimHub.Plugin.Tools;
 
 public class ImageUtils
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-    private readonly Regex _lineBreakRegex = new("[\r\n]+");
 
     /// <summary>
-    /// Loads a given SVG file from the file system and removes all line breaks. This is important so that
-    /// Stream Deck can handle the SVG image.
+    /// Returns a static image without content. Can be used to initialize images before they are actually loaded.
     /// </summary>
-    public string LoadSvg(string svgFile)
+    /// <remarks>Do not modify the returned image, because this will affect all instances.</remarks>
+    /// <returns>Always a high-res image. Stream Deck can scale it for us, because there will be no scaling losses.</returns>
+    public static readonly Image EmptyImage = new Image<Rgba32>(144, 144);
+
+    private readonly Image _errorSmall;
+    private readonly Image _errorLarge;
+
+    public ImageUtils()
+    {
+        _errorSmall = CreateErrorImage(72, 72);
+        _errorLarge = CreateErrorImage(144, 144);
+    }
+
+    private Image<Rgba32> CreateErrorImage(int width, int height)
+    {
+        var image = new Image<Rgba32>(width, height);
+        var thickness = (float)width / 10;
+        image.Mutate(x => x
+            .DrawLine(Color.Red, thickness, new PointF(0, 0), new Point(width, height))
+            .DrawLine(Color.Red, thickness, new PointF(0, height), new Point(width, 0)));
+
+        return image;
+    }
+
+    public Image GetErrorImage(StreamDeckKeyInfo keyInfo)
+    {
+        return keyInfo.IsHighRes ? _errorLarge : _errorSmall;
+    }
+
+    /// <summary>
+    /// Loads an SVG file and coverts it into a JPEG file. Internally, we only handle <c>Image</c> instances, that's the
+    /// reason why we convert vector to bitmap data.
+    /// </summary>
+    /// <param name="svgFileName">The path to the image</param>
+    /// <param name="sdKeyInfo">The vector data is scaled for the given <c>StreamDeckKeyInfo</c></param>
+    /// <returns>A bitmap image. If the SVG cannot be loaded, a static error image is returned.</returns>
+    public virtual Image FromSvgFile(string svgFileName, StreamDeckKeyInfo sdKeyInfo)
     {
         try
         {
-            var svgAsText = File.ReadAllText(svgFile);
-            return EncodeSvg(_lineBreakRegex.Replace(svgAsText, ""));
+            using var svg = SKSvg.CreateFromFile(svgFileName);
+            var keyWidth = sdKeyInfo.KeySize.width;
+            var keyHeight = sdKeyInfo.KeySize.height;
+
+            if (svg.Model is null)
+            {
+                Logger.Warn($"Could not determine model of SVG file '{svgFileName}'. The file seems to be invalid.");
+                return GetErrorImage(sdKeyInfo);
+            }
+
+            if (svg.Picture is null)
+            {
+                Logger.Warn($"Could not determine picture of SVG file '{svgFileName}'. The file seems to be invalid.");
+                return GetErrorImage(sdKeyInfo);
+            }
+
+
+            var scaleX = keyWidth / svg.Model.CullRect.Width;
+            var scaleY = keyHeight / svg.Model.CullRect.Height;
+
+            // Stream Deck always scales to a square. So no need to keep the aspect ratio here - just scale to square.
+            //var scale = scaleX > scaleY ? scaleY : scaleX;
+
+            var bitmap = svg.Picture.ToBitmap(SKColor.Empty, scaleX, scaleY, SKColorType.Rgba8888, SKAlphaType.Premul,
+                SKColorSpace.CreateSrgb());
+            if (bitmap is null)
+            {
+                // We have a valid SVG file, but no bitmap. This means that the SVG file is empty (empty "svg" element).
+                return EmptyImage;
+            }
+
+            var data = bitmap.Encode(SKEncodedImageFormat.Png, 90);
+            return Image.Load(data.ToArray());
         }
         catch (Exception e)
         {
-            Logger.Warn($"Could not find file '{svgFile}' : {e.Message}");
-            return EncodeSvg("<svg viewBox=\"0 0 70 70\"><rect x=\"20\" y=\"20\" width=\"30\" height=\"30\" stroke=\"red\" fill=\"red\" /></svg>");
+            Logger.Warn(e, $"Could not read SVG file '{svgFileName}' and convert it into a bitmap");
+            return sdKeyInfo.IsHighRes ? _errorLarge : _errorSmall;
         }
-    }
-
-    /// <summary>
-    /// Prepends the mime type to a given SVG image. Stream Deck expects it like that.
-    /// </summary>
-    public string EncodeSvg(string svg)
-    {
-        return "data:image/svg+xml;charset=utf8," + svg;
-    }
-
-    /// <summary>
-    /// Converts the given Image into the PNG format and prepends the mime type. Stream Deck expects it like that.
-    /// </summary>
-    private string EncodePng(Image image)
-    {
-        using var stream = new MemoryStream();
-        image.SaveAsPng(stream);
-        return "data:image/png;base64," + Convert.ToBase64String(stream.ToArray());
     }
 
     /// <summary>
@@ -66,6 +115,6 @@ public class ImageUtils
         };
         image.Mutate(x => x.DrawText(textOptions, title, Color.White));
 
-        return EncodePng(image);
+        return image.ToBase64String(PngFormat.Instance);
     }
 }

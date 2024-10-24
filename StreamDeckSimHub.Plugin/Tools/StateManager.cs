@@ -41,13 +41,13 @@ public class StateManager
     {
         var newCondExpr = _propertyComparer.Parse(expression);
 
-        // Unsubscribe previous SimHub state property, if it was set and is different than the new one.
+        // Unsubscribe previous SimHub state property, if it was set and is different from the new one.
         if (!string.IsNullOrEmpty(_conditionExpression?.Property) && _conditionExpression.Property != newCondExpr.Property )
         {
             await _simHubConnection.Unsubscribe(_conditionExpression.Property, _statePropertyChangedReceiver);
         }
 
-        // Subscribe SimHub state property, if it is set and different than the previous one.
+        // Subscribe SimHub state property, if it is set and different from the previous one.
         if (!string.IsNullOrEmpty(newCondExpr.Property) &&
             (_conditionExpression == null || _conditionExpression.Property != newCondExpr.Property || forceSubscribe))
         {
