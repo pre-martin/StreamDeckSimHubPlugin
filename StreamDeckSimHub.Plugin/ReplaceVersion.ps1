@@ -20,7 +20,9 @@ Write-Host "Setting version $Version in file $ManifestFile"
 try {
     $manifest = (Get-Content($ManifestFile) | ConvertFrom-Json)
     $manifest.Version = $Version
-    $manifest | ConvertTo-Json -depth 100 | Out-File -Encoding utf8 ($ManifestFile + ".new")
+    # $manifest | ConvertTo-Json -depth 100 | Out-File -Encoding utf8NoBom ($ManifestFile + ".new")
+    $newContent = $manifest | ConvertTo-Json -depth 100
+    $null = New-Item -Force ($ManifestFile + ".new") -Value $newContent
 
     Move-Item ($ManifestFile + ".new") -Destination $ManifestFile -Force
     Write-Host "Done"
