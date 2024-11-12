@@ -209,46 +209,46 @@
       <None Update="pi\react\react.production.min.js">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\custom\flags\flag-black.svg">
+      <None Update="images\custom\@flags\flag-black.svg">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\custom\flags\flag-blue.svg">
+      <None Update="images\custom\@flags\flag-blue.svg">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\custom\flags\flag-checkered.svg">
+      <None Update="images\custom\@flags\flag-checkered.svg">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\custom\flags\flag-green.svg">
+      <None Update="images\custom\@flags\flag-green.svg">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\custom\flags\flag-none.svg">
+      <None Update="images\custom\@flags\flag-none.svg">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\custom\flags\flag-orange.svg">
+      <None Update="images\custom\@flags\flag-orange.svg">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\custom\flags\flag-white.svg">
+      <None Update="images\custom\@flags\flag-white.svg">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\custom\flags\flag-yellow.svg">
+      <None Update="images\custom\@flags\flag-yellow.svg">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\custom\flags\flag-yellow-s1.png">
+      <None Update="images\custom\@flags\flag-yellow-s1.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\custom\flags\flag-yellow-s2.png">
+      <None Update="images\custom\@flags\flag-yellow-s2.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\custom\flags\flag-yellow-s3.png">
+      <None Update="images\custom\@flags\flag-yellow-s3.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\custom\flags\flag-yellow-s1@2x.png">
+      <None Update="images\custom\@flags\flag-yellow-s1@2x.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\custom\flags\flag-yellow-s2@2x.png">
+      <None Update="images\custom\@flags\flag-yellow-s2@2x.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="images\custom\flags\flag-yellow-s3@2x.png">
+      <None Update="images\custom\@flags\flag-yellow-s3@2x.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>

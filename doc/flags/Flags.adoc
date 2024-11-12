@@ -45,7 +45,7 @@ This string can be copied like it is into the address bar of the File Explorer, 
 
 Custom images can be copied into this directory or a subdirectory. The folder `images\custom` will not be deleted during upgrades of the plugin.
 
-WARNING: Images that were originally delivered by the plugin will be overwritten during the update! It is therefore advisable to create a folder “my-flags” (or similar) for your own flags. Do not modify existing images or your changes will be lost after an upgrade.
+WARNING: Images that were originally delivered by the plugin will be overwritten during the update! Do not modify these images or your changes will be lost after an upgrade. You can recognize them by the fact that they are located in directories that begin with “@”. It is therefore advisable to create files and folders without the prefix "@".
 
 The plugin supports the following file formats:
 
