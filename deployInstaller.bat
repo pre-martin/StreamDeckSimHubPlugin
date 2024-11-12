@@ -12,7 +12,7 @@ dotnet build StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c %CONFIG%
 dotnet publish StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c %CONFIG%
 
 cd StreamDeckSimHub.Installer
-msbuild /p:Configuration=%CONFIG% /p:Platform="Any CPU"
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Msbuild\Current\Bin\amd64\MSBuild.exe" /p:Configuration=%CONFIG% /p:Platform="Any CPU"
 cd ..
 for /f "tokens=*" %%a in ('dir /b /od StreamDeckSimHub.Installer\bin\%Config%\*.exe') do set newest=%%a
 copy StreamDeckSimHub.Installer\bin\%Config%\%newest% build\
