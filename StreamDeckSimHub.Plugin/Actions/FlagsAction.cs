@@ -358,13 +358,13 @@ public class FlagsAction : StreamDeckAction<FlagsSettings>
         {
             if (fd.FlashOn is < min or > max)
             {
-                Logger.LogWarning("Value {flashOn} for 'Flash On' is not in the allowed range {min}..{max}", flashOn, min, max);
+                Logger.LogWarning("Value {flashOn} for 'Flash On' is not in the allowed range {min}..{max}. Using 5.", flashOn, min, max);
                 fd.FlashOn = 5;
             }
 
             if (fd.FlashOff is < min or > max)
             {
-                Logger.LogWarning("Value {flashOff} for 'Flash Off' is not in the allowed range {min}..{max}", flashOff, min, max);
+                Logger.LogWarning("Value {flashOff} for 'Flash Off' is not in the allowed range {min}..{max}. Using 5.", flashOff, min, max);
                 fd.FlashOff = 5;
             }
         }
