@@ -1,6 +1,9 @@
 /.idea
 /*.DotSettings.user
-/.vs
+.vs/
+
+bin/
+obj/
 
 
 /*.bat
