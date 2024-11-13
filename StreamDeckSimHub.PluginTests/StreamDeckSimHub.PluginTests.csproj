@@ -15,6 +15,7 @@
         <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
         <PackageReference Include="NUnit.Analyzers" Version="4.3.0" />
         <PackageReference Include="coverlet.collector" Version="6.0.2" />
+        <PackageReference Include="TestableIO.System.IO.Abstractions.TestingHelpers" Version="21.0.29" />
         <Reference Include="SharpDeck">
             <HintPath>..\lib\SharpDeck.dll</HintPath>
         </Reference>

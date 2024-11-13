@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name=viewport
+          content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
+    <meta name=apple-mobile-web-app-capable content=yes>
+    <meta name=apple-mobile-web-app-status-bar-style content=black>
+    <title>net.planetrenner.simhub.flagsPI</title>
+    <link rel="stylesheet" href="libs/css/sdpi.css">
+    <link rel="stylesheet" href="css/pi.css">
+</head>
+
+<body>
+
+<div class="sdpi-wrapper">
+
+    <div class="sdpi-heading">Flags</div>
+
+    <div class="sdpi-item flags">
+        <div class="sdpi-item-label">No Flag</div>
+        <div class="sdpi-item-value">
+            <div class="flags-line-one">
+                <img id="noFlagPreview" src="../images/icons/undefined.svg" width="30" height="30"/>
+                <select id="noFlag" class="sdpi-item-value flags-select" onchange="saveSettings()"></select>
+            </div>
+            <div class="flags-line-two">
+                <input id="noFlagFlash" type="checkbox" oninput="saveSettings()">
+                <label for="noFlagFlash"><span></span>Flash</label>
+                <label for="noFlagFlashOn">On</label>
+                <input id="noFlagFlashOn" type="number" min="1" max="50" onchange="saveSettings()">
+                <label for="noFlagFlashOff">Off</label>
+                <input id="noFlagFlashOff" type="number" min="1" max="50" onchange="saveSettings()">
+            </div>
+        </div>
+    </div>
+
+    <div class="sdpi-item flags">
+        <div class="sdpi-item-label">Black Flag</div>
+        <div class="sdpi-item-value">
+            <div class="flags-line-one">
+                <img id="blackFlagPreview" src="../images/icons/undefined.svg" width="30" height="30"/>
+                <select id="blackFlag" class="sdpi-item-value flags-select" onchange="saveSettings()"></select>
+            </div>
+            <div class="flags-line-two">
+                <input id="blackFlagFlash" type="checkbox" oninput="saveSettings()">
+                <label for="blackFlagFlash"><span></span>Flash</label>
+                <label for="blackFlagFlashOn">On</label>
+                <input id="blackFlagFlashOn" type="number" min="1" max="50" onchange="saveSettings()">
+                <label for="blackFlagFlashOff">Off</label>
+                <input id="blackFlagFlashOff" type="number" min="1" max="50" onchange="saveSettings()">
+            </div>
+        </div>
+    </div>
+
+    <div class="sdpi-item flags">
+        <div class="sdpi-item-label">Blue Flag</div>
+        <div class="sdpi-item-value">
+            <div class="flags-line-one">
+                <img id="blueFlagPreview" src="../images/icons/undefined.svg" width="30" height="30"/>
+                <select id="blueFlag" class="sdpi-item-value flags-select" onchange="saveSettings()"></select>
+            </div>
+            <div class="flags-line-two">
+                <input id="blueFlagFlash" type="checkbox" oninput="saveSettings()">
+                <label for="blueFlagFlash"><span></span>Flash</label>
+                <label for="blueFlagFlashOn">On</label>
+                <input id="blueFlagFlashOn" type="number" min="1" max="50" onchange="saveSettings()">
+                <label for="blueFlagFlashOff">Off</label>
+                <input id="blueFlagFlashOff" type="number" min="1" max="50" onchange="saveSettings()">
+            </div>
+        </div>
+    </div>
+
+    <div class="sdpi-item flags">
+        <div class="sdpi-item-label">Checkered Flag</div>
+        <div class="sdpi-item-value">
+            <div class="flags-line-one">
+                <img id="checkeredFlagPreview" src="../images/icons/undefined.svg" width="30" height="30"/>
+                <select id="checkeredFlag" class="sdpi-item-value flags-select" onchange="saveSettings()"></select>
+            </div>
+            <div class="flags-line-two">
+                <input id="checkeredFlagFlash" type="checkbox" oninput="saveSettings()">
+                <label for="checkeredFlagFlash"><span></span>Flash</label>
+                <label for="checkeredFlagFlashOn">On</label>
+                <input id="checkeredFlagFlashOn" type="number" min="1" max="50" onchange="saveSettings()">
+                <label for="checkeredFlagFlashOff">Off</label>
+                <input id="checkeredFlagFlashOff" type="number" min="1" max="50" onchange="saveSettings()">
+            </div>
+        </div>
+    </div>
+
+    <div class="sdpi-item flags">
+        <div class="sdpi-item-label">Green Flag</div>
+        <div class="sdpi-item-value">
+            <div class="flags-line-one">
+                <img id="greenFlagPreview" src="../images/icons/undefined.svg" width="30" height="30"/>
+                <select id="greenFlag" class="sdpi-item-value flags-select" onchange="saveSettings()"></select>
+            </div>
+            <div class="flags-line-two">
+                <input id="greenFlagFlash" type="checkbox" oninput="saveSettings()">
+                <label for="greenFlagFlash"><span></span>Flash</label>
+                <label for="greenFlagFlashOn">On</label>
+                <input id="greenFlagFlashOn" type="number" min="1" max="50" onchange="saveSettings()">
+                <label for="greenFlagFlashOff">Off</label>
+                <input id="greenFlagFlashOff" type="number" min="1" max="50" onchange="saveSettings()">
+            </div>
+        </div>
+    </div>
+
+    <div class="sdpi-item flags">
+        <div class="sdpi-item-label">Orange Flag</div>
+        <div class="sdpi-item-value">
+            <div class="flags-line-one">
+                <img id="orangeFlagPreview" src="../images/icons/undefined.svg" width="30" height="30"/>
+                <select id="orangeFlag" class="sdpi-item-value flags-select" onchange="saveSettings()"></select>
+            </div>
+            <div class="flags-line-two">
+                <input id="orangeFlagFlash" type="checkbox" oninput="saveSettings()">
+                <label for="orangeFlagFlash"><span></span>Flash</label>
+                <label for="orangeFlagFlashOn">On</label>
+                <input id="orangeFlagFlashOn" type="number" min="1" max="50" onchange="saveSettings()">
+                <label for="orangeFlagFlashOff">Off</label>
+                <input id="orangeFlagFlashOff" type="number" min="1" max="50" onchange="saveSettings()">
+            </div>
+        </div>
+    </div>
+
+    <div class="sdpi-item flags">
+        <div class="sdpi-item-label">White Flag</div>
+        <div class="sdpi-item-value">
+            <div class="flags-line-one">
+                <img id="whiteFlagPreview" src="../images/icons/undefined.svg" width="30" height="30"/>
+                <select id="whiteFlag" class="sdpi-item-value flags-select" onchange="saveSettings()"></select>
+            </div>
+            <div class="flags-line-two">
+                <input id="whiteFlagFlash" type="checkbox" oninput="saveSettings()">
+                <label for="whiteFlagFlash"><span></span>Flash</label>
+                <label for="whiteFlagFlashOn">On</label>
+                <input id="whiteFlagFlashOn" type="number" min="1" max="50" onchange="saveSettings()">
+                <label for="whiteFlagFlashOff">Off</label>
+                <input id="whiteFlagFlashOff" type="number" min="1" max="50" onchange="saveSettings()">
+            </div>
+        </div>
+    </div>
+
+    <div class="sdpi-item flags">
+        <div class="sdpi-item-label">Yellow Flag</div>
+        <div class="sdpi-item-value">
+            <div class="flags-line-one">
+                <img id="yellowFlagPreview" src="../images/icons/undefined.svg" width="30" height="30"/>
+                <select id="yellowFlag" class="sdpi-item-value flags-select" onchange="saveSettings()"></select>
+            </div>
+            <div class="flags-line-two">
+                <input id="yellowFlagFlash" type="checkbox" oninput="saveSettings()">
+                <label for="yellowFlagFlash"><span></span>Flash</label>
+                <label for="yellowFlagFlashOn">On</label>
+                <input id="yellowFlagFlashOn" type="number" min="1" max="50" onchange="saveSettings()">
+                <label for="yellowFlagFlashOff">Off</label>
+                <input id="yellowFlagFlashOff" type="number" min="1" max="50" onchange="saveSettings()">
+            </div>
+        </div>
+    </div>
+
+    <div class="sdpi-item flags">
+        <div class="sdpi-item-label">Yellow Sectors</div>
+        <div class="sdpi-item-value">
+            <div class="flags-line-one">
+                <img id="yellowSec1Preview" src="../images/icons/undefined.svg" width="30" height="30"/>
+                <select id="yellowSec1" class="sdpi-item-value flags-select" onchange="saveSettings()"></select>
+            </div>
+            <div class="flags-line-one">
+                <img id="yellowSec2Preview" src="../images/icons/undefined.svg" width="30" height="30"/>
+                <select id="yellowSec2" class="sdpi-item-value flags-select" onchange="saveSettings()"></select>
+            </div>
+            <div class="flags-line-one">
+                <img id="yellowSec3Preview" src="../images/icons/undefined.svg" width="30" height="30"/>
+                <select id="yellowSec3" class="sdpi-item-value flags-select" onchange="saveSettings()"></select>
+            </div>
+            <div class="flags-line-two">
+                <input id="yellowSecFlash" type="checkbox" oninput="saveSettings()">
+                <label for="yellowSecFlash"><span></span>Flash</label>
+                <label for="yellowSecFlashOn">On</label>
+                <input id="yellowSecFlashOn" type="number" min="1" max="50" oninput="saveSettings()">
+                <label for="yellowSecFlashOff">Off</label>
+                <input id="yellowSecFlashOff" type="number" min="1" max="50" oninput="saveSettings()">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="libs/js/constants.js"></script>
+<script src="libs/js/events.js"></script>
+<script src="libs/js/api.js"></script>
+<script src="libs/js/property-inspector.js"></script>
+<script src="libs/js/utils.js"></script>
+<script src="js/common.js"></script>
+<script src="js/flags.js"></script>
+
+</body>
+</html>

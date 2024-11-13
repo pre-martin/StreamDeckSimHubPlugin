@@ -1,4 +1,5 @@
 {
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
   "Actions": [
     {
       "Icon": "images/actions/hotkey",
@@ -20,6 +21,7 @@
     {
       "Icon": "images/actions/flag",
       "Name": "Flags",
+      "PropertyInspectorPath": "pi/flags.html",
       "States": [
         {
           "Image": "images/icons/flag-checkered",
@@ -28,7 +30,6 @@
       ],
       "Tooltip": "Flags",
       "SupportedInMultiActions": false,
-      "UserTitleEnabled": false,
       "UUID": "net.planetrenner.simhub.flags"
     },
     {
@@ -90,13 +91,15 @@
     }
   ],
   "Author": "Martin Renner",
-  "Category": "SimHub",
+  "Category": "Stream Deck SimHub",
   "CategoryIcon": "images/category/simhub",
   "CodePath": "StreamDeckSimHub.exe",
-  "Description": "Keys with state controlled by SimHub",
+  "Description": "Keep you StreamDeck buttons in sync with SimHub (and your simulation)<p>NOTE: SimHub Property Server has to be installed! See https://github.com/pre-martin/SimHubPropertyServer",
   "Icon": "images/store/plugin",
-  "Name": "SimHub Stream Deck integration",
+  "Name": "Stream Deck SimHub",
   "Version": "will be replaced",
+  "UUID": "net.planetrenner.simhub",
+  "URL": "https://github.com/pre-martin/StreamDeckSimHubPlugin",
   "SDKVersion": 2,
   "OS": [
     {
@@ -105,6 +108,6 @@
     }
   ],
   "Software": {
-    "MinimumVersion": "5.3"
+    "MinimumVersion": "6.5"
   }
 }

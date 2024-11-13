@@ -1,4 +1,6 @@
-<svg viewBox="0 0 70 70">
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 70 70">
+
     <rect x="10" y="8" width="4" height="54" stroke-width="1" stroke="white" fill="white"/>
 
     <rect x="15" y="8" width="4" height="4" stroke-width="1" stroke="white" fill="white"/>

@@ -15,6 +15,20 @@ if ($Args.Count -lt 2) {
 $ManifestFile = $Args[0]
 $Version = $Args[1]
 
-$manifest = (Get-Content($ManifestFile) | ConvertFrom-Json)
-$manifest.Version = $Version
-$manifest | ConvertTo-Json -depth 100 | Out-File -Encoding utf8 $ManifestFile
+Write-Host "Setting version $Version in file $ManifestFile"
+
+try {
+    $manifest = (Get-Content($ManifestFile) | ConvertFrom-Json)
+    $manifest.Version = $Version
+    # $manifest | ConvertTo-Json -depth 100 | Out-File -Encoding utf8NoBom ($ManifestFile + ".new")
+    $newContent = $manifest | ConvertTo-Json -depth 100
+    $null = New-Item -Force ($ManifestFile + ".new") -Value $newContent
+
+    Move-Item ($ManifestFile + ".new") -Destination $ManifestFile -Force
+    Write-Host "Done"
+}
+catch {
+    Write-Host "An error occured:"
+    Write-Host $_
+    Exit 1
+}
