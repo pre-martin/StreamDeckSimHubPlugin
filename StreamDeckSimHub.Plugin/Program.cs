@@ -27,10 +27,12 @@ var host = Host.CreateDefaultBuilder()
 host.Services.GetRequiredService<SimHubConnection>().Run();
 
 host.Run();
+return;
 
 
-void ConfigureServices(IServiceCollection serviceCollection)
+void ConfigureServices(HostBuilderContext context, IServiceCollection serviceCollection)
 {
+    serviceCollection.Configure<ConnectionSettings>(context.Configuration.GetSection("SimHubConnection"));
     serviceCollection.AddSingleton<PropertyParser>();
     serviceCollection.AddSingleton<SimHubConnection>();
     serviceCollection.AddSingleton<ShakeItStructureFetcher>();

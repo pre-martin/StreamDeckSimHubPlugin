@@ -1,9 +1,10 @@
-﻿// Copyright (C) 2023 Martin Renner
+﻿// Copyright (C) 2024 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
+using Microsoft.Extensions.Options;
 using NLog;
 
 namespace StreamDeckSimHub.Plugin.SimHub;
@@ -89,6 +90,7 @@ public class PropertyInformation
 /// </remarks>
 public class SimHubConnection : ISimHubConnection
 {
+    private readonly ConnectionSettings _connectionSettings;
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private readonly PropertyParser _propertyParser;
     private TcpClient? _tcpClient;
@@ -98,8 +100,9 @@ public class SimHubConnection : ISimHubConnection
     private readonly Dictionary<string, PropertyInformation> _subscriptions = new();
     private readonly HttpClient _apiClient = new() { Timeout = TimeSpan.FromSeconds(2) };
 
-    public SimHubConnection(PropertyParser propertyParser)
+    public SimHubConnection(IOptions<ConnectionSettings> connectionSettings, PropertyParser propertyParser)
     {
+        _connectionSettings = connectionSettings.Value;
         _propertyParser = propertyParser;
     }
 
@@ -117,6 +120,7 @@ public class SimHubConnection : ISimHubConnection
     private async Task ConnectAsync()
     {
         Logger.Info("Connecting to SimHub (Property Server plugin has to be installed in SimHub)...");
+        Logger.Info($"ConnectionSettings: {_connectionSettings.Host}:{_connectionSettings.Port}");
         Connected = false;
 
         while (!Connected)
@@ -124,7 +128,7 @@ public class SimHubConnection : ISimHubConnection
             _tcpClient = new TcpClient();
             try
             {
-                await _tcpClient.ConnectAsync("127.0.0.1", 18082).WaitAsync(TimeSpan.FromSeconds(4));
+                await _tcpClient.ConnectAsync(_connectionSettings.Host, _connectionSettings.Port).WaitAsync(TimeSpan.FromSeconds(4));
             }
             catch (Exception e)
             {
