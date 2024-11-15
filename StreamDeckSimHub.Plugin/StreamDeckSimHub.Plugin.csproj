@@ -35,6 +35,13 @@
         </Reference>
     </ItemGroup>
 
+    <Target Name="CopyFiles" BeforeTargets="Publish">
+        <ItemGroup>
+            <ReactFiles Include="pi\react\**\*.*" />
+        </ItemGroup>
+        <Copy SourceFiles="@(ReactFiles)" DestinationFolder="$(PublishDir)\pi\react\" />
+    </Target>
+
     <Target Name="SetManifestVersionAndBundle" AfterTargets="Publish">
         <PropertyGroup>
             <PowerShell Condition="!$([MSBuild]::IsOSUnixLike())">powershell.exe</PowerShell>
@@ -311,10 +318,6 @@
       <None Update="pi\libs\js\utils.js">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-    </ItemGroup>
-
-    <ItemGroup Label="React Libararies">
-      <Folder Include="pi\react" />
     </ItemGroup>
 
 </Project>
