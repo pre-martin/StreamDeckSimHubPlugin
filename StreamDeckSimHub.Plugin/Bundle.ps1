@@ -15,8 +15,10 @@ try {
     Pushd ..\build
     Rename-Item -Path "publish" -NewName "net.planetrenner.simhub.sdPlugin" -ErrorAction Stop
 
-    streamdeck validate net.planetrenner.simhub.sdPlugin
     streamdeck bundle net.planetrenner.simhub.sdPlugin
+    if ($? -eq $False) {
+        Exit 1
+    }
 
     Popd
 }
