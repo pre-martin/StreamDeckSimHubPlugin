@@ -1,5 +1,12 @@
 = Release Process
 
+== Requirements
+
+. Node (`nvm install --lts`, `nvm use --lts`)
+. StreamDeck CLI (`npm install -g @elgato/cli`)
+
+== Git
+
 . If there is no release branch yet for the current version: +
    `nbgv prepare-release`
 . Switch to the release branch: +
@@ -8,10 +15,14 @@
 . Create a tag and push it afterward:
     - `nbgv tag`
     - `git push origin v1.2`
+
+== Build
+
 . Build the plugin:
     - `dotnet build StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c Release`
     - `dotnet publish StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c Release`
 . Build the installer:
-    - `dotnet publish StreamDeckSimHub.Installer\StreamDeckSimHub.Installer.csproj -c Release`
+    - `MSBuild.exe" /p:Configuration=Release /p:Platform="Any CPU"`
+. All 3 of the above are combined in `deployInstaller.bat`
 . Create a release in GitHub from the tag and attach the file `StreamDeckSimHub.Installer-vX.Y.z.exe`
 . Push the main branch.

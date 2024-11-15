@@ -15,7 +15,8 @@ try {
     Pushd ..\build
     Rename-Item -Path "publish" -NewName "net.planetrenner.simhub.sdPlugin" -ErrorAction Stop
 
-    ..\..\DistributionTool.exe -b -i net.planetrenner.simhub.sdPlugin -o .
+    streamdeck validate net.planetrenner.simhub.sdPlugin
+    streamdeck bundle net.planetrenner.simhub.sdPlugin
 
     Popd
 }

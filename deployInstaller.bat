@@ -1,6 +1,10 @@
 @echo off
 setlocal
 
+rem Script to build the plugin and the instaler.
+rem
+rem Requires Node with StreamDeck CLI installed. See "doc/Release.adoc"
+
 set CONFIG=Release
 if "%1%" == "debug" set CONFIG=Debug
 
