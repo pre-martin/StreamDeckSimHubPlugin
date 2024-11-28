@@ -33,6 +33,26 @@
       "UUID": "net.planetrenner.simhub.flags"
     },
     {
+      "Icon": "images/actions/generic-button",
+      "Name": "Generic Button",
+      "PropertyInspectorPath": "pi/genericButton.html",
+      "States": [
+        {
+          "Image": "images/icons/generic-button"
+        }
+      ],
+      "Controllers": [
+        "Encoder",
+        "Keypad"
+      ],
+      "Encoder": {
+        "layout": "layout/dial-fullscreen.json"
+      },
+      "Tooltip": "Generic Button",
+      "SupportedInMultiActions": false,
+      "UUID": "net.planetrenner.simhub.generic-button"
+    },
+    {
       "Icon": "images/actions/hotkey4",
       "Name": "Hotkey 4-state",
       "PropertyInspectorPath": "pi/hotkey4.html",

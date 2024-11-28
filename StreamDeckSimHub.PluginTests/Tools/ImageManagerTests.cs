@@ -40,7 +40,7 @@ public class ImageManagerTests
         var imageUtils = new Mock<ImageUtils>();
         imageUtils
             .Setup(iu => iu.FromSvgFile(It.IsAny<string>(), It.IsAny<StreamDeckKeyInfo>()))
-            .Returns((string _, StreamDeckKeyInfo sdki) => new Image<Rgba32>(sdki.KeySize.width, sdki.KeySize.height));
+            .Returns((string _, StreamDeckKeyInfo sdki) => new Image<Rgba32>(sdki.KeySize.X, sdki.KeySize.Y));
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
         {
             { @"images\custom\sub\test@2x.svg", new MockFileData(string.Empty) },
@@ -48,7 +48,7 @@ public class ImageManagerTests
         });
 
         var imageManager = new ImageManager(fileSystem, imageUtils.Object);
-        var sdXl = new StreamDeckKeyInfo(DeviceType.StreamDeckXL, false, (144, 144), true);
+        var sdXl = new StreamDeckKeyInfo(DeviceType.StreamDeckXL, false, new Point(144, 144), true);
         using var image = imageManager.GetCustomImage("sub/test.svg", sdXl);
 
         // ImageUtils must have been called - especially not with "@2x" even for the Hires XL, because SVGs have no suffix.
@@ -70,7 +70,7 @@ public class ImageManagerTests
         var imageManager = new ImageManager(fileSystem, imageUtils.Object);
 
         // Test with SD
-        var sd = new StreamDeckKeyInfo(DeviceType.StreamDeck, false, (72, 72), false);
+        var sd = new StreamDeckKeyInfo(DeviceType.StreamDeck, false, new Point(72, 72), false);
         using var image = imageManager.GetCustomImage("sub/test.png", sd);
 
         // Get lo-res image for SD
@@ -79,7 +79,7 @@ public class ImageManagerTests
         Assert.That(image.Height, Is.EqualTo(72));
 
         // Test with SD XL
-        var sdXl = new StreamDeckKeyInfo(DeviceType.StreamDeckXL, false, (144, 144), true);
+        var sdXl = new StreamDeckKeyInfo(DeviceType.StreamDeckXL, false, new Point(144, 144), true);
         using var imageHires = imageManager.GetCustomImage("sub/test.png", sdXl);
 
         // Get hi-res image for SD XL

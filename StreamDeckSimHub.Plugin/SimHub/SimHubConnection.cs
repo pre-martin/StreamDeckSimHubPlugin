@@ -2,6 +2,8 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Diagnostics;
+using System.IO;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using Microsoft.Extensions.Options;

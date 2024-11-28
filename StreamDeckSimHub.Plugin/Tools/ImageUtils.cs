@@ -61,8 +61,8 @@ public class ImageUtils
         try
         {
             using var svg = SKSvg.CreateFromFile(svgFileName);
-            var keyWidth = sdKeyInfo.KeySize.width;
-            var keyHeight = sdKeyInfo.KeySize.height;
+            var keyWidth = sdKeyInfo.KeySize.X;
+            var keyHeight = sdKeyInfo.KeySize.Y;
 
             if (svg.Model is null)
             {
