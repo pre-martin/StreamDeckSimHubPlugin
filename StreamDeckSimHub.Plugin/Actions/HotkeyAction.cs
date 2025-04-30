@@ -1,6 +1,7 @@
 ﻿// Copyright (C) 2023 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using Microsoft.Extensions.Logging;
 using SharpDeck;
 using SharpDeck.PropertyInspectors;
 using StreamDeckSimHub.Plugin.PropertyLogic;
@@ -38,6 +39,7 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
 
     private async Task DisplayChangedFunc(IComparable? value, string format)
     {
+        Logger.LogDebug("DisplayChangedFunc ({coords}): value {value} with format {format}", Coordinates, value, format);
         await SetTitle(value, format);
     }
 
@@ -82,10 +84,12 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
         try
         {
             await SetTitleAsync(string.Format(format, displayValue));
+            Logger.LogDebug("SetTitle ({coors}): displayValue {displayValue} with format {format}", Coordinates, displayValue, format);
         }
         catch (FormatException)
         {
             await SetTitleAsync(displayValue.ToString());
+            Logger.LogDebug("SetTitle ({coords}): displayValue {displayValue}", Coordinates, displayValue);
         }
     }
 }

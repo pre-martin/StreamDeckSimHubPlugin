@@ -24,6 +24,9 @@ var host = Host.CreateDefaultBuilder()
     .ConfigureServices(ConfigureServices)
     .Build();
 
+
+NLog.LogManager.GetCurrentClassLogger().Info("Starting StreamDeckSimHub plugin {version}", ThisAssembly.AssemblyFileVersion);
+
 host.Services.GetRequiredService<SimHubConnection>().Run();
 
 host.Run();
