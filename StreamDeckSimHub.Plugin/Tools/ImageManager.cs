@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.IO;
@@ -50,6 +50,11 @@ public class ImageManager(IFileSystem fileSystem, ImageUtils imageUtils)
     /// <returns>The image in encoded form, or a default error image, if it could not be loaded.</returns>
     public Image GetCustomImage(string relativePath, StreamDeckKeyInfo sdKeyInfo)
     {
+        if (string.IsNullOrWhiteSpace(relativePath))
+        {
+            return ImageUtils.EmptyImage;
+        }
+
         relativePath = relativePath.Replace('/', Path.DirectorySeparatorChar);
         if (Path.GetExtension(relativePath).Equals(".svg", StringComparison.InvariantCultureIgnoreCase))
         {
@@ -60,6 +65,12 @@ public class ImageManager(IFileSystem fileSystem, ImageUtils imageUtils)
 
         var newName = FindResolutionForKeyInfo(_customImagesDirectory.FullName, relativePath, sdKeyInfo);
         var newFn = Path.Combine(_customImagesDirectory.FullName, newName);
+        if (!fileSystem.File.Exists(newFn))
+        {
+            Logger.Warn($"Custom image '{newFn}' does not exist.");
+            return imageUtils.GetErrorImage(sdKeyInfo);
+        }
+
         try
         {
             using var stream = fileSystem.File.OpenRead(newFn);

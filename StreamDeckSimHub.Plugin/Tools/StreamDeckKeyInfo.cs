@@ -1,21 +1,19 @@
-﻿// Copyright (C) 2024 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using SharpDeck.Enums;
 using SharpDeck.Events.Received;
-using SixLabors.ImageSharp;
-using Size = SharpDeck.Events.Received.Size;
 
 namespace StreamDeckSimHub.Plugin.Tools;
 
 /// <summary>
 /// Holds information about a specific Stream Deck Key or Dial.
 /// </summary>
-public class StreamDeckKeyInfo(DeviceType deviceType, bool isDial, Point keySize, bool isHighRes)
+public class StreamDeckKeyInfo(DeviceType deviceType, bool isDial, SixLabors.ImageSharp.Size keySize, bool isHighRes)
 {
     public DeviceType DeviceType { get; set; } = deviceType;
     public bool IsDial { get; set; } = isDial;
-    public Point KeySize { get; set; } = keySize;
+    public SixLabors.ImageSharp.Size KeySize { get; set; } = keySize;
     public bool IsHighRes { get; set; } = isHighRes;
 }
 
@@ -26,7 +24,10 @@ public abstract class StreamDeckKeyInfoBuilder
 {
     private static readonly IdentifiableDeviceInfo DefaultDevice = new()
     {
-        Id = "dummy", Name = "Stream Deck", Size = new Size() { Columns = 5, Rows = 3 }, Type = DeviceType.StreamDeck,
+        Id = "dummy",
+        Name = "Stream Deck",
+        Size = new Size { Columns = 5, Rows = 3 },
+        Type = DeviceType.StreamDeck,
     };
 
     /// <summary>
@@ -52,7 +53,7 @@ public abstract class StreamDeckKeyInfoBuilder
     private static StreamDeckKeyInfo Build(IdentifiableDeviceInfo deviceInfo, Controller controller)
     {
         var isDial = controller == Controller.Encoder;
-        Point keySize;
+        SixLabors.ImageSharp.Size keySize;
         var isHighRes = false;
         if (isDial)
         {

@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2023 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Runtime.InteropServices;
@@ -25,7 +25,7 @@ public static class KeyboardUtils
         internal Keyboard.ScanCodeShort scs;
     }
 
-    internal record Hotkey
+    public record Hotkey
     {
         internal bool ctrl;
         internal bool alt;

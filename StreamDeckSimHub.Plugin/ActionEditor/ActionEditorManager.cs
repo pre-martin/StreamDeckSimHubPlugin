@@ -1,10 +1,11 @@
-﻿// Copyright (C) 2024 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.Concurrent;
 using System.Windows;
 using CommunityToolkit.Mvvm.Messaging;
 using NLog;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor;
 
@@ -21,25 +22,26 @@ public class ActionEditorManager : IRecipient<GenericButtonEditorClosedEvent>
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
-    public void ShowGenericButtonEditor(string actionUuid)
+    public void ShowGenericButtonEditor(string actionUuid, Settings settings)
     {
         Application.Current.Dispatcher.Invoke(() =>
         {
             if (_actionEditors.TryGetValue(actionUuid, out var editor))
             {
+                editor.DataContext = settings;
                 BringToFront(editor);
             }
             else
             {
-                var window = new GenericButtonEditor(actionUuid)
+                var newEditor = new GenericButtonEditor(actionUuid, settings)
                 {
-                    WindowStartupLocation = WindowStartupLocation.CenterScreen // show on same screen as the Stream Deck software
+                    WindowStartupLocation = WindowStartupLocation.CenterScreen, // show on the same screen as the Stream Deck software
                 };
-                _actionEditors.TryAdd(actionUuid, window);
-                window.Show();
+                _actionEditors.TryAdd(actionUuid, newEditor);
+                newEditor.Show();
 
                 // Without these three lines, the window appears in the background
-                BringToFront(window);
+                BringToFront(newEditor);
             }
         });
     }

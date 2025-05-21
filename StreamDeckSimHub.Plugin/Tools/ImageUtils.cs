@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using NLog;
@@ -61,8 +61,8 @@ public class ImageUtils
         try
         {
             using var svg = SKSvg.CreateFromFile(svgFileName);
-            var keyWidth = sdKeyInfo.KeySize.X;
-            var keyHeight = sdKeyInfo.KeySize.Y;
+            var keyWidth = sdKeyInfo.KeySize.Width;
+            var keyHeight = sdKeyInfo.KeySize.Height;
 
             if (svg.Model is null)
             {
