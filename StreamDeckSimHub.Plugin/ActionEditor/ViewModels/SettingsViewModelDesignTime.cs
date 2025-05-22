@@ -12,6 +12,6 @@ public class SettingsViewModelDesignTime() : SettingsViewModel(new Settings
     Commands = new SortedDictionary<StreamDeckAction, List<CommandItem>>
     {
         [StreamDeckAction.KeyDown] = [CommandItemKeypress.Create()],
-        [StreamDeckAction.KeyUp] = [CommandItemKeypress.Create(), CommandItemKeypress.Create()]
+        [StreamDeckAction.KeyUp] = [CommandItemKeypress.Create(), CommandItemSimHubControl.Create()]
     },
 });

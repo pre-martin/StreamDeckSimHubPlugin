@@ -13,26 +13,39 @@ public partial class SettingsViewModel : ObservableObject
 {
     private readonly Settings _settings;
 
+    /// List of DisplayItems from the model
     public ObservableCollection<DisplayItemViewModel> DisplayItems { get; }
-    [ObservableProperty] private DisplayItemViewModel? _selectedDisplayItem;
-    public ObservableCollection<CommandGroupViewModel> CommandGroups { get; }
 
-    [ObservableProperty] private CommandGroupViewModel _selectedCommandGroup;
+    [ObservableProperty] private DisplayItemViewModel? _selectedDisplayItem;
+
+    /// The Dictionary of StreamDeckKey to List of CommandItems from the model as a flat list.
+    public ObservableCollection<IFlatCommandItemsViewModel> FlatCommandItems { get; } = new();
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AddSelectedCommandItemCommand))]
+    private IFlatCommandItemsViewModel? _selectedFlatCommandItem;
 
     public SettingsViewModel(Settings settings)
     {
         _settings = settings;
 
         DisplayItems = new ObservableCollection<DisplayItemViewModel>(
-            settings.DisplayItems.Select(di => new DisplayItemViewModel(di)));
+            settings.DisplayItems.Select(di => new DisplayItemViewModel(di))
+        );
 
-        CommandGroups = new ObservableCollection<CommandGroupViewModel>(
-            settings.Commands.Select(kvp => new CommandGroupViewModel(kvp.Key, kvp.Value)));
-        SelectedCommandGroup = CommandGroups[0];
+        foreach (var kvp in _settings.Commands)
+        {
+            FlatCommandItems.Add(new StreamDeckActionViewModel(kvp.Key));
+            foreach (var commandItem in kvp.Value)
+            {
+                FlatCommandItems.Add(new CommandItemViewModel(commandItem, kvp.Key));
+            }
+        }
     }
 
     #region AddDisplayItem
 
+    /// List of available display item types
     public ObservableCollection<string> DisplayItemTypes { get; } =
     [
         DisplayItemImage.UiName, DisplayItemText.UiName, DisplayItemValue.UiName
@@ -46,42 +59,30 @@ public partial class SettingsViewModel : ObservableObject
         switch (SelectedAddDisplayItemType)
         {
             case DisplayItemImage.UiName:
-                AddImage();
+                AddDisplayItem(DisplayItemImage.Create());
                 break;
             case DisplayItemText.UiName:
-                AddText();
+                AddDisplayItem(DisplayItemText.Create());
                 break;
             case DisplayItemValue.UiName:
-                AddValue();
+                AddDisplayItem(DisplayItemValue.Create());
                 break;
         }
     }
 
-    private void AddImage()
+    private void AddDisplayItem(DisplayItem displayItem)
     {
-        var newItem = DisplayItemImage.Create();
-        _settings.DisplayItems.Add(newItem);
-        DisplayItems.Add(new DisplayItemViewModel(newItem));
-    }
-
-    private void AddText()
-    {
-        var newItem = DisplayItemText.Create();
-        _settings.DisplayItems.Add(newItem);
-        DisplayItems.Add(new DisplayItemViewModel(newItem));
-    }
-
-    private void AddValue()
-    {
-        var newItem = DisplayItemValue.Create();
-        _settings.DisplayItems.Add(newItem);
-        DisplayItems.Add(new DisplayItemViewModel(newItem));
+        _settings.DisplayItems.Add(displayItem);
+        var vm = new DisplayItemViewModel(displayItem);
+        DisplayItems.Add(vm);
+        SelectedDisplayItem = vm;
     }
 
     #endregion
 
     #region AddCommandItem
 
+    /// List of available command item types
     public ObservableCollection<string> CommandItemTypes { get; } =
     [
         CommandItemKeypress.UiName, CommandItemSimHubControl.UiName, CommandItemSimHubRole.UiName
@@ -89,42 +90,50 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty] private string _selectedAddCommandItemType = CommandItemKeypress.UiName;
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanExecuteAddCommandItem))]
     private void AddSelectedCommandItem()
     {
         switch (SelectedAddCommandItemType)
         {
             case CommandItemKeypress.UiName:
-                AddKeypress();
+                AddCommandItem(CommandItemKeypress.Create());
                 break;
             case CommandItemSimHubControl.UiName:
-                AddSimHubControl();
+                AddCommandItem(CommandItemSimHubControl.Create());
                 break;
             case CommandItemSimHubRole.UiName:
-                AddSimHubRole();
+                AddCommandItem(CommandItemSimHubRole.Create());
                 break;
         }
     }
 
-    private void AddKeypress()
-    {
-        var newItem = CommandItemKeypress.Create();
-        _settings.Commands[SelectedCommandGroup.Action].Add(newItem);
-        CommandGroups.First(model => model.Action == SelectedCommandGroup.Action).Commands.Add(new CommandItemViewModel(newItem));
-    }
+    private bool CanExecuteAddCommandItem() => SelectedFlatCommandItem != null;
 
-    private void AddSimHubControl()
+    private void AddCommandItem(CommandItem newItem)
     {
-        var newItem = CommandItemSimHubControl.Create();
-        _settings.Commands[SelectedCommandGroup.Action].Add(newItem);
-        CommandGroups.First(model => model.Action == SelectedCommandGroup.Action).Commands.Add(new CommandItemViewModel(newItem));
-    }
+        // Determine the action of the currently selected list item
+        var action = SelectedFlatCommandItem switch
+        {
+            StreamDeckActionViewModel actionVm => actionVm.Action,
+            CommandItemViewModel itemVm => itemVm.ParentAction,
+            _ => throw new InvalidOperationException("Invalid command list item selected.")
+        };
 
-    private void AddSimHubRole()
-    {
-        var newItem = CommandItemSimHubRole.Create();
-        _settings.Commands[SelectedCommandGroup.Action].Add(newItem);
-        CommandGroups.First(model => model.Action == SelectedCommandGroup.Action).Commands.Add(new CommandItemViewModel(newItem));
+        _settings.Commands[action].Add(newItem);
+
+        // Find the action in the flat list...
+        var actionElement =
+            FlatCommandItems.First(item => item is StreamDeckActionViewModel actionVm && actionVm.Action == action);
+        // ... and skip all CommandItems - until we reach the next action element or the end. We have to insert right before.
+        var index = FlatCommandItems.IndexOf(actionElement) + 1;
+        while (index < FlatCommandItems.Count - 1 && FlatCommandItems[index] is CommandItemViewModel)
+        {
+            index++;
+        }
+
+        var vm = new CommandItemViewModel(newItem, action);
+        FlatCommandItems.Insert(index, vm);
+        SelectedFlatCommandItem = vm;
     }
 
     #endregion
@@ -136,23 +145,19 @@ public class DisplayItemViewModel(DisplayItem model) : ObservableObject
     public string Name => string.IsNullOrWhiteSpace(Model.Name) ? Model.GetType().Name : Model.Name;
 }
 
-/// <summary>
-/// Commands for a given StreamDeckAction.
-/// </summary>
-public class CommandGroupViewModel : ObservableObject
-{
-    public StreamDeckAction Action { get; }
-    public ObservableCollection<CommandItemViewModel> Commands { get; }
+/// Common interface for the flat command list with different entries.
+public interface IFlatCommandItemsViewModel;
 
-    public CommandGroupViewModel(StreamDeckAction action, List<CommandItem> commands)
-    {
-        Action = action;
-        Commands = new ObservableCollection<CommandItemViewModel>(commands.Select(item => new CommandItemViewModel(item)));
-    }
+public class StreamDeckActionViewModel(StreamDeckAction action) : ObservableObject, IFlatCommandItemsViewModel
+{
+    public StreamDeckAction Action { get; } = action;
+
+    public override string ToString() => Action.ToString();
 }
 
-public class CommandItemViewModel(CommandItem model) : ObservableObject
+public class CommandItemViewModel(CommandItem model, StreamDeckAction parentAction) : ObservableObject, IFlatCommandItemsViewModel
 {
     private CommandItem Model { get; } = model;
+    public StreamDeckAction ParentAction { get; } = parentAction;
     public string Name => Model.GetType().Name;
 }

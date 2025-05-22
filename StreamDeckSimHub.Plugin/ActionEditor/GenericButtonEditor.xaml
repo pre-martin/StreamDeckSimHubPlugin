@@ -58,7 +58,7 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{Binding Name}" />
+                            <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center" />
                             <TextBlock Grid.Column="1" Text="☰" FontSize="16" Margin="0,0,8,0" Cursor="SizeAll"
                                        HorizontalAlignment="Right" />
                         </Grid>
@@ -89,37 +89,33 @@
             </Grid>
 
             <ListBox Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Visible"
-                     ItemsSource="{Binding CommandGroups}"
-                     SelectedItem="{Binding SelectedCommandGroup, Mode=TwoWay}"
+                     ItemsSource="{Binding FlatCommandItems}"
+                     SelectedItem="{Binding SelectedFlatCommandItem, Mode=TwoWay}"
                      BorderThickness="0"
                      Background="Transparent"
                      HorizontalContentAlignment="Stretch">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Vertical">
-                            <TextBlock DockPanel.Dock="Top" Text="{Binding Action}" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Stretch" />
-                            <ItemsControl ItemsSource="{Binding Commands}" Margin="16,0,0,8">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid HorizontalAlignment="Stretch">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="{Binding Name}" />
-                                            <TextBlock Grid.Column="1" Text="☰" FontSize="16" Margin="0,0,8,0" Cursor="SizeAll"
-                                                       HorizontalAlignment="Right" />
-                                        </Grid>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
+                <ListBox.Resources>
+                    <DataTemplate DataType="{x:Type viewModels:StreamDeckActionViewModel}">
+                        <Border Background="#EEE" Padding="4" Margin="0,2,0,2" CornerRadius="3">
+                            <TextBlock Text="{Binding Action}" FontWeight="Bold" />
+                        </Border>
                     </DataTemplate>
-                </ListBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type viewModels:CommandItemViewModel}">
+                        <Grid HorizontalAlignment="Stretch" Margin="16,0,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="☰" FontSize="16" Margin="0,0,8,0" Cursor="SizeAll"
+                                       HorizontalAlignment="Right" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.Resources>
             </ListBox>
         </Grid>
 
-        <!-- Main content for details will go here -->
+        <!-- The main content for details will go here -->
         <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="3" Margin="8">
             <TextBlock Text="Details" FontWeight="Bold" Margin="0,0,0,4" />
         </Grid>
