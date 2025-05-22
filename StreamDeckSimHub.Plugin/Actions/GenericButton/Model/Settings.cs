@@ -28,5 +28,5 @@ public class Settings
     /// <summary>
     /// Contains the list of actions for each possible Stream Deck action.
     /// </summary>
-    public required SortedDictionary<StreamDeckAction, SortedDictionary<int, CommandItem>> Commands { get; set; } = new();
+    public required SortedDictionary<StreamDeckAction, List<CommandItem>> Commands { get; set; } = new();
 }

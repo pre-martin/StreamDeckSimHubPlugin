@@ -14,18 +14,10 @@ public partial class SettingsViewModel : ObservableObject
     private readonly Settings _settings;
 
     public ObservableCollection<DisplayItemViewModel> DisplayItems { get; }
+    [ObservableProperty] private DisplayItemViewModel? _selectedDisplayItem;
     public ObservableCollection<CommandGroupViewModel> CommandGroups { get; }
 
-    // List of available DisplayItem types
-    public ObservableCollection<string> DisplayItemTypes { get; } =
-    [
-        DisplayItemImage.UiName,
-        DisplayItemText.UiName,
-        DisplayItemValue.UiName
-    ];
-
-    // Property to hold the selected DisplayItem
-    [ObservableProperty] private string _selectedDisplayItemType = DisplayItemImage.UiName;
+    [ObservableProperty] private CommandGroupViewModel _selectedCommandGroup;
 
     public SettingsViewModel(Settings settings)
     {
@@ -36,13 +28,22 @@ public partial class SettingsViewModel : ObservableObject
 
         CommandGroups = new ObservableCollection<CommandGroupViewModel>(
             settings.Commands.Select(kvp => new CommandGroupViewModel(kvp.Key, kvp.Value)));
+        SelectedCommandGroup = CommandGroups[0];
     }
 
-    // Command to add the selected DisplayItem
+    #region AddDisplayItem
+
+    public ObservableCollection<string> DisplayItemTypes { get; } =
+    [
+        DisplayItemImage.UiName, DisplayItemText.UiName, DisplayItemValue.UiName
+    ];
+
+    [ObservableProperty] private string _selectedAddDisplayItemType = DisplayItemImage.UiName;
+
     [RelayCommand]
     private void AddSelectedDisplayItem()
     {
-        switch (SelectedDisplayItemType)
+        switch (SelectedAddDisplayItemType)
         {
             case DisplayItemImage.UiName:
                 AddImage();
@@ -56,8 +57,6 @@ public partial class SettingsViewModel : ObservableObject
         }
     }
 
-    // Methods to create new DisplayItems with RelayCommand attribute
-    [RelayCommand]
     private void AddImage()
     {
         var newItem = DisplayItemImage.Create();
@@ -65,7 +64,6 @@ public partial class SettingsViewModel : ObservableObject
         DisplayItems.Add(new DisplayItemViewModel(newItem));
     }
 
-    [RelayCommand]
     private void AddText()
     {
         var newItem = DisplayItemText.Create();
@@ -73,13 +71,63 @@ public partial class SettingsViewModel : ObservableObject
         DisplayItems.Add(new DisplayItemViewModel(newItem));
     }
 
-    [RelayCommand]
     private void AddValue()
     {
         var newItem = DisplayItemValue.Create();
         _settings.DisplayItems.Add(newItem);
         DisplayItems.Add(new DisplayItemViewModel(newItem));
     }
+
+    #endregion
+
+    #region AddCommandItem
+
+    public ObservableCollection<string> CommandItemTypes { get; } =
+    [
+        CommandItemKeypress.UiName, CommandItemSimHubControl.UiName, CommandItemSimHubRole.UiName
+    ];
+
+    [ObservableProperty] private string _selectedAddCommandItemType = CommandItemKeypress.UiName;
+
+    [RelayCommand]
+    private void AddSelectedCommandItem()
+    {
+        switch (SelectedAddCommandItemType)
+        {
+            case CommandItemKeypress.UiName:
+                AddKeypress();
+                break;
+            case CommandItemSimHubControl.UiName:
+                AddSimHubControl();
+                break;
+            case CommandItemSimHubRole.UiName:
+                AddSimHubRole();
+                break;
+        }
+    }
+
+    private void AddKeypress()
+    {
+        var newItem = CommandItemKeypress.Create();
+        _settings.Commands[SelectedCommandGroup.Action].Add(newItem);
+        CommandGroups.First(model => model.Action == SelectedCommandGroup.Action).Commands.Add(new CommandItemViewModel(newItem));
+    }
+
+    private void AddSimHubControl()
+    {
+        var newItem = CommandItemSimHubControl.Create();
+        _settings.Commands[SelectedCommandGroup.Action].Add(newItem);
+        CommandGroups.First(model => model.Action == SelectedCommandGroup.Action).Commands.Add(new CommandItemViewModel(newItem));
+    }
+
+    private void AddSimHubRole()
+    {
+        var newItem = CommandItemSimHubRole.Create();
+        _settings.Commands[SelectedCommandGroup.Action].Add(newItem);
+        CommandGroups.First(model => model.Action == SelectedCommandGroup.Action).Commands.Add(new CommandItemViewModel(newItem));
+    }
+
+    #endregion
 }
 
 public class DisplayItemViewModel(DisplayItem model) : ObservableObject
@@ -96,12 +144,10 @@ public class CommandGroupViewModel : ObservableObject
     public StreamDeckAction Action { get; }
     public ObservableCollection<CommandItemViewModel> Commands { get; }
 
-    public CommandGroupViewModel(StreamDeckAction action, SortedDictionary<int, CommandItem> commands)
+    public CommandGroupViewModel(StreamDeckAction action, List<CommandItem> commands)
     {
         Action = action;
-        Commands = new ObservableCollection<CommandItemViewModel>(commands
-            .OrderBy(kvp => kvp.Key)
-            .Select(kvp => new CommandItemViewModel(kvp.Value)));
+        Commands = new ObservableCollection<CommandItemViewModel>(commands.Select(item => new CommandItemViewModel(item)));
     }
 }
 

@@ -5,5 +5,16 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
 public class CommandItemSimHubControl : CommandItem
 {
+    public const string UiName = "SimHub Control";
+
     public required string Control { get; set; } = string.Empty;
+
+    public static CommandItemSimHubControl Create()
+    {
+        return new CommandItemSimHubControl
+        {
+            ActiveConditions = [],
+            Control = string.Empty
+        };
+    }
 }

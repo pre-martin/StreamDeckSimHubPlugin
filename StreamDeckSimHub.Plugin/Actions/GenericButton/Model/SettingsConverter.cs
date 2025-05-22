@@ -89,31 +89,23 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
 
     #region CommandToModel
 
-    private SortedDictionary<StreamDeckAction, SortedDictionary<int, CommandItem>> ToCommands(
-        Dictionary<string, SortedDictionary<int, CommandItemDto>> commandDtos)
+    private SortedDictionary<StreamDeckAction, List<CommandItem>> ToCommands(Dictionary<string, List<CommandItemDto>> commandDtos)
     {
-        var commands = new SortedDictionary<StreamDeckAction, SortedDictionary<int, CommandItem>>();
+        var commands = new SortedDictionary<StreamDeckAction, List<CommandItem>>();
         // Ensure that the model dictionary contains entries for all possible actions. So iterate by using the enum values.
         foreach (StreamDeckAction action in Enum.GetValues(typeof(StreamDeckAction)))
         {
-            if (commandDtos.TryGetValue(action.ToString(), out var index2CommandDtoDict))
+            if (commandDtos.TryGetValue(action.ToString(), out var commandItemDtos))
             {
-                var index2CommandDict = new SortedDictionary<int, CommandItem>();
-                foreach (var kvp in index2CommandDtoDict)
-                {
-                    var modelItem = ToCommandItem(kvp.Value);
-                    if (modelItem != null)
-                    {
-                        index2CommandDict[kvp.Key] = modelItem;
-                    }
-                }
-                commands[action] = index2CommandDict;
+                List<CommandItem> commandItems = commandItemDtos.Select(ToCommandItem).Where(ci => ci != null).ToList()!;
+                commands[action] = commandItems;
             }
             else
             {
-                commands[action] = new SortedDictionary<int, CommandItem>();
+                commands[action] = new List<CommandItem>();
             }
         }
+
         return commands;
     }
 
@@ -155,4 +147,3 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
 
     #endregion
 }
-

@@ -5,14 +5,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
         mc:Ignorable="d"
-        d:DataContext="{d:DesignInstance Type=viewModels:SettingsViewModel, IsDesignTimeCreatable=True}"
+        d:DataContext="{d:DesignInstance Type=viewModels:SettingsViewModelDesignTime, IsDesignTimeCreatable=True}"
         Title="Generic Button Editor" Height="750" Width="800" MinHeight="750" MinWidth="800"
         Closed="OnClosed" Icon="/ActionEditor/GenericButtonEditor.ico">
 
     <!--<Grid Background="{DynamicResource PiBackground}">-->
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="250" /> <!-- Sidebar with display items and commands -->
+            <ColumnDefinition Width="250" /> <!-- Sidebar with display items and command items -->
             <ColumnDefinition Width="*" /> <!-- Detail area -->
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -35,29 +35,36 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="Display" FontWeight="Bold" Margin="0,0,0,4" VerticalAlignment="Center" />
-                <ComboBox Grid.Column="1" Width="100" Margin="0,0,4,0" ItemsSource="{Binding DisplayItemTypes}"
-                          SelectedItem="{Binding SelectedDisplayItemType}" />
+                <ComboBox Grid.Column="1" Width="110" Margin="0,0,4,0" ItemsSource="{Binding DisplayItemTypes}"
+                          SelectedItem="{Binding SelectedAddDisplayItemType}" />
                 <Button Grid.Column="2" Content="Add" Command="{Binding AddSelectedDisplayItemCommand}" Padding="8,0" />
             </Grid>
 
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible">
-                <ItemsControl ItemsSource="{Binding DisplayItems}" AllowDrop="True">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border BorderBrush="Gray" BorderThickness="1" Margin="0,0,4,4" Padding="4">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="{Binding Name}" />
-                                    <TextBlock Grid.Column="1" Text="☰" FontSize="16" Margin="0,0,8,0" Cursor="SizeAll" />
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+            <ListBox Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Visible"
+                     ItemsSource="{Binding DisplayItems}"
+                     SelectedItem="{Binding SelectedDisplayItem, Mode=TwoWay}"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     HorizontalContentAlignment="Stretch">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListBoxItem}">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid HorizontalAlignment="Stretch">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{Binding Name}" />
+                            <TextBlock Grid.Column="1" Text="☰" FontSize="16" Margin="0,0,8,0" Cursor="SizeAll"
+                                       HorizontalAlignment="Right" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </Grid>
 
         <GridSplitter Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" />
@@ -75,29 +82,41 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Commands" FontWeight="Bold" Margin="0,16,0,4" VerticalAlignment="Center" />
-                <Label Grid.Column="1" Content="X" />
-                <Label Grid.Column="2" Content="Y" />
+                <TextBlock Grid.Column="0" Text="Commands" FontWeight="Bold" Margin="0,0,0,4" VerticalAlignment="Center" />
+                <ComboBox Grid.Column="1" Width="110" Margin="0,0,4,0" ItemsSource="{Binding CommandItemTypes}"
+                          SelectedItem="{Binding SelectedAddCommandItemType}" />
+                <Button Grid.Column="2" Content="Add" Command="{Binding AddSelectedCommandItemCommand}" Padding="8,0" />
             </Grid>
 
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible">
-                <ItemsControl ItemsSource="{Binding CommandGroups}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Vertical">
-                                <TextBlock Text="{Binding Action}" FontWeight="SemiBold" />
-                                <ItemsControl ItemsSource="{Binding Commands}" Margin="16,0,0,8">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Name}" />
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+            <ListBox Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Visible"
+                     ItemsSource="{Binding CommandGroups}"
+                     SelectedItem="{Binding SelectedCommandGroup, Mode=TwoWay}"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     HorizontalContentAlignment="Stretch">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock DockPanel.Dock="Top" Text="{Binding Action}" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Stretch" />
+                            <ItemsControl ItemsSource="{Binding Commands}" Margin="16,0,0,8">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid HorizontalAlignment="Stretch">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Name}" />
+                                            <TextBlock Grid.Column="1" Text="☰" FontSize="16" Margin="0,0,8,0" Cursor="SizeAll"
+                                                       HorizontalAlignment="Right" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </Grid>
 
         <!-- Main content for details will go here -->

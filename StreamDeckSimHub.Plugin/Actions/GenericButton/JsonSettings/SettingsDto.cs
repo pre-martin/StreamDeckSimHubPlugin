@@ -15,5 +15,5 @@ public class SettingsDto
     public List<DisplayItemDto> DisplayItems { get; set; } = new();
 
     [JsonPropertyName("commands")]
-    public Dictionary<string, SortedDictionary<int, CommandItemDto>> Commands { get; set; } = new();
+    public Dictionary<string, List<CommandItemDto>> Commands { get; set; } = new();
 }
