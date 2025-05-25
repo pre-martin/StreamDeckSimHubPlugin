@@ -8,5 +8,5 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 public class DisplayItemImageDto : DisplayItemDto
 {
     [JsonPropertyName("relativePath")]
-    public string RelativePath { get; set; } = string.Empty;
+    public required string RelativePath { get; set; } = string.Empty;
 }

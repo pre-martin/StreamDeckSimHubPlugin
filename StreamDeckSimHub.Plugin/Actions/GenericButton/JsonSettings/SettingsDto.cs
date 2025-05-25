@@ -9,11 +9,11 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 public class SettingsDto
 {
     [JsonPropertyName("keySize")]
-    public SizeDto KeySize { get; set; } = new();
+    public required SizeDto KeySize { get; set; } = new();
 
     [JsonPropertyName("displayItems")]
-    public List<DisplayItemDto> DisplayItems { get; set; } = new();
+    public required List<DisplayItemDto> DisplayItems { get; set; } = new();
 
     [JsonPropertyName("commands")]
-    public Dictionary<string, List<CommandItemDto>> Commands { get; set; } = new();
+    public required Dictionary<string, List<CommandItemDto>> Commands { get; set; } = new();
 }

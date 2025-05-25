@@ -8,5 +8,5 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 public class CommandItemSimHubControlDto : CommandItemDto
 {
     [JsonPropertyName("control")]
-    public string Control { get; set; } = string.Empty;
+    public required string Control { get; set; } = string.Empty;
 }

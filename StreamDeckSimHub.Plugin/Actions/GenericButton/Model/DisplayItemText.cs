@@ -22,7 +22,7 @@ public class DisplayItemText : DisplayItem
             DisplayParameters = new DisplayParameters(),
             VisibilityConditions = [],
             Text = "",
-            Font = SystemFonts.CreateFont("Arial", 12),
+            Font = SystemFonts.CreateFont("Arial", 12, FontStyle.Regular),
             Color = Color.White
         };
     }

@@ -67,7 +67,7 @@ public class GenericButtonAction(
 
     private Settings ConvertSettings(SettingsDto dto, StreamDeckKeyInfo sdKeyInfo)
     {
-        var settings = _settingsConverter.ToSettings(dto, sdKeyInfo);
+        var settings = _settingsConverter.SettingsToModel(dto, sdKeyInfo);
 
         if (settings.KeySize != sdKeyInfo.KeySize)
         {

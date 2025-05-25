@@ -24,7 +24,7 @@ public class DisplayItemValue : DisplayItem
             VisibilityConditions = [],
             Property = "",
             DisplayFormat = "",
-            Font = SystemFonts.CreateFont("Arial", 12),
+            Font = SystemFonts.CreateFont("Arial", 12, FontStyle.Regular),
             Color = Color.White
         };
     }

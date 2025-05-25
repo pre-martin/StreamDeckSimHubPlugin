@@ -8,14 +8,14 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 public class CommandItemKeypressDto : CommandItemDto
 {
     [JsonPropertyName("key")]
-    public string Key { get; set; } = string.Empty;
+    public required string Key { get; set; } = string.Empty;
 
     [JsonPropertyName("modifierCtrl")]
-    public bool ModifierCtrl { get; set; }
+    public required bool ModifierCtrl { get; set; }
 
     [JsonPropertyName("modifierAlt")]
-    public bool ModifierAlt { get; set; }
+    public required bool ModifierAlt { get; set; }
 
     [JsonPropertyName("modifierShift")]
-    public bool ModifierShift { get; set; }
+    public required bool ModifierShift { get; set; }
 }

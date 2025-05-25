@@ -5,6 +5,7 @@ using NLog;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
+using StreamDeckSimHub.Plugin.Actions.JsonSettings;
 using StreamDeckSimHub.Plugin.Actions.Model;
 using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.Tools;
@@ -15,47 +16,57 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-    public Settings ToSettings(SettingsDto dto, StreamDeckKeyInfo keyInfo)
+    public Settings SettingsToModel(SettingsDto dto, StreamDeckKeyInfo keyInfo)
     {
         var settings = new Settings
         {
             KeySize = new Size(dto.KeySize.Width, dto.KeySize.Height),
             KeyInfo = keyInfo, // TODO Required?
             DisplayItems = dto.DisplayItems
-                .Select(di => ToDisplayItem(di, keyInfo))
+                .Select(di => DisplayItemToModel(di, keyInfo))
                 .Where(di => di != null)
                 .ToList()!,
-            Commands = ToCommands(dto.Commands)
+            Commands = CommandsToModel(dto.Commands)
         };
-
         return settings;
     }
 
-    #region DisplayItemToModel
+    public SettingsDto SettingsToDto(Settings settings)
+    {
+        var settingsDto = new SettingsDto
+        {
+            KeySize = new SizeDto { Width = settings.KeySize.Width, Height = settings.KeySize.Height },
+            DisplayItems = settings.DisplayItems
+                .Select(DisplayItemToDto)
+                .Where(di => di != null)
+                .ToList()!,
+            Commands = CommandsToDto(settings.Commands)
+        };
+        return settingsDto;
+    }
 
-    private DisplayItem? ToDisplayItem(DisplayItemDto dto, StreamDeckKeyInfo keyInfo)
+    #region DisplayItem
+
+    private DisplayItem? DisplayItemToModel(DisplayItemDto dto, StreamDeckKeyInfo keyInfo)
     {
         DisplayItem? displayItem = dto switch
         {
             DisplayItemImageDto imageDto => new DisplayItemImage
             {
-                Image = imageManager.GetCustomImage(imageDto.RelativePath, keyInfo)
+                Image = imageManager.GetCustomImage(imageDto.RelativePath, keyInfo),
+                RelativePath = imageDto.RelativePath
             },
             DisplayItemTextDto textDto => new DisplayItemText
             {
                 Text = textDto.Text,
-                Font = SystemFonts.Collection.TryGet(textDto.FontName, out var fontFamily)
-                    ? fontFamily.CreateFont(textDto.FontSize)
-                    : SystemFonts.CreateFont("Arial", 12),
+                Font = FontToModel(textDto.FontName, textDto.FontSize, textDto.FontStyle),
                 Color = Color.TryParseHex(textDto.Color, out var color) ? color : Color.White
             },
             DisplayItemValueDto valueDto => new DisplayItemValue
             {
                 Property = valueDto.Property,
                 DisplayFormat = valueDto.DisplayFormat,
-                Font = SystemFonts.Collection.TryGet(valueDto.FontName, out var fontFamily)
-                    ? fontFamily.CreateFont(valueDto.FontSize)
-                    : SystemFonts.CreateFont("Arial", 12),
+                Font = FontToModel(valueDto.FontName, valueDto.FontSize, valueDto.FontStyle),
                 Color = Color.TryParseHex(valueDto.Color, out var color) ? color : Color.White
             },
             _ => null
@@ -64,16 +75,71 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
         if (displayItem != null)
         {
             displayItem.Name = dto.Name;
-            displayItem.DisplayParameters = ToDisplayParameters(dto.DisplayParameters);
+            displayItem.DisplayParameters = DisplayParametersToModel(dto.DisplayParameters);
             displayItem.VisibilityConditions = dto.VisibilityConditions.Select(propertyComparer.Parse).ToList();
             return displayItem;
         }
 
-        Logger.Error($"Don't know how to convert DisplayItem of type {dto.GetType()}. Item will be ignored.");
+        Logger.Error($"Don't know how to convert DisplayItemDto of type {dto.GetType()}. Item will be ignored.");
         return null;
     }
 
-    private DisplayParameters ToDisplayParameters(DisplayParametersDto dto)
+    private DisplayItemDto? DisplayItemToDto(DisplayItem model)
+    {
+        DisplayItemDto? dto = model switch
+        {
+            DisplayItemImage image => new DisplayItemImageDto
+            {
+                RelativePath = image.RelativePath,
+            },
+            DisplayItemText text => new DisplayItemTextDto
+            {
+                Text = text.Text,
+                FontName = text.Font.Name,
+                FontStyle = FontStyleToDto(text.Font),
+                FontSize = text.Font.Size,
+                Color = text.Color.ToHex()
+            },
+            DisplayItemValue value => new DisplayItemValueDto
+            {
+                Property = value.Property,
+                DisplayFormat = value.DisplayFormat,
+                FontName = value.Font.Name,
+                FontStyle = FontStyleToDto(value.Font),
+                FontSize = value.Font.Size,
+                Color = value.Color.ToHex()
+            },
+            _ => null
+        };
+
+        if (dto != null)
+        {
+            dto.Name = model.Name;
+            dto.DisplayParameters = DisplayParametersToDto(model.DisplayParameters);
+            dto.VisibilityConditions = model.VisibilityConditions.Select(propertyComparer.ToParsableString).ToList();
+            return dto;
+        }
+
+        Logger.Error($"Don't know how to convert DisplayItem of type {model.GetType()}. Item will be ignored.");
+        return null;
+    }
+
+    private Font FontToModel(string fontName, float fontSize, string fontStyle)
+    {
+        return SystemFonts.Collection.TryGet(fontName, out var fontFamily)
+            ? fontFamily.CreateFont(fontSize, Enum.TryParse(fontStyle, out FontStyle style) ? style : FontStyle.Regular)
+            : SystemFonts.CreateFont("Arial", 12, FontStyle.Regular);
+    }
+
+    private string FontStyleToDto(Font font)
+    {
+        if (font is { IsBold: true, IsItalic: true }) return nameof(FontStyle.BoldItalic);
+        if (font.IsBold) return nameof(FontStyle.Bold);
+        if (font.IsItalic) return nameof(FontStyle.Italic);
+        return nameof(FontStyle.Regular);
+    }
+
+    private DisplayParameters DisplayParametersToModel(DisplayParametersDto dto)
     {
         return new DisplayParameters
         {
@@ -85,19 +151,31 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
         };
     }
 
+    private DisplayParametersDto DisplayParametersToDto(DisplayParameters model)
+    {
+        return new DisplayParametersDto
+        {
+            Position = new PointDto { X = model.Position.X, Y = model.Position.Y },
+            Transparency = model.Transparency,
+            Rotation = model.Rotation,
+            Scale = model.Scale.ToString(),
+            Size = model.Size != null ? new SizeDto { Width = model.Size.Value.Width, Height = model.Size.Value.Height } : null
+        };
+    }
+
     #endregion
 
     #region CommandToModel
 
-    private SortedDictionary<StreamDeckAction, List<CommandItem>> ToCommands(Dictionary<string, List<CommandItemDto>> commandDtos)
+    private SortedDictionary<StreamDeckAction, List<CommandItem>> CommandsToModel(Dictionary<string, List<CommandItemDto>> dtos)
     {
         var commands = new SortedDictionary<StreamDeckAction, List<CommandItem>>();
         // Ensure that the model dictionary contains entries for all possible actions. So iterate by using the enum values.
         foreach (StreamDeckAction action in Enum.GetValues(typeof(StreamDeckAction)))
         {
-            if (commandDtos.TryGetValue(action.ToString(), out var commandItemDtos))
+            if (dtos.TryGetValue(action.ToString(), out var commandItemDtos))
             {
-                List<CommandItem> commandItems = commandItemDtos.Select(ToCommandItem).Where(ci => ci != null).ToList()!;
+                List<CommandItem> commandItems = commandItemDtos.Select(CommandItemToModel).Where(ci => ci != null).ToList()!;
                 commands[action] = commandItems;
             }
             else
@@ -109,7 +187,20 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
         return commands;
     }
 
-    private CommandItem? ToCommandItem(CommandItemDto dto)
+    private Dictionary<string, List<CommandItemDto>> CommandsToDto(SortedDictionary<StreamDeckAction, List<CommandItem>> commands)
+    {
+        var commandDtos = new Dictionary<string, List<CommandItemDto>>();
+        foreach (var (action, commandItems) in commands)
+        {
+            var actionName = action.ToString();
+            List<CommandItemDto> commandItemDtos = commandItems.Select(CommandItemToDto).Where(dto => dto != null).ToList()!;
+            commandDtos[actionName] = commandItemDtos;
+        }
+
+        return commandDtos;
+    }
+
+    private CommandItem? CommandItemToModel(CommandItemDto dto)
     {
         CommandItem? commandItem = dto switch
         {
@@ -141,7 +232,41 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
             return commandItem;
         }
 
-        Logger.Error($"Don't know how to convert CommandItem of type {dto.GetType()}. Item will be ignored.");
+        Logger.Error($"Don't know how to convert CommandItemDto of type {dto.GetType()}. Item will be ignored.");
+        return null;
+    }
+
+    private CommandItemDto? CommandItemToDto(CommandItem model)
+    {
+        CommandItemDto? dto = model switch
+        {
+            CommandItemKeypress keypress => new CommandItemKeypressDto
+            {
+                Key = keypress.Key,
+                ModifierCtrl = keypress.ModifierCtrl,
+                ModifierAlt = keypress.ModifierAlt,
+                ModifierShift = keypress.ModifierShift
+            },
+            CommandItemSimHubControl control => new CommandItemSimHubControlDto
+            {
+                Control = control.Control
+            },
+            CommandItemSimHubRole role => new CommandItemSimHubRoleDto
+            {
+                Role = role.Role
+            },
+            _ => null
+        };
+
+        if (dto != null)
+        {
+            dto.ActiveConditions = model.ActiveConditions
+                .Select(propertyComparer.ToParsableString)
+                .ToList();
+            return dto;
+        }
+
+        Logger.Error($"Don't know how to convert CommandItem of type {model.GetType()}. Item will be ignored.");
         return null;
     }
 

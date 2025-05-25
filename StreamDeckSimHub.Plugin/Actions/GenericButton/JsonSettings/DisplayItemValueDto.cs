@@ -8,20 +8,20 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 public class DisplayItemValueDto : DisplayItemDto
 {
     [JsonPropertyName("property")]
-    public string Property { get; set; } = string.Empty;
+    public required string Property { get; set; } = string.Empty;
 
     [JsonPropertyName("displayFormat")]
-    public string DisplayFormat { get; set; } = string.Empty;
+    public required string DisplayFormat { get; set; } = string.Empty;
 
     [JsonPropertyName("font")]
-    public string FontName { get; set; } = "Arial";
+    public required string FontName { get; set; } = "Arial";
 
     [JsonPropertyName("fontSize")]
-    public float FontSize { get; set; } = 12f;
+    public required float FontSize { get; set; } = 12f;
 
     [JsonPropertyName("fontStyle")]
-    public string FontStyle { get; set; } = nameof(SixLabors.Fonts.FontStyle.Regular);
+    public required string FontStyle { get; set; } = nameof(SixLabors.Fonts.FontStyle.Regular);
 
     [JsonPropertyName("color")]
-    public string Color { get; set; } = SixLabors.ImageSharp.Color.White.ToHex();
+    public required string Color { get; set; } = SixLabors.ImageSharp.Color.White.ToHex();
 }

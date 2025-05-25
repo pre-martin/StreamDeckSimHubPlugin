@@ -15,7 +15,7 @@ public class Settings
     /// <summary>
     /// Information about the key size on which these elements are used.
     /// </summary>
-    public Size KeySize { get; set; } = new(0, 0);
+    public required Size KeySize { get; set; } = new(0, 0);
 
     /// TODO: Required?
     public StreamDeckKeyInfo KeyInfo { get; set; } = StreamDeckKeyInfoBuilder.DefaultKeyInfo;

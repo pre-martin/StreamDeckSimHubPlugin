@@ -8,5 +8,5 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 public class CommandItemSimHubRoleDto : CommandItemDto
 {
     [JsonPropertyName("role")]
-    public string Role { get; set; } = string.Empty;
+    public required string Role { get; set; } = string.Empty;
 }

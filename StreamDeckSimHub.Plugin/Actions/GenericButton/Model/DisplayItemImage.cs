@@ -11,6 +11,7 @@ public class DisplayItemImage : DisplayItem
     public const string UiName = "Image";
 
     public required Image Image { get; set; }
+    public required string RelativePath { get; set; } = string.Empty;
 
     public static DisplayItemImage Create()
     {
@@ -19,7 +20,8 @@ public class DisplayItemImage : DisplayItem
             Name = "",
             DisplayParameters = new DisplayParameters(),
             VisibilityConditions = [],
-            Image = ImageUtils.EmptyImage
+            Image = ImageUtils.EmptyImage,
+            RelativePath = string.Empty,
         };
     }
 }
