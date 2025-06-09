@@ -27,6 +27,20 @@ public class GenericButtonAction(
     private Coordinates? _coordinates;
     private Settings? _settings;
 
+    private void SubscribeToSettingsChanges()
+    {
+        if (_settings != null)
+        {
+            _settings.SettingsChanged += Settings_OnSettingsChanged;
+        }
+    }
+
+    private void Settings_OnSettingsChanged(object? sender, EventArgs e)
+    {
+        // Placeholder: Insert code to execute when Settings or any child changes
+        Logger.LogInformation("Settings changed");
+    }
+
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
     {
         Logger.LogInformation("OnWillAppear ({coords})", args.Payload.Coordinates);
@@ -34,6 +48,7 @@ public class GenericButtonAction(
 
         _sdKeyInfo = StreamDeckKeyInfoBuilder.Build(StreamDeck.Info, args.Device, args.Payload.Controller);
         _settings = ConvertSettings(args.Payload.GetSettings<SettingsDto>(), _sdKeyInfo);
+        SubscribeToSettingsChanges();
 
         await base.OnWillAppear(args);
     }
@@ -51,6 +66,7 @@ public class GenericButtonAction(
         Logger.LogInformation("OnDidReceiveSettings ({coords})", args.Payload.Coordinates);
 
         _settings = ConvertSettings(args.Payload.GetSettings<SettingsDto>(), _sdKeyInfo!);
+        SubscribeToSettingsChanges();
 
         await base.OnDidReceiveSettings(args);
     }

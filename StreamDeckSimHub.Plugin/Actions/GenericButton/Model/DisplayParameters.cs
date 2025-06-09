@@ -1,16 +1,17 @@
 ﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using CommunityToolkit.Mvvm.ComponentModel;
 using SixLabors.ImageSharp;
 using StreamDeckSimHub.Plugin.Actions.Model;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
-public class DisplayParameters
+public partial class DisplayParameters : ObservableObject
 {
-    public Point Position { get; set; } = new(0, 0);
-    public float Transparency { get; set; } = 1f;
-    public int Rotation { get; set; } = 0;
-    public ScaleType Scale { get; set; } = ScaleType.None;
-    public Size? Size { get; set; }
+    [ObservableProperty] private Point _position = new(0, 0);
+    [ObservableProperty] private float _transparency = 1f;
+    [ObservableProperty] private int _rotation;
+    [ObservableProperty] private ScaleType _scale = ScaleType.None;
+    [ObservableProperty] private Size? _size;
 }

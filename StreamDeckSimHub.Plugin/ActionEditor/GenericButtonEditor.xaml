@@ -115,7 +115,7 @@
             </ListBox>
         </Grid>
 
-        <!-- The main content for details will go here -->
+        <!-- The main content for details -->
         <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="3" Margin="8">
             <TextBlock Text="Details" FontWeight="Bold" Margin="0,0,0,4" />
         </Grid>

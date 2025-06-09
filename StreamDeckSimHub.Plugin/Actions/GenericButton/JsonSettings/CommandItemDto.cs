@@ -10,6 +10,9 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 [JsonDerivedType(typeof(CommandItemSimHubRoleDto), typeDiscriminator: "simhubrole")]
 public abstract class CommandItemDto
 {
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
     [JsonPropertyName("activeConditions")]
     public List<string> ActiveConditions { get; set; } = new();
 }

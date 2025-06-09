@@ -10,6 +10,7 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 [JsonDerivedType(typeof(DisplayItemValueDto), typeDiscriminator: "value")]
 public abstract class DisplayItemDto
 {
+    [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
     [JsonPropertyName("displayParameters")]

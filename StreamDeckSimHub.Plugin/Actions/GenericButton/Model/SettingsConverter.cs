@@ -1,6 +1,7 @@
 ﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using System.Collections.ObjectModel;
 using NLog;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
@@ -22,10 +23,10 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
         {
             KeySize = new Size(dto.KeySize.Width, dto.KeySize.Height),
             KeyInfo = keyInfo, // TODO Required?
-            DisplayItems = dto.DisplayItems
+            DisplayItems = new ObservableCollection<DisplayItem>(
+                dto.DisplayItems
                 .Select(di => DisplayItemToModel(di, keyInfo))
-                .Where(di => di != null)
-                .ToList()!,
+                .Where(di => di != null)!),
             Commands = CommandsToModel(dto.Commands)
         };
         return settings;
@@ -76,7 +77,7 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
         {
             displayItem.Name = dto.Name;
             displayItem.DisplayParameters = DisplayParametersToModel(dto.DisplayParameters);
-            displayItem.VisibilityConditions = dto.VisibilityConditions.Select(propertyComparer.Parse).ToList();
+            displayItem.VisibilityConditions = new ObservableCollection<ConditionExpression>(dto.VisibilityConditions.Select(propertyComparer.Parse));
             return displayItem;
         }
 
@@ -167,27 +168,27 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
 
     #region CommandToModel
 
-    private SortedDictionary<StreamDeckAction, List<CommandItem>> CommandsToModel(Dictionary<string, List<CommandItemDto>> dtos)
+    private SortedDictionary<StreamDeckAction, ObservableCollection<CommandItem>> CommandsToModel(Dictionary<string, List<CommandItemDto>> dtos)
     {
-        var commands = new SortedDictionary<StreamDeckAction, List<CommandItem>>();
+        var commands = new SortedDictionary<StreamDeckAction, ObservableCollection<CommandItem>>();
         // Ensure that the model dictionary contains entries for all possible actions. So iterate by using the enum values.
         foreach (StreamDeckAction action in Enum.GetValues(typeof(StreamDeckAction)))
         {
             if (dtos.TryGetValue(action.ToString(), out var commandItemDtos))
             {
                 List<CommandItem> commandItems = commandItemDtos.Select(CommandItemToModel).Where(ci => ci != null).ToList()!;
-                commands[action] = commandItems;
+                commands[action] = new ObservableCollection<CommandItem>(commandItems);
             }
             else
             {
-                commands[action] = new List<CommandItem>();
+                commands[action] = new ObservableCollection<CommandItem>();
             }
         }
 
         return commands;
     }
 
-    private Dictionary<string, List<CommandItemDto>> CommandsToDto(SortedDictionary<StreamDeckAction, List<CommandItem>> commands)
+    private Dictionary<string, List<CommandItemDto>> CommandsToDto(SortedDictionary<StreamDeckAction, ObservableCollection<CommandItem>> commands)
     {
         var commandDtos = new Dictionary<string, List<CommandItemDto>>();
         foreach (var (action, commandItems) in commands)
@@ -226,9 +227,10 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
 
         if (commandItem != null)
         {
-            commandItem.ActiveConditions = dto.ActiveConditions
-                .Select(propertyComparer.Parse)
-                .ToList();
+            commandItem.Name = dto.Name;
+            commandItem.ActiveConditions = new ObservableCollection<ConditionExpression>(
+                dto.ActiveConditions
+                .Select(propertyComparer.Parse));
             return commandItem;
         }
 
@@ -260,6 +262,7 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
 
         if (dto != null)
         {
+            dto.Name = model.Name;
             dto.ActiveConditions = model.ActiveConditions
                 .Select(propertyComparer.ToParsableString)
                 .ToList();
