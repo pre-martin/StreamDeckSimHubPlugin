@@ -5,14 +5,12 @@ using System.Text.Json.Serialization;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 
-[JsonDerivedType(typeof(CommandItemKeypressDto), typeDiscriminator: "keypress")]
-[JsonDerivedType(typeof(CommandItemSimHubControlDto), typeDiscriminator: "simhubcontrol")]
-[JsonDerivedType(typeof(CommandItemSimHubRoleDto), typeDiscriminator: "simhubrole")]
+[JsonDerivedType(typeof(CommandItemKeypressDto), typeDiscriminator: "Keypress")]
+[JsonDerivedType(typeof(CommandItemSimHubControlDto), typeDiscriminator: "SimHubControl")]
+[JsonDerivedType(typeof(CommandItemSimHubRoleDto), typeDiscriminator: "SimHubRole")]
 public abstract class CommandItemDto
 {
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
+    public required string Name { get; set; } = string.Empty;
 
-    [JsonPropertyName("activeConditions")]
-    public List<string> ActiveConditions { get; set; } = new();
+    public required List<string> ActiveConditions { get; set; } = [];
 }

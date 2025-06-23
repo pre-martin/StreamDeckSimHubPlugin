@@ -19,26 +19,48 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private DisplayItemViewModel? _selectedDisplayItem;
 
     /// The Dictionary of StreamDeckKey to List of CommandItems from the model as a flat list.
-    public ObservableCollection<IFlatCommandItemsViewModel> FlatCommandItems { get; } = new();
+    public ObservableCollection<IFlatCommandItemsViewModel> FlatCommandItems { get; } = [];
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddSelectedCommandItemCommand))]
     private IFlatCommandItemsViewModel? _selectedFlatCommandItem;
 
+    /// <summary>
+    /// Returns the currently selected DisplayItem or CommandItem, or null if none is selected.
+    /// </summary>
+    public object? SelectedItem => (object?)SelectedDisplayItem ?? SelectedFlatCommandItem as CommandItemViewModel;
+
+    /// <summary>
+    /// True if any DisplayItem or CommandItem is selected.
+    /// </summary>
+    public bool IsAnyItemSelected => SelectedItem != null;
+
+    partial void OnSelectedDisplayItemChanged(DisplayItemViewModel? value)
+    {
+        if (value != null) SelectedFlatCommandItem = null; // DisplayItem selected -> no CommandItem selected
+        OnPropertyChanged(nameof(SelectedItem));
+        OnPropertyChanged(nameof(IsAnyItemSelected));
+    }
+
+    partial void OnSelectedFlatCommandItemChanged(IFlatCommandItemsViewModel? value)
+    {
+        if (value != null) SelectedDisplayItem = null; // CommandItem selected -> no DisplayItem selected
+        OnPropertyChanged(nameof(SelectedItem));
+        OnPropertyChanged(nameof(IsAnyItemSelected));
+    }
+
     public SettingsViewModel(Settings settings)
     {
         _settings = settings;
 
-        DisplayItems = new ObservableCollection<DisplayItemViewModel>(
-            settings.DisplayItems.Select(di => new DisplayItemViewModel(di))
-        );
+        DisplayItems = new ObservableCollection<DisplayItemViewModel>(settings.DisplayItems.Select(DisplayItemToViewModel));
 
-        foreach (var kvp in _settings.Commands)
+        foreach (var kvp in _settings.CommandItems)
         {
             FlatCommandItems.Add(new StreamDeckActionViewModel(kvp.Key));
             foreach (var commandItem in kvp.Value)
             {
-                FlatCommandItems.Add(new CommandItemViewModel(commandItem, kvp.Key));
+                FlatCommandItems.Add(CommandItemToViewModel(commandItem, kvp.Key));
             }
         }
     }
@@ -72,10 +94,21 @@ public partial class SettingsViewModel : ObservableObject
 
     private void AddDisplayItem(DisplayItem displayItem)
     {
-        _settings.DisplayItems.Add(displayItem);
-        var vm = new DisplayItemViewModel(displayItem);
+        _settings.AddDisplayItem(displayItem);
+        var vm = DisplayItemToViewModel(displayItem);
         DisplayItems.Add(vm);
         SelectedDisplayItem = vm;
+    }
+
+    private DisplayItemViewModel DisplayItemToViewModel(DisplayItem displayItem)
+    {
+        return displayItem switch
+        {
+            DisplayItemImage img => new DisplayItemImageViewModel(img),
+            DisplayItemText txt => new DisplayItemTextViewModel(txt),
+            DisplayItemValue val => new DisplayItemValueViewModel(val),
+            _ => throw new InvalidOperationException("Unknown DisplayItem type.")
+        };
     }
 
     #endregion
@@ -119,7 +152,7 @@ public partial class SettingsViewModel : ObservableObject
             _ => throw new InvalidOperationException("Invalid command list item selected.")
         };
 
-        _settings.Commands[action].Add(newItem);
+        _settings.AddCommandItem(action, newItem);
 
         // Find the action in the flat list...
         var actionElement =
@@ -131,33 +164,22 @@ public partial class SettingsViewModel : ObservableObject
             index++;
         }
 
-        var vm = new CommandItemViewModel(newItem, action);
+        var vm = CommandItemToViewModel(newItem, action);
         FlatCommandItems.Insert(index, vm);
         SelectedFlatCommandItem = vm;
+    }
+
+    private CommandItemViewModel CommandItemToViewModel(CommandItem commandItem, StreamDeckAction action)
+    {
+        return commandItem switch
+        {
+            CommandItemKeypress keypress => new CommandItemKeypressViewModel(keypress, action),
+            CommandItemSimHubControl control => new CommandItemSimHubControlViewModel(control, action),
+            CommandItemSimHubRole role => new CommandItemSimHubRoleViewModel(role, action),
+            _ => throw new InvalidOperationException("Unknown CommandItem type.")
+        };
     }
 
     #endregion
 }
 
-public class DisplayItemViewModel(DisplayItem model) : ObservableObject
-{
-    private DisplayItem Model { get; } = model;
-    public string Name => string.IsNullOrWhiteSpace(Model.Name) ? Model.GetType().Name : Model.Name;
-}
-
-/// Common interface for the flat command list with different entries.
-public interface IFlatCommandItemsViewModel;
-
-public class StreamDeckActionViewModel(StreamDeckAction action) : ObservableObject, IFlatCommandItemsViewModel
-{
-    public StreamDeckAction Action { get; } = action;
-
-    public override string ToString() => Action.ToString();
-}
-
-public class CommandItemViewModel(CommandItem model, StreamDeckAction parentAction) : ObservableObject, IFlatCommandItemsViewModel
-{
-    private CommandItem Model { get; } = model;
-    public StreamDeckAction ParentAction { get; } = parentAction;
-    public string Name => Model.GetType().Name;
-}

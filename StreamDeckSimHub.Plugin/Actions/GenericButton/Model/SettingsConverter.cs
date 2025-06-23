@@ -19,16 +19,39 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
 
     public Settings SettingsToModel(SettingsDto dto, StreamDeckKeyInfo keyInfo)
     {
+        try
+        {
+            dto.DeserializeItemsFromStrings();
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "Failed to deserialize items from strings in SettingsDto.");
+        }
+
         var settings = new Settings
         {
             KeySize = new Size(dto.KeySize.Width, dto.KeySize.Height),
             KeyInfo = keyInfo, // TODO Required?
-            DisplayItems = new ObservableCollection<DisplayItem>(
-                dto.DisplayItems
-                .Select(di => DisplayItemToModel(di, keyInfo))
-                .Where(di => di != null)!),
-            Commands = CommandsToModel(dto.Commands)
         };
+
+
+        foreach (var displayItem in dto.DisplayItems.Select(di => DisplayItemToModel(di, keyInfo)).Where(di => di != null))
+        {
+            settings.AddDisplayItem(displayItem!);
+        }
+
+        // To ensure that we only convert actions that are actually known, we iterate over the Settings, which contains all possible actions.
+        foreach (var action in settings.CommandItems.Keys)
+        {
+            if (dto.CommandItems.ContainsKey(action.ToString()))
+            {
+                foreach (var commandItem in dto.CommandItems[action.ToString()].Select(CommandItemToModel).Where(ci => ci != null))
+                {
+                    settings.AddCommandItem(action, commandItem!);
+                }
+            }
+        }
+
         return settings;
     }
 
@@ -41,8 +64,9 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
                 .Select(DisplayItemToDto)
                 .Where(di => di != null)
                 .ToList()!,
-            Commands = CommandsToDto(settings.Commands)
+            CommandItems = CommandsToDto(settings.CommandItems)
         };
+        settingsDto.SerializeItemsToStrings();
         return settingsDto;
     }
 
@@ -91,10 +115,16 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
         {
             DisplayItemImage image => new DisplayItemImageDto
             {
+                Name = model.Name,
+                DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
+                VisibilityConditions = model.VisibilityConditions.Select(propertyComparer.ToParsableString).ToList(),
                 RelativePath = image.RelativePath,
             },
             DisplayItemText text => new DisplayItemTextDto
             {
+                Name = model.Name,
+                DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
+                VisibilityConditions = model.VisibilityConditions.Select(propertyComparer.ToParsableString).ToList(),
                 Text = text.Text,
                 FontName = text.Font.Name,
                 FontStyle = FontStyleToDto(text.Font),
@@ -103,6 +133,9 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
             },
             DisplayItemValue value => new DisplayItemValueDto
             {
+                Name = model.Name,
+                DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
+                VisibilityConditions = model.VisibilityConditions.Select(propertyComparer.ToParsableString).ToList(),
                 Property = value.Property,
                 DisplayFormat = value.DisplayFormat,
                 FontName = value.Font.Name,
@@ -115,9 +148,6 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
 
         if (dto != null)
         {
-            dto.Name = model.Name;
-            dto.DisplayParameters = DisplayParametersToDto(model.DisplayParameters);
-            dto.VisibilityConditions = model.VisibilityConditions.Select(propertyComparer.ToParsableString).ToList();
             return dto;
         }
 
@@ -168,26 +198,6 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
 
     #region CommandToModel
 
-    private SortedDictionary<StreamDeckAction, ObservableCollection<CommandItem>> CommandsToModel(Dictionary<string, List<CommandItemDto>> dtos)
-    {
-        var commands = new SortedDictionary<StreamDeckAction, ObservableCollection<CommandItem>>();
-        // Ensure that the model dictionary contains entries for all possible actions. So iterate by using the enum values.
-        foreach (StreamDeckAction action in Enum.GetValues(typeof(StreamDeckAction)))
-        {
-            if (dtos.TryGetValue(action.ToString(), out var commandItemDtos))
-            {
-                List<CommandItem> commandItems = commandItemDtos.Select(CommandItemToModel).Where(ci => ci != null).ToList()!;
-                commands[action] = new ObservableCollection<CommandItem>(commandItems);
-            }
-            else
-            {
-                commands[action] = new ObservableCollection<CommandItem>();
-            }
-        }
-
-        return commands;
-    }
-
     private Dictionary<string, List<CommandItemDto>> CommandsToDto(SortedDictionary<StreamDeckAction, ObservableCollection<CommandItem>> commands)
     {
         var commandDtos = new Dictionary<string, List<CommandItemDto>>();
@@ -230,7 +240,7 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
             commandItem.Name = dto.Name;
             commandItem.ActiveConditions = new ObservableCollection<ConditionExpression>(
                 dto.ActiveConditions
-                .Select(propertyComparer.Parse));
+                    .Select(propertyComparer.Parse));
             return commandItem;
         }
 
@@ -240,10 +250,16 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
 
     private CommandItemDto? CommandItemToDto(CommandItem model)
     {
+        var activeConditions = model.ActiveConditions
+            .Select(propertyComparer.ToParsableString)
+            .ToList();
+
         CommandItemDto? dto = model switch
         {
             CommandItemKeypress keypress => new CommandItemKeypressDto
             {
+                Name = model.Name,
+                ActiveConditions = activeConditions,
                 Key = keypress.Key,
                 ModifierCtrl = keypress.ModifierCtrl,
                 ModifierAlt = keypress.ModifierAlt,
@@ -251,10 +267,14 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
             },
             CommandItemSimHubControl control => new CommandItemSimHubControlDto
             {
+                Name = model.Name,
+                ActiveConditions = activeConditions,
                 Control = control.Control
             },
             CommandItemSimHubRole role => new CommandItemSimHubRoleDto
             {
+                Name = model.Name,
+                ActiveConditions = activeConditions,
                 Role = role.Role
             },
             _ => null
@@ -262,10 +282,6 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
 
         if (dto != null)
         {
-            dto.Name = model.Name;
-            dto.ActiveConditions = model.ActiveConditions
-                .Select(propertyComparer.ToParsableString)
-                .ToList();
             return dto;
         }
 

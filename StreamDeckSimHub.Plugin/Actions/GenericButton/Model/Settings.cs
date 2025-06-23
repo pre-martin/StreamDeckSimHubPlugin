@@ -25,32 +25,36 @@ public class Settings : ObservableObject
     /// <summary>
     /// List of elements that should be displayed.
     /// </summary>
-    public required ObservableCollection<DisplayItem> DisplayItems { get; set; } = new();
+    public ObservableCollection<DisplayItem> DisplayItems { get; } = [];
 
     /// <summary>
     /// Contains the list of actions for each possible Stream Deck action.
     /// </summary>
-    public required SortedDictionary<StreamDeckAction, ObservableCollection<CommandItem>> Commands { get; set; } = new();
+    public SortedDictionary<StreamDeckAction, ObservableCollection<CommandItem>> CommandItems { get; } = new();
 
     public event EventHandler? SettingsChanged;
 
     public Settings()
     {
-        DisplayItems.CollectionChanged += (s, e) => SettingsChanged?.Invoke(this, EventArgs.Empty);
-        foreach (var item in DisplayItems)
+        DisplayItems.CollectionChanged += (_, _) => SettingsChanged?.Invoke(this, EventArgs.Empty);
+
+        foreach (StreamDeckAction action in Enum.GetValues(typeof(StreamDeckAction)))
         {
-            if (item is ObservableObject oo)
-                oo.PropertyChanged += (s, e) => SettingsChanged?.Invoke(this, EventArgs.Empty);
+            CommandItems[action] = [];
+            CommandItems[action].CollectionChanged += (_, _) => SettingsChanged?.Invoke(this, EventArgs.Empty);
         }
-        foreach (var kvp in Commands)
-        {
-            kvp.Value.CollectionChanged += (s, e) => SettingsChanged?.Invoke(this, EventArgs.Empty);
-            foreach (var cmd in kvp.Value)
-            {
-                if (cmd is ObservableObject oo)
-                    oo.PropertyChanged += (s, e) => SettingsChanged?.Invoke(this, EventArgs.Empty);
-            }
-        }
+    }
+
+    public void AddDisplayItem(DisplayItem displayItem)
+    {
+        DisplayItems.Add(displayItem);
+        displayItem.PropertyChanged += (_, _) => SettingsChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void AddCommandItem(StreamDeckAction action, CommandItem item)
+    {
+        CommandItems[action].Add(item);
+        item.PropertyChanged += (_, _) => SettingsChanged?.Invoke(this, EventArgs.Empty);
     }
 
     protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)

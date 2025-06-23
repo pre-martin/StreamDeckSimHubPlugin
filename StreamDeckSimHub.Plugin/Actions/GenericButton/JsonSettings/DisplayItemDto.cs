@@ -5,17 +5,14 @@ using System.Text.Json.Serialization;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 
-[JsonDerivedType(typeof(DisplayItemImageDto), typeDiscriminator: "image")]
-[JsonDerivedType(typeof(DisplayItemTextDto), typeDiscriminator: "text")]
-[JsonDerivedType(typeof(DisplayItemValueDto), typeDiscriminator: "value")]
+[JsonDerivedType(typeof(DisplayItemImageDto), typeDiscriminator: "Image")]
+[JsonDerivedType(typeof(DisplayItemTextDto), typeDiscriminator: "Text")]
+[JsonDerivedType(typeof(DisplayItemValueDto), typeDiscriminator: "Value")]
 public abstract class DisplayItemDto
 {
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
+    public required string Name { get; set; } = string.Empty;
 
-    [JsonPropertyName("displayParameters")]
-    public DisplayParametersDto DisplayParameters { get; set; } = new();
+    public required DisplayParametersDto DisplayParameters { get; set; } = new();
 
-    [JsonPropertyName("visibilityConditions")]
-    public List<string> VisibilityConditions { get; set; } = new();
+    public required List<string> VisibilityConditions { get; set; } = [];
 }

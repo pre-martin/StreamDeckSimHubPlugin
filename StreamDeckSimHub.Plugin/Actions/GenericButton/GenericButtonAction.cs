@@ -35,10 +35,21 @@ public class GenericButtonAction(
         }
     }
 
-    private void Settings_OnSettingsChanged(object? sender, EventArgs e)
+    private async void Settings_OnSettingsChanged(object? sender, EventArgs e)
     {
-        // Placeholder: Insert code to execute when Settings or any child changes
-        Logger.LogInformation("Settings changed");
+        try
+        {
+            if (_settings != null)
+            {
+                Logger.LogInformation("Settings changed");
+                var settingsDto = _settingsConverter.SettingsToDto(_settings);
+                await SetSettingsAsync(settingsDto);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error while saving settings");
+        }
     }
 
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)

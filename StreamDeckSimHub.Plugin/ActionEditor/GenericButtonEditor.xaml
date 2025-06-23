@@ -4,10 +4,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
+        xmlns:converters="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Converters"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=viewModels:SettingsViewModelDesignTime, IsDesignTimeCreatable=True}"
         Title="Generic Button Editor" Height="750" Width="800" MinHeight="750" MinWidth="800"
         Closed="OnClosed" Icon="/ActionEditor/GenericButtonEditor.ico">
+
+    <Window.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+    </Window.Resources>
 
     <!--<Grid Background="{DynamicResource PiBackground}">-->
     <Grid>
@@ -117,7 +123,64 @@
 
         <!-- The main content for details -->
         <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="3" Margin="8">
-            <TextBlock Text="Details" FontWeight="Bold" Margin="0,0,0,4" />
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />    <!-- Editor (DataTemplate) -->
+                <RowDefinition Height="8" />    <!-- Spacer -->
+                <RowDefinition Height="Auto" /> <!-- Bottom: Conditions placeholder -->
+            </Grid.RowDefinitions>
+
+            <!-- Top: Detail editor for the specific item -->
+            <ContentControl Grid.Row="0" Content="{Binding SelectedItem}"
+                            Visibility="{Binding IsAnyItemSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                <ContentControl.Resources>
+                    <DataTemplate DataType="{x:Type viewModels:DisplayItemImageViewModel}">
+                        <StackPanel>
+                            <TextBlock Text="Image-Name:" FontWeight="Bold" Margin="0,0,0,4" />
+                            <TextBox Width="250" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type viewModels:DisplayItemTextViewModel}">
+                        <StackPanel>
+                            <TextBlock Text="Text-Name:" FontWeight="Bold" Margin="0,0,0,4" />
+                            <TextBox Width="250" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type viewModels:DisplayItemValueViewModel}">
+                        <StackPanel>
+                            <TextBlock Text="Value-Name:" FontWeight="Bold" Margin="0,0,0,4" />
+                            <TextBox Width="250" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type viewModels:CommandItemKeypressViewModel}">
+                        <StackPanel>
+                            <TextBlock Text="Keypress-Name:" FontWeight="Bold" Margin="0,0,0,4" />
+                            <TextBox Width="250" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type viewModels:CommandItemSimHubControlViewModel}">
+                        <StackPanel>
+                            <TextBlock Text="SimHubControl-Name:" FontWeight="Bold" Margin="0,0,0,4" />
+                            <TextBox Width="250" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type viewModels:CommandItemSimHubRoleViewModel}">
+                        <StackPanel>
+                            <TextBlock Text="SimHubRole-Name:" FontWeight="Bold" Margin="0,0,0,4" />
+                            <TextBox Width="250" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ContentControl.Resources>
+            </ContentControl>
+
+            <!-- Bottom: Conditions placeholder -->
+            <Border Grid.Row="2" BorderBrush="#CCC" BorderThickness="1" Padding="8" Margin="0,8,0,0" CornerRadius="4"
+                    Visibility="{Binding IsAnyItemSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                <TextBlock Text="[Conditions editor placeholder]" Foreground="#888" />
+            </Border>
+
+            <!-- If nothing is selected -->
+            <TextBlock Grid.Row="0" Text="Please select a display item or a command item." Foreground="#888"
+                       Visibility="{Binding IsAnyItemSelected, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
         </Grid>
     </Grid>
 </Window>
