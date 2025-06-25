@@ -20,7 +20,7 @@ public partial class CommandItemKeypress : CommandItem
     {
         return new CommandItemKeypress
         {
-            ActiveConditions = [],
+            Conditions = [],
             Key = string.Empty,
             ModifierCtrl = false,
             ModifierAlt = false,

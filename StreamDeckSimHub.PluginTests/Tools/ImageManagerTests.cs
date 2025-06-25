@@ -14,24 +14,58 @@ public class ImageManagerTests
     [Test]
     public void TestListCustomImages()
     {
+        var emptyFileData = new MockFileData(string.Empty);
+        var baseDir = Path.Combine("images", "custom");
+
         var imageUtils = Mock.Of<ImageUtils>();
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
         {
-            { Path.Combine("images", "custom", "test.svg"), new MockFileData(string.Empty) },
-            { Path.Combine("images", "custom", "subDir", "testSub.svg"), new MockFileData(string.Empty) },
-            { Path.Combine("images", "custom", "image1.png"), new MockFileData(string.Empty) },
-            { Path.Combine("images", "custom", "image1@2x.png"), new MockFileData(string.Empty) },
-            { Path.Combine("images", "custom", "img@2x.png"), new MockFileData(string.Empty) },
+            { Path.Combine(baseDir, "test.svg"), emptyFileData },
+            { Path.Combine(baseDir, "subDir", "testSub.svg"), emptyFileData },
+            { Path.Combine(baseDir, "subDir", "subSub", "testSub.svg"), emptyFileData },
+            { Path.Combine(baseDir, "image1.png"), emptyFileData },
+            { Path.Combine(baseDir, "image1@2x.png"), emptyFileData },
+            { Path.Combine(baseDir, "img@2x.png"), emptyFileData },
         });
 
         var imageManager = new ImageManager(fileSystem, imageUtils);
         var customImages = imageManager.ListCustomImages();
 
-        Assert.That(customImages.Count, Is.EqualTo(4));
+        Assert.That(customImages.Count, Is.EqualTo(5));
         Assert.That(customImages[0], Is.EqualTo("image1.png"));
         Assert.That(customImages[1], Is.EqualTo("img.png"));
         Assert.That(customImages[2], Is.EqualTo("test.svg"));
         Assert.That(customImages[3], Is.EqualTo("subDir/testSub.svg"));
+        Assert.That(customImages[4], Is.EqualTo("subDir/subSub/testSub.svg"));
+    }
+
+    [Test]
+    public void TestListCustomImagesSubdirectories()
+    {
+        var emptyFileData = new MockFileData(string.Empty);
+        var baseDir = Path.Combine("images", "custom");
+
+        var imageUtils = Mock.Of<ImageUtils>();
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        {
+            { Path.Combine(baseDir, "test.svg"), emptyFileData },
+            { Path.Combine(baseDir, "subDir", "testSub.svg"), emptyFileData },
+            { Path.Combine(baseDir, "otherDir", "image1.png"), emptyFileData },
+            { Path.Combine(baseDir, "subDir", "subSubDir2", "someFile.png"), emptyFileData },
+            { Path.Combine(baseDir, "subDir", "subSubDir1", "icon.png"), emptyFileData },
+            { Path.Combine(baseDir, "otherDir", "sub", "image1.png"), emptyFileData },
+        });
+
+        var imageManager = new ImageManager(fileSystem, imageUtils);
+        var directories = imageManager.ListCustomImagesSubdirectories();
+
+        Assert.That(directories.Count, Is.EqualTo(6));
+        Assert.That(directories[0], Is.EqualTo("/"));
+        Assert.That(directories[1], Is.EqualTo("otherDir"));
+        Assert.That(directories[2], Is.EqualTo("otherDir/sub"));
+        Assert.That(directories[3], Is.EqualTo("subDir"));
+        Assert.That(directories[4], Is.EqualTo("subDir/subSubDir1"));
+        Assert.That(directories[5], Is.EqualTo("subDir/subSubDir2"));
     }
 
     [Test]

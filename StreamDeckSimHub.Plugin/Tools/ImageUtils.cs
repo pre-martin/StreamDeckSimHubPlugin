@@ -1,6 +1,8 @@
 ﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using System.IO;
+using System.Windows.Media.Imaging;
 using NLog;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
@@ -116,5 +118,24 @@ public class ImageUtils
         image.Mutate(x => x.DrawText(textOptions, title, Color.White));
 
         return image.ToBase64String(PngFormat.Instance);
+    }
+
+    /// <summary>
+    /// Converts a SixLabors <c>Image</c> instance into a <c>BitmapImage</c> for WPF usage.
+    /// </summary>
+    public BitmapImage FromImage(Image image)
+    {
+        using var memoryStream = new MemoryStream();
+        image.SaveAsPng(memoryStream);
+        memoryStream.Seek(0, SeekOrigin.Begin);
+
+        var bitmapImage = new BitmapImage();
+        bitmapImage.BeginInit();
+        bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+        bitmapImage.StreamSource = memoryStream;
+        bitmapImage.EndInit();
+        bitmapImage.Freeze();
+
+        return bitmapImage;
     }
 }

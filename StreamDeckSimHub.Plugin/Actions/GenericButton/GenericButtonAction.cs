@@ -1,6 +1,7 @@
 ﻿// Copyright (C) 2024 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using System.ComponentModel;
 using Microsoft.Extensions.Logging;
 using SharpDeck;
 using SharpDeck.Events.Received;
@@ -35,10 +36,20 @@ public class GenericButtonAction(
         }
     }
 
-    private async void Settings_OnSettingsChanged(object? sender, EventArgs e)
+    private async void Settings_OnSettingsChanged(object? sender, EventArgs args)
     {
         try
         {
+            // Special handling for DisplayItemImage: When the property RelativePath changes, we update the
+            // Image in this central location.
+            if (sender is DisplayItemImage diImage && args is PropertyChangedEventArgs
+                {
+                    PropertyName: nameof(DisplayItemImage.RelativePath)
+                } && _sdKeyInfo != null)
+            {
+                diImage.Image = imageManager.GetCustomImage(diImage.RelativePath, _sdKeyInfo);
+            }
+
             if (_settings != null)
             {
                 Logger.LogInformation("Settings changed");
@@ -46,9 +57,9 @@ public class GenericButtonAction(
                 await SetSettingsAsync(settingsDto);
             }
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            Logger.LogError(ex, "Error while saving settings");
+            Logger.LogError(e, "Error while saving settings");
         }
     }
 
@@ -102,6 +113,7 @@ public class GenericButtonAction(
             // TODO Scale, update KeyInfo and save config with SetSettings()
             Logger.LogWarning("Key size changed from {old} to {new}", settings.KeySize, sdKeyInfo.KeySize);
         }
+
         return settings;
     }
 }

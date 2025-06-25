@@ -158,7 +158,7 @@ public class FlagsAction : StreamDeckAction<FlagsSettings>
 
         if (!_gameRunning)
         {
-            // game not running, show checked flag as placeholder
+            // game not running, show the checkered flag as placeholder
             _flagState = new FlagState();
             await SetActiveImage(_flags.CheckeredFlag.Image);
             return;

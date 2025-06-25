@@ -1,0 +1,11 @@
+﻿// Copyright (C) 2025 Martin Renner
+// LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
+
+namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
+
+public abstract class ItemDto
+{
+    public required string Name { get; set; } = string.Empty;
+
+    public required List<string> Conditions { get; set; } = [];
+}

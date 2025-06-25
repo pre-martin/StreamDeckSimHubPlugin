@@ -6,6 +6,7 @@ using System.Windows;
 using CommunityToolkit.Mvvm.Messaging;
 using NLog;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
+using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor;
 
@@ -16,9 +17,11 @@ public class ActionEditorManager : IRecipient<GenericButtonEditorClosedEvent>
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private readonly ConcurrentDictionary<string, GenericButtonEditor> _actionEditors = new();
+    private readonly ImageManager _imageManager;
 
-    public ActionEditorManager()
+    public ActionEditorManager(ImageManager imageManager)
     {
+        _imageManager = imageManager;
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
@@ -28,12 +31,14 @@ public class ActionEditorManager : IRecipient<GenericButtonEditorClosedEvent>
         {
             if (_actionEditors.TryGetValue(actionUuid, out var editor))
             {
+                Logger.Debug("Showing existing editor for action {ActionUuid}", actionUuid);
                 editor.DataContext = settings;
                 BringToFront(editor);
             }
             else
             {
-                var newEditor = new GenericButtonEditor(actionUuid, settings)
+                Logger.Debug("Showing new editor for action {ActionUuid}", actionUuid);
+                var newEditor = new GenericButtonEditor(actionUuid, settings, _imageManager)
                 {
                     WindowStartupLocation = WindowStartupLocation.CenterScreen, // show on the same screen as the Stream Deck software
                 };
@@ -50,6 +55,7 @@ public class ActionEditorManager : IRecipient<GenericButtonEditorClosedEvent>
     {
         if (_actionEditors.TryRemove(actionUuid, out var editor))
         {
+            Logger.Debug("Removed existing editor for action {ActionUuid}", actionUuid);
             Application.Current.Dispatcher.Invoke(() => editor.Close());
         }
     }

@@ -15,7 +15,7 @@ public partial class CommandItemSimHubRole : CommandItem
     {
         return new CommandItemSimHubRole
         {
-            ActiveConditions = [],
+            Conditions = [],
             Role = string.Empty
         };
     }

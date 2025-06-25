@@ -8,9 +8,4 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 [JsonDerivedType(typeof(CommandItemKeypressDto), typeDiscriminator: "Keypress")]
 [JsonDerivedType(typeof(CommandItemSimHubControlDto), typeDiscriminator: "SimHubControl")]
 [JsonDerivedType(typeof(CommandItemSimHubRoleDto), typeDiscriminator: "SimHubRole")]
-public abstract class CommandItemDto
-{
-    public required string Name { get; set; } = string.Empty;
-
-    public required List<string> ActiveConditions { get; set; } = [];
-}
+public abstract class CommandItemDto : ItemDto;

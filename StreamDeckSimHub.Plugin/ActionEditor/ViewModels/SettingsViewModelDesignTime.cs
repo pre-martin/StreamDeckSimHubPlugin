@@ -1,14 +1,14 @@
 ﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
-using SixLabors.ImageSharp;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.Actions.Model;
 using StreamDeckSimHub.Plugin.Tools;
+using Size = SixLabors.ImageSharp.Size;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 
-public class SettingsViewModelDesignTime() : SettingsViewModel(Settings)
+public class SettingsViewModelDesignTime() : SettingsViewModel(Settings, null!, null!)
 {
     private static readonly Settings Settings = new()
     {

@@ -11,8 +11,9 @@ public partial class DisplayItemImage : DisplayItem
 {
     public const string UiName = "Image";
 
-    [ObservableProperty] private Image _image = ImageUtils.EmptyImage;
-    public string RelativePath { get; set; } = string.Empty;
+    // Image is being updated centrally by GenericButtonAction from the value of RelativePath.
+    public Image Image { get; set; } = ImageUtils.EmptyImage;
+    [ObservableProperty] private string _relativePath = string.Empty;
 
     public static DisplayItemImage Create()
     {

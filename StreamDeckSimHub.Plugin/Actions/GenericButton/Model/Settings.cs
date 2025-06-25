@@ -2,6 +2,7 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SixLabors.ImageSharp;
 using StreamDeckSimHub.Plugin.Actions.Model;
@@ -48,16 +49,16 @@ public class Settings : ObservableObject
     public void AddDisplayItem(DisplayItem displayItem)
     {
         DisplayItems.Add(displayItem);
-        displayItem.PropertyChanged += (_, _) => SettingsChanged?.Invoke(this, EventArgs.Empty);
+        displayItem.PropertyChanged += (sender, args) => SettingsChanged?.Invoke(sender, args);
     }
 
-    public void AddCommandItem(StreamDeckAction action, CommandItem item)
+    public void AddCommandItem(StreamDeckAction action, CommandItem commandItem)
     {
-        CommandItems[action].Add(item);
-        item.PropertyChanged += (_, _) => SettingsChanged?.Invoke(this, EventArgs.Empty);
+        CommandItems[action].Add(commandItem);
+        commandItem.PropertyChanged += (sender, args) => SettingsChanged?.Invoke(sender, args);
     }
 
-    protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)
+    protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
         SettingsChanged?.Invoke(this, EventArgs.Empty);

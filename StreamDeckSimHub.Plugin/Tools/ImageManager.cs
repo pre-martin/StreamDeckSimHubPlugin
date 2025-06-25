@@ -9,11 +9,16 @@ using SixLabors.ImageSharp;
 
 namespace StreamDeckSimHub.Plugin.Tools;
 
-public class ImageManager(IFileSystem fileSystem, ImageUtils imageUtils)
+public partial class ImageManager(IFileSystem fileSystem, ImageUtils imageUtils)
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private static readonly string[] SupportedExtensions = [".svg", ".png", ".jpg", ".jpeg", ".gif"];
     private readonly IDirectoryInfo _customImagesDirectory = fileSystem.DirectoryInfo.New(Path.Combine("images", "custom"));
+
+    /// <summary>
+    /// Convenience property to access the ImageUtils instance.
+    /// </summary>
+    public ImageUtils ImageUtils => imageUtils;
 
     /// <summary>
     /// Returns an array with all custom images. The images are returned with their relative path inside
@@ -21,7 +26,7 @@ public class ImageManager(IFileSystem fileSystem, ImageUtils imageUtils)
     /// </summary>
     public string[] ListCustomImages()
     {
-        var imageQualityRegex = new Regex(@"@\dx\."); // "image@2x.png", "image@3x.png", ...
+        var imageQualityRegex = ImageQualityRegex(); // "image@2x.png", "image@3x.png", ...
         try
         {
             var fn = _customImagesDirectory.FullName;
@@ -43,7 +48,65 @@ public class ImageManager(IFileSystem fileSystem, ImageUtils imageUtils)
     }
 
     /// <summary>
-    /// Returns an image from the  "custom image" folder.
+    /// Returns an array with all subdirectories inside the "custom images" directory.
+    /// </summary>
+    public string[] ListCustomImagesSubdirectories()
+    {
+        try
+        {
+            var fn = _customImagesDirectory.FullName;
+            var directories = _customImagesDirectory.GetDirectories("*", new EnumerationOptions { RecurseSubdirectories = true })
+                .ToList()
+                .Select(directoryInfo => directoryInfo.FullName[(fn.Length + 1)..])
+                .Select(fileName => fileName.Replace(@"\", "/"))
+                .OrderBy(fileName => fileName)
+                .ToList();
+            directories.Insert(0, "/"); // Add root directory as first entry
+            return directories.ToArray();
+        }
+        catch (Exception e)
+        {
+            Logger.Error($"Could not list custom images subdirectories: {e.Message}");
+            return [];
+        }
+    }
+
+    /// <summary>
+    /// Returns an array with all custom images in the given subdirectory.
+    /// </summary>
+    public string[] ListCustomImages(string subdirectory)
+    {
+        var imageQualityRegex = ImageQualityRegex(); // "image@2x.png", "image@3x.png", ...
+        var dir = Path.Combine(_customImagesDirectory.FullName, subdirectory == "/" ? string.Empty : subdirectory);
+        var subDirInfo = fileSystem.DirectoryInfo.New(dir);
+        if (!subDirInfo.Exists)
+        {
+            Logger.Warn($"Custom images subdirectory '{subdirectory}' does not exist.");
+            return [];
+        }
+
+        try
+        {
+            var fn = _customImagesDirectory.FullName;
+            return subDirInfo.GetFiles("*.*", SearchOption.TopDirectoryOnly)
+                .Where(fileInfo => SupportedExtensions.Contains(fileInfo.Extension.ToLowerInvariant()))
+                .Select(fileInfo => fileInfo.FullName[(fn.Length + 1)..])
+                .Select(fileName => imageQualityRegex.Replace(fileName, "."))
+                .Select(fileName => fileName.Replace(@"\", "/"))
+                .ToList()
+                .Distinct()
+                .OrderBy(fileName => fileName)
+                .ToArray();
+        }
+        catch (Exception e)
+        {
+            Logger.Error($"Could not list custom images from subdirectory '{subdirectory}': {e.Message}");
+            return [];
+        }
+    }
+
+    /// <summary>
+    /// Returns an image from the "custom image" folder.
     /// </summary>
     /// <param name="relativePath">The relative path inside the "custom images" folder</param>
     /// <param name="sdKeyInfo">Information about the specific Stream Deck key or dial</param>
@@ -94,4 +157,8 @@ public class ImageManager(IFileSystem fileSystem, ImageUtils imageUtils)
 
         return relativePath;
     }
+
+    // "image@2x.png", "image@3x.png", ...
+    [GeneratedRegex(@"@\dx\.")]
+    private static partial Regex ImageQualityRegex();
 }

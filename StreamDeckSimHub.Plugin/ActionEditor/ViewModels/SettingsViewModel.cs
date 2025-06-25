@@ -2,23 +2,27 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.ObjectModel;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.Actions.Model;
+using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
     private readonly Settings _settings;
+    private readonly ImageManager _imageManager;
+    private readonly Window _parentWindow;
 
-    /// List of DisplayItems from the model
+    /// List of DisplayItems (as ViewModels).
     public ObservableCollection<DisplayItemViewModel> DisplayItems { get; }
 
     [ObservableProperty] private DisplayItemViewModel? _selectedDisplayItem;
 
-    /// The Dictionary of StreamDeckKey to List of CommandItems from the model as a flat list.
+    /// The Dictionary of StreamDeckKey to List of CommandItems (as ViewModels) as a flat list.
     public ObservableCollection<IFlatCommandItemsViewModel> FlatCommandItems { get; } = [];
 
     [ObservableProperty]
@@ -49,9 +53,11 @@ public partial class SettingsViewModel : ObservableObject
         OnPropertyChanged(nameof(IsAnyItemSelected));
     }
 
-    public SettingsViewModel(Settings settings)
+    public SettingsViewModel(Settings settings, ImageManager imageManager, Window parentWindow)
     {
         _settings = settings;
+        _imageManager = imageManager;
+        _parentWindow = parentWindow;
 
         DisplayItems = new ObservableCollection<DisplayItemViewModel>(settings.DisplayItems.Select(DisplayItemToViewModel));
 
@@ -104,9 +110,9 @@ public partial class SettingsViewModel : ObservableObject
     {
         return displayItem switch
         {
-            DisplayItemImage img => new DisplayItemImageViewModel(img),
-            DisplayItemText txt => new DisplayItemTextViewModel(txt),
-            DisplayItemValue val => new DisplayItemValueViewModel(val),
+            DisplayItemImage img => new DisplayItemImageViewModel(img, _imageManager, _parentWindow),
+            DisplayItemText txt => new DisplayItemTextViewModel(txt, _parentWindow),
+            DisplayItemValue val => new DisplayItemValueViewModel(val, _parentWindow),
             _ => throw new InvalidOperationException("Unknown DisplayItem type.")
         };
     }

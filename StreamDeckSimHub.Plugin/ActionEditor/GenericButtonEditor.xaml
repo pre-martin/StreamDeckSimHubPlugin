@@ -5,6 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
         xmlns:converters="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Converters"
+        xmlns:views="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Views"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=viewModels:SettingsViewModelDesignTime, IsDesignTimeCreatable=True}"
         Title="Generic Button Editor" Height="750" Width="800" MinHeight="750" MinWidth="800"
@@ -64,7 +65,7 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="0" Text="{Binding DisplayName}" VerticalAlignment="Center" />
                             <TextBlock Grid.Column="1" Text="☰" FontSize="16" Margin="0,0,8,0" Cursor="SizeAll"
                                        HorizontalAlignment="Right" />
                         </Grid>
@@ -112,7 +113,7 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="0" Text="{Binding DisplayName}" VerticalAlignment="Center" />
                             <TextBlock Grid.Column="1" Text="☰" FontSize="16" Margin="0,0,8,0" Cursor="SizeAll"
                                        HorizontalAlignment="Right" />
                         </Grid>
@@ -134,10 +135,7 @@
                             Visibility="{Binding IsAnyItemSelected, Converter={StaticResource BoolToVisibilityConverter}}">
                 <ContentControl.Resources>
                     <DataTemplate DataType="{x:Type viewModels:DisplayItemImageViewModel}">
-                        <StackPanel>
-                            <TextBlock Text="Image-Name:" FontWeight="Bold" Margin="0,0,0,4" />
-                            <TextBox Width="250" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                        </StackPanel>
+                        <views:DisplayItemImageView />
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type viewModels:DisplayItemTextViewModel}">
                         <StackPanel>

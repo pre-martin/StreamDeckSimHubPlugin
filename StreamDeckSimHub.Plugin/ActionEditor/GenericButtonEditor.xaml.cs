@@ -5,6 +5,7 @@ using System.Windows;
 using CommunityToolkit.Mvvm.Messaging;
 using StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
+using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor;
 
@@ -12,11 +13,11 @@ public partial class GenericButtonEditor : Window
 {
     private readonly string _actionUuid;
 
-    public GenericButtonEditor(string actionUuid, Settings settings)
+    public GenericButtonEditor(string actionUuid, Settings settings, ImageManager imageManager)
     {
         _actionUuid = actionUuid;
         InitializeComponent();
-        DataContext = new SettingsViewModel(settings);
+        DataContext = new SettingsViewModel(settings, imageManager, this);
     }
 
     private void OnClosed(object? sender, EventArgs e)

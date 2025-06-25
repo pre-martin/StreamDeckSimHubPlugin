@@ -45,7 +45,8 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
         {
             if (dto.CommandItems.ContainsKey(action.ToString()))
             {
-                foreach (var commandItem in dto.CommandItems[action.ToString()].Select(CommandItemToModel).Where(ci => ci != null))
+                foreach (var commandItem in dto.CommandItems[action.ToString()].Select(CommandItemToModel)
+                             .Where(ci => ci != null))
                 {
                     settings.AddCommandItem(action, commandItem!);
                 }
@@ -101,7 +102,8 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
         {
             displayItem.Name = dto.Name;
             displayItem.DisplayParameters = DisplayParametersToModel(dto.DisplayParameters);
-            displayItem.VisibilityConditions = new ObservableCollection<ConditionExpression>(dto.VisibilityConditions.Select(propertyComparer.Parse));
+            displayItem.Conditions =
+                new ObservableCollection<ConditionExpression>(dto.Conditions.Select(propertyComparer.Parse));
             return displayItem;
         }
 
@@ -117,14 +119,14 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
             {
                 Name = model.Name,
                 DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
-                VisibilityConditions = model.VisibilityConditions.Select(propertyComparer.ToParsableString).ToList(),
+                Conditions = model.Conditions.Select(propertyComparer.ToParsableString).ToList(),
                 RelativePath = image.RelativePath,
             },
             DisplayItemText text => new DisplayItemTextDto
             {
                 Name = model.Name,
                 DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
-                VisibilityConditions = model.VisibilityConditions.Select(propertyComparer.ToParsableString).ToList(),
+                Conditions = model.Conditions.Select(propertyComparer.ToParsableString).ToList(),
                 Text = text.Text,
                 FontName = text.Font.Name,
                 FontStyle = FontStyleToDto(text.Font),
@@ -135,7 +137,7 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
             {
                 Name = model.Name,
                 DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
-                VisibilityConditions = model.VisibilityConditions.Select(propertyComparer.ToParsableString).ToList(),
+                Conditions = model.Conditions.Select(propertyComparer.ToParsableString).ToList(),
                 Property = value.Property,
                 DisplayFormat = value.DisplayFormat,
                 FontName = value.Font.Name,
@@ -198,7 +200,8 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
 
     #region CommandToModel
 
-    private Dictionary<string, List<CommandItemDto>> CommandsToDto(SortedDictionary<StreamDeckAction, ObservableCollection<CommandItem>> commands)
+    private Dictionary<string, List<CommandItemDto>> CommandsToDto(
+        SortedDictionary<StreamDeckAction, ObservableCollection<CommandItem>> commands)
     {
         var commandDtos = new Dictionary<string, List<CommandItemDto>>();
         foreach (var (action, commandItems) in commands)
@@ -238,9 +241,7 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
         if (commandItem != null)
         {
             commandItem.Name = dto.Name;
-            commandItem.ActiveConditions = new ObservableCollection<ConditionExpression>(
-                dto.ActiveConditions
-                    .Select(propertyComparer.Parse));
+            commandItem.Conditions = new ObservableCollection<ConditionExpression>(dto.Conditions.Select(propertyComparer.Parse));
             return commandItem;
         }
 
@@ -250,7 +251,7 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
 
     private CommandItemDto? CommandItemToDto(CommandItem model)
     {
-        var activeConditions = model.ActiveConditions
+        var conditions = model.Conditions
             .Select(propertyComparer.ToParsableString)
             .ToList();
 
@@ -259,7 +260,7 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
             CommandItemKeypress keypress => new CommandItemKeypressDto
             {
                 Name = model.Name,
-                ActiveConditions = activeConditions,
+                Conditions = conditions,
                 Key = keypress.Key,
                 ModifierCtrl = keypress.ModifierCtrl,
                 ModifierAlt = keypress.ModifierAlt,
@@ -268,13 +269,13 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
             CommandItemSimHubControl control => new CommandItemSimHubControlDto
             {
                 Name = model.Name,
-                ActiveConditions = activeConditions,
+                Conditions = conditions,
                 Control = control.Control
             },
             CommandItemSimHubRole role => new CommandItemSimHubRoleDto
             {
                 Name = model.Name,
-                ActiveConditions = activeConditions,
+                Conditions = conditions,
                 Role = role.Role
             },
             _ => null

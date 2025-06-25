@@ -8,11 +8,7 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 [JsonDerivedType(typeof(DisplayItemImageDto), typeDiscriminator: "Image")]
 [JsonDerivedType(typeof(DisplayItemTextDto), typeDiscriminator: "Text")]
 [JsonDerivedType(typeof(DisplayItemValueDto), typeDiscriminator: "Value")]
-public abstract class DisplayItemDto
+public abstract class DisplayItemDto : ItemDto
 {
-    public required string Name { get; set; } = string.Empty;
-
     public required DisplayParametersDto DisplayParameters { get; set; } = new();
-
-    public required List<string> VisibilityConditions { get; set; } = [];
 }
