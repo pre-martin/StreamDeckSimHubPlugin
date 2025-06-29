@@ -8,8 +8,9 @@
         xmlns:views="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Views"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=viewModels:SettingsViewModelDesignTime, IsDesignTimeCreatable=True}"
-        Title="Generic Button Editor" Height="750" Width="800" MinHeight="750" MinWidth="800"
-        Closed="OnClosed" Icon="/ActionEditor/GenericButtonEditor.ico">
+        Closed="OnClosed"
+        Icon="/ActionEditor/GenericButtonEditor.ico"
+        Title="Generic Button Editor" Height="750" Width="800" MinHeight="750" MinWidth="800">
 
     <Window.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
@@ -23,9 +24,9 @@
             <ColumnDefinition Width="*" /> <!-- Detail area -->
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
+            <RowDefinition Height="*" MinHeight="80" />
             <RowDefinition Height="5" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="*" MinHeight="80" />
         </Grid.RowDefinitions>
 
         <!-- display items -->
@@ -125,12 +126,14 @@
         <!-- The main content for details -->
         <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="3" Margin="8">
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />    <!-- Editor (DataTemplate) -->
-                <RowDefinition Height="8" />    <!-- Spacer -->
-                <RowDefinition Height="Auto" /> <!-- Bottom: Conditions placeholder -->
+                <RowDefinition Height="Auto" />    <!-- Editor (DataTemplate) -->
             </Grid.RowDefinitions>
 
-            <!-- Top: Detail editor for the specific item -->
+            <!-- If nothing is selected -->
+            <TextBlock Grid.Row="0" Text="Please select a display item or a command item." Foreground="#888"
+                       Visibility="{Binding IsAnyItemSelected, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+
+            <!-- Detail editor for the specific item -->
             <ContentControl Grid.Row="0" Content="{Binding SelectedItem}"
                             Visibility="{Binding IsAnyItemSelected, Converter={StaticResource BoolToVisibilityConverter}}">
                 <ContentControl.Resources>
@@ -169,16 +172,6 @@
                     </DataTemplate>
                 </ContentControl.Resources>
             </ContentControl>
-
-            <!-- Bottom: Conditions placeholder -->
-            <Border Grid.Row="2" BorderBrush="#CCC" BorderThickness="1" Padding="8" Margin="0,8,0,0" CornerRadius="4"
-                    Visibility="{Binding IsAnyItemSelected, Converter={StaticResource BoolToVisibilityConverter}}">
-                <TextBlock Text="[Conditions editor placeholder]" Foreground="#888" />
-            </Border>
-
-            <!-- If nothing is selected -->
-            <TextBlock Grid.Row="0" Text="Please select a display item or a command item." Foreground="#888"
-                       Visibility="{Binding IsAnyItemSelected, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
         </Grid>
     </Grid>
 </Window>

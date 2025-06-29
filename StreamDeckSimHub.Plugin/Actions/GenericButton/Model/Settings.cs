@@ -50,6 +50,7 @@ public class Settings : ObservableObject
     {
         DisplayItems.Add(displayItem);
         displayItem.PropertyChanged += (sender, args) => SettingsChanged?.Invoke(sender, args);
+        displayItem.DisplayParameters.PropertyChanged += (sender, args) => SettingsChanged?.Invoke(sender, args);
     }
 
     public void AddCommandItem(StreamDeckAction action, CommandItem commandItem)

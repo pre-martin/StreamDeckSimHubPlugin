@@ -4,11 +4,22 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
+             xmlns:views="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Views"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewModels:DisplayItemImageViewModel}"
              d:DesignHeight="600" d:DesignWidth="550">
+
+    <!--
+    <TabControl>
+        <TabItem Header="Element" />    <!- DisplayItem with all properties and conditions ->
+        <TabItem Header="Modifiers" />  <!- Runtime specific modifiers (flash?, transparency?), each with conditions ->
+    </TabControl>
+    -->
+
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -20,7 +31,7 @@
         <Label Grid.Row="0" Grid.Column="0">Name:</Label>
         <TextBox Grid.Row="0" Grid.Column="1" MinWidth="150"
                  VerticalContentAlignment="Center"
-                 Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                 Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
 
         <Label Grid.Row="1" Grid.Column="0" Margin="0,10,0,0">Image:</Label>
         <Grid Grid.Row="1" Grid.Column="1" Margin="0,10,0,0">
@@ -45,7 +56,10 @@
             </StackPanel>
 
             <Button Grid.Row="1" Grid.Column="0" Command="{Binding  SelectImageCommand}" Width="80" Height="20" Margin="0,5,0,0">Change</Button>
-
         </Grid>
+
+        <views:DisplayParametersView Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,20,0,0" />
+
+        <views:ConditionsView Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,20,0,0" />
     </Grid>
 </UserControl>

@@ -32,7 +32,6 @@ public class ActionEditorManager : IRecipient<GenericButtonEditorClosedEvent>
             if (_actionEditors.TryGetValue(actionUuid, out var editor))
             {
                 Logger.Debug("Showing existing editor for action {ActionUuid}", actionUuid);
-                editor.DataContext = settings;
                 BringToFront(editor);
             }
             else

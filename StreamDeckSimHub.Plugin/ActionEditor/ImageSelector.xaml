@@ -3,11 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:local="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor"
         mc:Ignorable="d"
-        Activated="Window_Activated"
-        Loaded="Window_Loaded"
+        Activated="Window_Activated" Loaded="Window_Loaded"
+        Icon="/ActionEditor/GenericButtonEditor.ico"
         Title="Select Image" Height="450" Width="800">
+
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
