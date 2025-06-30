@@ -19,6 +19,7 @@ public partial class App
     public App()
     {
         _host = Program.CreateHost();
+        NLog.LogManager.GetCurrentClassLogger().Info("Starting StreamDeckSimHub plugin {version}", ThisAssembly.AssemblyFileVersion);
     }
 
     private async void Application_Startup(object sender, StartupEventArgs e)

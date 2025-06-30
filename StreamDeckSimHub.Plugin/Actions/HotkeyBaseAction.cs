@@ -24,6 +24,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
     private readonly StateManager _stateManager;
     private readonly SimHubManager _simHubManager;
     private readonly ShortAndLongPressHandler _salHandler;
+    protected Coordinates? Coordinates;
 
     protected HotkeyBaseAction(SimHubConnection simHubConnection, PropertyComparer propertyComparer, bool useCondition)
     {
@@ -41,7 +42,9 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
     {
         var settings = args.Payload.GetSettings<TSettings>();
+        Coordinates = args.Payload.Coordinates;
         Logger.LogInformation("OnWillAppear ({coords}): {settings}", args.Payload.Coordinates, settings);
+
         await SetSettings(settings, true);
         await base.OnWillAppear(args);
     }

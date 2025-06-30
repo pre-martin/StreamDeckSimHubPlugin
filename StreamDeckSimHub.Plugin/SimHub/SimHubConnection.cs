@@ -349,6 +349,7 @@ public class SimHubConnection : ISimHubConnection
         {
             await propertyChangedReceiver.PropertyChanged(args);
         }
+        Logger.Debug("Dispatched PropertyChanged to receivers");
     }
 
     private async Task ReadFromServer()

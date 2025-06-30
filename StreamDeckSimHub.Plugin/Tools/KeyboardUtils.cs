@@ -38,15 +38,26 @@ public static class KeyboardUtils
     /// </summary>
     internal static Keyboard.VirtualKeyShort? FindVirtualKey(string key)
     {
-        // Try direct match
-        var result = Enum.TryParse(key, true, out Keyboard.VirtualKeyShort vks);
+        var result = false;
+        Keyboard.VirtualKeyShort vks = 0;
+
+        // Only try direct match if the key is not a number (like "1" or "2"). Otherwise "Enum.TryParse" will return
+        // the nth enum value instead of the enum entry with the give name.
+        if (!int.TryParse(key, out _))
+        {
+            // Try direct match
+            result = Enum.TryParse(key, true, out vks);
+        }
+
         // Try "KEY_"
         if (!result) result = Enum.TryParse($"KEY_{key}", true, out vks);
         return result ? vks : null;
     }
 
-    internal static Hotkey CreateHotkey(bool ctrl, bool alt, bool shift, string key)
+    internal static Hotkey? CreateHotkey(bool ctrl, bool alt, bool shift, string key)
     {
+        if (key == string.Empty) return null;
+
         var hotkey = new Hotkey { ctrl = ctrl, alt = alt, shift = shift };
 
         var virtualKeyShort = FindVirtualKey(key);
@@ -57,9 +68,10 @@ public static class KeyboardUtils
             {
                 hotkey.keyCode = new KeyCode { vks = virtualKeyShort.Value, scs = (Keyboard.ScanCodeShort)scanCodeShort };
             }
+            return hotkey;
         }
 
-        return hotkey;
+        return null;
     }
 
     internal static void KeyDown(Hotkey? hotkey)

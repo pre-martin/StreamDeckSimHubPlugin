@@ -15,9 +15,9 @@ namespace StreamDeckSimHub.Installer.Actions
     {
         private readonly Regex _dotnetDesktop = new Regex(@"Microsoft.WindowsDesktop.App (\d+\.\d+\.\d+).*", RegexOptions.IgnoreCase);
         private readonly Version _dotnetRequired = new Version(8, 0, 10);
-        private const string BaseUrl = "https://download.visualstudio.microsoft.com/download/pr/f398d462-9d4e-4b9c-abd3-86c54262869a/4a8e3a10ca0a9903a989578140ef0499/";
-        private const string InstallerName = "windowsdesktop-runtime-8.0.10-win-x64.exe";
-        private const string InstallerHash = "914fb306fb1308c59e293d86c75fc4cca2cc72163c2af3e6eed0a30bec0a54a8f95d22ec6084fd9e1579cb0576ffa0942f513b7b4c6b4c3a2bc942fe21f0461d";
+        private const string BaseUrl = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/8.0.15/";
+        private const string InstallerName = "windowsdesktop-runtime-8.0.15-win-x64.exe";
+        private const string InstallerHash = "c5f12718adcd48cf8689f080de7799071cbe8f35b0fc9ce7a80f13812137c868004ccd5ea035d8e443216e70e15fdfcf013556c7cb3b1b02636acb0323b3574e";
         private readonly string _installerFile = Path.Combine(Path.GetTempPath(), InstallerName);
 
         public override string Name => "Checking .NET Desktop Runtime version";
@@ -37,19 +37,23 @@ namespace StreamDeckSimHub.Installer.Actions
             {
                 var exitCode = ProcessTools.RunCommand($"dotnet --list-runtimes", out var output);
                 LogInfo($"\"dotnet --list-runtimes\" exited with code {exitCode}");
+                var result = false;
                 foreach (var line in output)
                 {
                     var match = _dotnetDesktop.Match(line);
                     if (match.Groups.Count >= 2)
                     {
                         var candidate = new Version(match.Groups[1].Value);
-                        if (candidate >= _dotnetRequired)
+                        if (candidate.Major == _dotnetRequired.Major && candidate >= _dotnetRequired)
                         {
                             SetAndLogInfo($"Found .NET Desktop Runtime version {candidate}");
-                            return true;
+                            result = true;
+                            // Continue to check for other versions, so we get all versions in the log.
                         }
                     }
                 }
+
+                if (result) return true;
 
                 SetAndLogInfo(".NET Desktop Runtime not found");
                 return false;

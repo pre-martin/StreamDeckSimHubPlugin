@@ -46,14 +46,10 @@
     </Target>
 
     <Target Name="SetManifestVersionAndBundle" AfterTargets="Publish">
-        <PropertyGroup>
-            <PowerShell Condition="!$([MSBuild]::IsOSUnixLike())">powershell.exe</PowerShell>
-            <PowerShell Condition="$([MSBuild]::IsOSUnixLike())">pwsh</PowerShell>
-        </PropertyGroup>
         <!-- Replace version in manifest.json with the version from nbgv -->
-        <Exec Command="$(PowerShell) -NonInteractive -ExecutionPolicy Bypass -Command &quot;&amp; '.\ReplaceVersion.ps1' '$(PublishDir)manifest.json' '$(AssemblyFileVersion)' &quot;" />
-        <!-- Bundle as Stream Deck plugin if running on Windows -->
-        <Exec Command="$(PowerShell) -NonInteractive -ExecutionPolicy Bypass -Command &quot;&amp; '.\Bundle.ps1' '$(PublishDir)' &quot;" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+        <Exec Command="pwsh -ExecutionPolicy Bypass -File .\ReplaceVersion.ps1 $(PublishDir)manifest.json $(AssemblyFileVersion)" />
+        <!-- Bundle as Stream Deck plugin -->
+        <Exec Command="pwsh -ExecutionPolicy Bypass -File .\Bundle.ps1 $(PublishDir)" />
     </Target>
 
     <ItemGroup>
