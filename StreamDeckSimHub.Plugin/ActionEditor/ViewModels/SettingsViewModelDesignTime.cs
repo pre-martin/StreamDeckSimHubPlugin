@@ -17,10 +17,10 @@ public class SettingsViewModelDesignTime() : SettingsViewModel(Settings, null!, 
 
     static SettingsViewModelDesignTime()
     {
-        Settings.AddDisplayItem(DisplayItemText.Create());
-        Settings.AddDisplayItem(DisplayItemValue.Create());
-        Settings.AddCommandItem(StreamDeckAction.KeyDown, CommandItemKeypress.Create());
-        Settings.AddCommandItem(StreamDeckAction.KeyUp, CommandItemKeypress.Create());
-        Settings.AddCommandItem(StreamDeckAction.KeyUp, CommandItemSimHubControl.Create());
+        Settings.DisplayItems.Add(DisplayItemText.Create());
+        Settings.DisplayItems.Add(DisplayItemValue.Create());
+        Settings.CommandItems[StreamDeckAction.KeyDown].Add(CommandItemKeypress.Create());
+        Settings.CommandItems[StreamDeckAction.KeyUp].Add(CommandItemKeypress.Create());
+        Settings.CommandItems[StreamDeckAction.KeyUp].Add(CommandItemSimHubControl.Create());
     }
 };

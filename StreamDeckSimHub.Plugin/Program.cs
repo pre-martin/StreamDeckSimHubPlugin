@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using SharpDeck.Extensions.Hosting;
 using StreamDeckSimHub.Plugin.ActionEditor;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.SimHub;
 using StreamDeckSimHub.Plugin.Tools;
@@ -47,5 +48,7 @@ public abstract class Program
         serviceCollection.AddSingleton<IFileSystem>(new FileSystem());
         serviceCollection.AddHostedService<PeriodicBackgroundService>();
         serviceCollection.AddSingleton<ActionEditorManager>();
+        serviceCollection.AddSingleton<NCalcHandler>();
+        serviceCollection.AddSingleton<SettingsConverter>();
     }
 }

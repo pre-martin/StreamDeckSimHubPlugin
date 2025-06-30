@@ -13,8 +13,13 @@
         Title="Generic Button Editor" Height="750" Width="800" MinHeight="750" MinWidth="800">
 
     <Window.Resources>
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+        <ResourceDictionary>
+            <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="IconResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Window.Resources>
 
     <!--<Grid Background="{DynamicResource PiBackground}">-->
@@ -33,7 +38,7 @@
         <Grid Grid.Row="0" Grid.Column="0" Margin="8">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" /> <!-- Header with label and buttons -->
-                <RowDefinition Height="*" /> <!-- list view -->
+                <RowDefinition Height="*" />    <!-- list view -->
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0" Margin="0,0,0,8">
@@ -48,7 +53,8 @@
                 <Button Grid.Column="2" Content="Add" Command="{Binding AddSelectedDisplayItemCommand}" Padding="8,0" />
             </Grid>
 
-            <ListBox Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Visible"
+            <ListBox Grid.Row="1"
+                     ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      ItemsSource="{Binding DisplayItems}"
                      SelectedItem="{Binding SelectedDisplayItem, Mode=TwoWay}"
                      BorderThickness="0"
@@ -65,10 +71,13 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="{Binding DisplayName}" VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="1" Text="☰" FontSize="16" Margin="0,0,8,0" Cursor="SizeAll"
-                                       HorizontalAlignment="Right" />
+                            <Button Grid.Column="1" Background="Transparent" BorderBrush="Transparent" Focusable="False">
+                                <Image Source="{StaticResource DiDeleteRounded}" />
+                            </Button>
+                            <TextBlock Grid.Column="2" Text="☰" FontSize="16" Cursor="SizeAll" HorizontalAlignment="Right" />
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
@@ -97,6 +106,7 @@
             </Grid>
 
             <ListBox Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Visible"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      ItemsSource="{Binding FlatCommandItems}"
                      SelectedItem="{Binding SelectedFlatCommandItem, Mode=TwoWay}"
                      BorderThickness="0"
@@ -115,8 +125,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="{Binding DisplayName}" VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="1" Text="☰" FontSize="16" Margin="0,0,8,0" Cursor="SizeAll"
-                                       HorizontalAlignment="Right" />
+                            <TextBlock Grid.Column="1" Text="☰" FontSize="16" Cursor="SizeAll" HorizontalAlignment="Right" />
                         </Grid>
                     </DataTemplate>
                 </ListBox.Resources>

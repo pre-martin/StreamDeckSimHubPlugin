@@ -9,22 +9,30 @@ namespace StreamDeckSimHub.Plugin.PropertyLogic;
 public class NCalcHandler
 {
     /// <summary>
-    /// Extracts property names from a given NCalc expression. In the same time, the expression is validated.
+    /// Parses the given expression into a NCalc expression and extracts the property names used in the expression.
     /// </summary>
-    /// <throws cref="NCalcParserException">If the expression is invalid.</throws>
-    public HashSet<string> ExtractProperties(string expression)
+    /// <throws cref="NCalcParserException">If the expression is invalid. In this case, the returned Set is empty and the
+    /// NCalcExpression is <c>null</c>.</throws>
+    public HashSet<string> Parse(string expression, out Expression? ncalcExpression)
     {
         var properties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        var ncalcExpression = CreateExpression(expression);
-        ncalcExpression.EvaluateParameter += (name, args) =>
+        if (string.IsNullOrEmpty(expression))
+        {
+            ncalcExpression = null;
+            return properties;
+        }
+
+        var localNcalcExpression = CreateExpression(expression);
+        localNcalcExpression.EvaluateParameter += (name, args) =>
         {
             properties.Add(name);
-            args.Result = true;
+            args.Result = 1;
         };
 
-        ncalcExpression.Evaluate();
+        localNcalcExpression.Evaluate();
 
+        ncalcExpression = localNcalcExpression;
         return properties;
     }
 

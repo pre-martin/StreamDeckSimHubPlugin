@@ -2,7 +2,6 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.IO.Abstractions.TestingHelpers;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -33,12 +32,11 @@ public class SettingsConverterTest
     [SetUp]
     public void Setup()
     {
-        var logger = Mock.Of<ILogger<PropertyComparer>>();
-        var propertyComparer = new PropertyComparer(logger);
         var fileSystem = new MockFileSystem();
         var imageUtils = Mock.Of<ImageUtils>();
         var imageManager = new ImageManager(fileSystem, imageUtils);
-        _converter = new SettingsConverter(propertyComparer, imageManager);
+        var ncalcHandler = new NCalcHandler();
+        _converter = new SettingsConverter(imageManager, ncalcHandler);
     }
 
     [Test]
@@ -95,12 +93,12 @@ public class SettingsConverterTest
             KeySize = new Size(140, 100),
             KeyInfo = StreamDeckKeyInfoBuilder.DefaultKeyInfo
         };
-        settings.AddDisplayItem(new DisplayItemText { Name = "Text1", Text = "Hello" });
-        settings.AddDisplayItem(new DisplayItemText { Name = "Text2", Text = "World" });
-        settings.AddCommandItem(StreamDeckAction.KeyDown, new CommandItemKeypress { Name = "Cmd1", Key = "A" });
-        settings.AddCommandItem(StreamDeckAction.KeyUp, new CommandItemKeypress { Name = "Cmd2", Key = "B" });
-        settings.AddCommandItem(StreamDeckAction.TouchTap, new CommandItemSimHubControl { Name = "Control1", Control = "ControlA" });
-        settings.AddCommandItem(StreamDeckAction.TouchTap, new CommandItemSimHubRole { Name = "Role1", Role = "RoleA" });
+        settings.DisplayItems.Add(new DisplayItemText { Name = "Text1", Text = "Hello" });
+        settings.DisplayItems.Add(new DisplayItemText { Name = "Text2", Text = "World" });
+        settings.CommandItems[StreamDeckAction.KeyDown].Add(new CommandItemKeypress { Name = "Cmd1", Key = "A" });
+        settings.CommandItems[StreamDeckAction.KeyUp].Add(new CommandItemKeypress { Name = "Cmd2", Key = "B" });
+        settings.CommandItems[StreamDeckAction.TouchTap].Add(new CommandItemSimHubControl { Name = "Control1", Control = "ControlA" });
+        settings.CommandItems[StreamDeckAction.TouchTap].Add(new CommandItemSimHubRole { Name = "Role1", Role = "RoleA" });
 
         return settings;
     }

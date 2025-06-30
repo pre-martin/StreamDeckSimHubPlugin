@@ -13,7 +13,7 @@ using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
-public class SettingsConverter(PropertyComparer propertyComparer, ImageManager imageManager)
+public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHandler)
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -37,7 +37,7 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
 
         foreach (var displayItem in dto.DisplayItems.Select(di => DisplayItemToModel(di, keyInfo)).Where(di => di != null))
         {
-            settings.AddDisplayItem(displayItem!);
+            settings.DisplayItems.Add(displayItem!);
         }
 
         // To ensure that we only convert actions that are actually known, we iterate over the Settings, which contains all possible actions.
@@ -48,7 +48,7 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
                 foreach (var commandItem in dto.CommandItems[action.ToString()].Select(CommandItemToModel)
                              .Where(ci => ci != null))
                 {
-                    settings.AddCommandItem(action, commandItem!);
+                    settings.CommandItems[action].Add(commandItem!);
                 }
             }
         }
@@ -102,8 +102,7 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
         {
             displayItem.Name = dto.Name;
             displayItem.DisplayParameters = DisplayParametersToModel(dto.DisplayParameters);
-            displayItem.Conditions =
-                new ObservableCollection<ConditionExpression>(dto.Conditions.Select(propertyComparer.Parse));
+            displayItem.ConditionsHolder = ConditionsToModel(dto.ConditionsString);
             return displayItem;
         }
 
@@ -119,14 +118,14 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
             {
                 Name = model.Name,
                 DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
-                Conditions = model.Conditions.Select(propertyComparer.ToParsableString).ToList(),
+                ConditionsString = model.ConditionsHolder.ConditionString,
                 RelativePath = image.RelativePath,
             },
             DisplayItemText text => new DisplayItemTextDto
             {
                 Name = model.Name,
                 DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
-                Conditions = model.Conditions.Select(propertyComparer.ToParsableString).ToList(),
+                ConditionsString = model.ConditionsHolder.ConditionString,
                 Text = text.Text,
                 FontName = text.Font.Name,
                 FontStyle = FontStyleToDto(text.Font),
@@ -137,7 +136,7 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
             {
                 Name = model.Name,
                 DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
-                Conditions = model.Conditions.Select(propertyComparer.ToParsableString).ToList(),
+                ConditionsString = model.ConditionsHolder.ConditionString,
                 Property = value.Property,
                 DisplayFormat = value.DisplayFormat,
                 FontName = value.Font.Name,
@@ -241,7 +240,7 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
         if (commandItem != null)
         {
             commandItem.Name = dto.Name;
-            commandItem.Conditions = new ObservableCollection<ConditionExpression>(dto.Conditions.Select(propertyComparer.Parse));
+            commandItem.ConditionsHolder = ConditionsToModel(dto.ConditionsString);
             return commandItem;
         }
 
@@ -251,16 +250,12 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
 
     private CommandItemDto? CommandItemToDto(CommandItem model)
     {
-        var conditions = model.Conditions
-            .Select(propertyComparer.ToParsableString)
-            .ToList();
-
         CommandItemDto? dto = model switch
         {
             CommandItemKeypress keypress => new CommandItemKeypressDto
             {
                 Name = model.Name,
-                Conditions = conditions,
+                ConditionsString = model.ConditionsHolder.ConditionString,
                 Key = keypress.Key,
                 ModifierCtrl = keypress.ModifierCtrl,
                 ModifierAlt = keypress.ModifierAlt,
@@ -269,13 +264,13 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
             CommandItemSimHubControl control => new CommandItemSimHubControlDto
             {
                 Name = model.Name,
-                Conditions = conditions,
+                ConditionsString = model.ConditionsHolder.ConditionString,
                 Control = control.Control
             },
             CommandItemSimHubRole role => new CommandItemSimHubRoleDto
             {
                 Name = model.Name,
-                Conditions = conditions,
+                ConditionsString = model.ConditionsHolder.ConditionString,
                 Role = role.Role
             },
             _ => null
@@ -291,4 +286,22 @@ public class SettingsConverter(PropertyComparer propertyComparer, ImageManager i
     }
 
     #endregion
+
+    private ConditionsHolder ConditionsToModel(string conditionString)
+    {
+        try
+        {
+            var usedProperties = ncalcHandler.Parse(conditionString, out var ncalcExpression);
+            return new ConditionsHolder {
+                ConditionString = conditionString,
+                NCalcExpression = ncalcExpression,
+                UsedProperties = new ObservableCollection<string>(usedProperties)
+            };
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, $"Failed to create ConditionsHolder from conditions string: {conditionString}");
+            return new ConditionsHolder { ConditionString = conditionString };
+        }
+    }
 }

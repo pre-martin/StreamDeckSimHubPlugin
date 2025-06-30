@@ -2,6 +2,7 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SixLabors.ImageSharp;
@@ -37,26 +38,44 @@ public class Settings : ObservableObject
 
     public Settings()
     {
-        DisplayItems.CollectionChanged += (_, _) => SettingsChanged?.Invoke(this, EventArgs.Empty);
+        DisplayItems.CollectionChanged += (_, args) =>
+        {
+            if (args is { Action: NotifyCollectionChangedAction.Add, NewItems: not null })
+            {
+                // Register on PropertyChanged of child DisplayItems, so that we can propagate these changes
+                foreach (var item in args.NewItems)
+                {
+                    if (item is DisplayItem displayItem)
+                    {
+                        displayItem.PropertyChanged += (sender, a) => SettingsChanged?.Invoke(sender, a);
+                        displayItem.DisplayParameters.PropertyChanged += (sender, a) => SettingsChanged?.Invoke(sender, a);
+                    }
+                }
+            }
+
+            SettingsChanged?.Invoke(this, EventArgs.Empty);
+        };
 
         foreach (StreamDeckAction action in Enum.GetValues(typeof(StreamDeckAction)))
         {
             CommandItems[action] = [];
-            CommandItems[action].CollectionChanged += (_, _) => SettingsChanged?.Invoke(this, EventArgs.Empty);
+            CommandItems[action].CollectionChanged += (_, args) =>
+            {
+                if (args is { Action: NotifyCollectionChangedAction.Add, NewItems: not null })
+                {
+                    // Register on PropertyChanged of child CommandItems, so that we can propagate these changes
+                    foreach (var item in args.NewItems)
+                    {
+                        if (item is CommandItem commandItem)
+                        {
+                            commandItem.PropertyChanged += (sender, a) => SettingsChanged?.Invoke(sender, a);
+                        }
+                    }
+                }
+
+                SettingsChanged?.Invoke(this, EventArgs.Empty);
+            };
         }
-    }
-
-    public void AddDisplayItem(DisplayItem displayItem)
-    {
-        DisplayItems.Add(displayItem);
-        displayItem.PropertyChanged += (sender, args) => SettingsChanged?.Invoke(sender, args);
-        displayItem.DisplayParameters.PropertyChanged += (sender, args) => SettingsChanged?.Invoke(sender, args);
-    }
-
-    public void AddCommandItem(StreamDeckAction action, CommandItem commandItem)
-    {
-        CommandItems[action].Add(commandItem);
-        commandItem.PropertyChanged += (sender, args) => SettingsChanged?.Invoke(sender, args);
     }
 
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)

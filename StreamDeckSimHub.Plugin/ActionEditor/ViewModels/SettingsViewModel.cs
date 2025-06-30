@@ -100,7 +100,7 @@ public partial class SettingsViewModel : ObservableObject
 
     private void AddDisplayItem(DisplayItem displayItem)
     {
-        _settings.AddDisplayItem(displayItem);
+        _settings.DisplayItems.Add(displayItem);
         var vm = DisplayItemToViewModel(displayItem);
         DisplayItems.Add(vm);
         SelectedDisplayItem = vm;
@@ -158,7 +158,7 @@ public partial class SettingsViewModel : ObservableObject
             _ => throw new InvalidOperationException("Invalid command list item selected.")
         };
 
-        _settings.AddCommandItem(action, newItem);
+        _settings.CommandItems[action].Add(newItem);
 
         // Find the action in the flat list...
         var actionElement =

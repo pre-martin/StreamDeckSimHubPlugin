@@ -9,7 +9,6 @@ using SharpDeck.PropertyInspectors;
 using StreamDeckSimHub.Plugin.ActionEditor;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
-using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton;
@@ -19,11 +18,10 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton;
 /// </summary>
 [StreamDeckAction("net.planetrenner.simhub.generic-button")]
 public class GenericButtonAction(
-    PropertyComparer propertyComparer,
+    SettingsConverter settingsConverter,
     ImageManager imageManager,
     ActionEditorManager actionEditorManager) : StreamDeckAction<SettingsDto>
 {
-    private readonly SettingsConverter _settingsConverter = new(propertyComparer, imageManager);
     private StreamDeckKeyInfo? _sdKeyInfo;
     private Coordinates? _coordinates;
     private Settings? _settings;
@@ -32,11 +30,11 @@ public class GenericButtonAction(
     {
         if (_settings != null)
         {
-            _settings.SettingsChanged += Settings_OnSettingsChanged;
+            _settings.SettingsChanged += OnSettingsChanged;
         }
     }
 
-    private async void Settings_OnSettingsChanged(object? sender, EventArgs args)
+    private async void OnSettingsChanged(object? sender, EventArgs args)
     {
         try
         {
@@ -53,7 +51,7 @@ public class GenericButtonAction(
             if (_settings != null)
             {
                 Logger.LogInformation("Settings changed");
-                var settingsDto = _settingsConverter.SettingsToDto(_settings);
+                var settingsDto = settingsConverter.SettingsToDto(_settings);
                 await SetSettingsAsync(settingsDto);
             }
         }
@@ -98,14 +96,14 @@ public class GenericButtonAction(
     {
         if (_settings != null)
         {
-            Logger.LogInformation("Opening editor ({coords})", _coordinates);
+            Logger.LogInformation("Opening editor ({coords}) for {uuid}", _coordinates, Context);
             actionEditorManager.ShowGenericButtonEditor(Context, _settings);
         }
     }
 
     private Settings ConvertSettings(SettingsDto dto, StreamDeckKeyInfo sdKeyInfo)
     {
-        var settings = _settingsConverter.SettingsToModel(dto, sdKeyInfo);
+        var settings = settingsConverter.SettingsToModel(dto, sdKeyInfo);
 
         if (settings.KeySize != sdKeyInfo.KeySize)
         {

@@ -15,7 +15,6 @@ public partial class CommandItemSimHubControl : CommandItem
     {
         return new CommandItemSimHubControl
         {
-            Conditions = [],
             Control = string.Empty
         };
     }

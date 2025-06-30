@@ -7,5 +7,5 @@ public abstract class ItemDto
 {
     public required string Name { get; set; } = string.Empty;
 
-    public required List<string> Conditions { get; set; } = [];
+    public required string ConditionsString { get; set; } = string.Empty;
 }

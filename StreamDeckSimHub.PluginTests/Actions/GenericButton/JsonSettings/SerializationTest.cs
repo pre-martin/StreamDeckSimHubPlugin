@@ -75,7 +75,7 @@ public class SerializationTest
                 {
                     Name = "My Image",
                     DisplayParameters = new DisplayParametersDto(),
-                    Conditions = [],
+                    ConditionsString = string.Empty,
                     RelativePath = "images/icon.png"
                 }
             ],
@@ -86,7 +86,7 @@ public class SerializationTest
                         new CommandItemSimHubRoleDto
                         {
                             Name = "My Role action",
-                            Conditions = [],
+                            ConditionsString = string.Empty,
                             Role = "SomeRole"
                         }
                     ]
@@ -96,13 +96,13 @@ public class SerializationTest
                         new CommandItemSimHubControlDto
                         {
                             Name = "My Control action",
-                            Conditions = [],
+                            ConditionsString = string.Empty,
                             Control = "SomeControl"
                         },
                         new CommandItemSimHubRoleDto
                         {
                             Name = "Another Role action",
-                            Conditions = [],
+                            ConditionsString = string.Empty,
                             Role = "SomeOtherRole"
                         }
                     ]
