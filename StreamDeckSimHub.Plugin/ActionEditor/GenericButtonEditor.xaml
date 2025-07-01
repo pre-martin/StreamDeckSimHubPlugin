@@ -28,7 +28,7 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="250" /> <!-- Sidebar with display items and command items -->
-            <ColumnDefinition Width="*" /> <!-- Detail area -->
+            <ColumnDefinition Width="*" />   <!-- Detail area -->
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" MinHeight="80" />
@@ -79,8 +79,9 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="{Binding DisplayName}" VerticalAlignment="Center" />
-                            <Button Grid.Column="1" Background="Transparent" BorderBrush="Transparent" Focusable="False">
-                                <Image Source="{StaticResource DiDeleteRounded}" />
+                            <Button Grid.Column="1" Background="Transparent" BorderBrush="Transparent" Focusable="False"
+                                    Click="DisplayItemDelete_OnClick">
+                                <Image Source="{StaticResource DiDeleteRounded}" Height="16" />
                             </Button>
                             <TextBlock Grid.Column="2" Text="☰" FontSize="16" Cursor="SizeAll" HorizontalAlignment="Right"
                                        behaviors:ListBoxDragDropBehavior.IsDragHandle="True" />
@@ -96,7 +97,7 @@
         <Grid Grid.Row="2" Grid.Column="0" Margin="8">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" /> <!-- Header with label and buttons -->
-                <RowDefinition Height="*" /> <!-- list view -->
+                <RowDefinition Height="*" />    <!-- list view -->
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0" Margin="0,0,0,8">
@@ -132,9 +133,14 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="{Binding DisplayName}" VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="1" Text="☰" FontSize="16" Cursor="SizeAll" HorizontalAlignment="Right"
+                            <Button Grid.Column="1" Background="Transparent" BorderBrush="Transparent" Focusable="False"
+                                    Click="CommandItemDelete_OnClick">
+                                <Image Source="{StaticResource DiDeleteRounded}" Height="16" />
+                            </Button>
+                            <TextBlock Grid.Column="2" Text="☰" FontSize="16" Cursor="SizeAll" HorizontalAlignment="Right"
                                        behaviors:ListBoxDragDropBehavior.IsDragHandle="True" />
                         </Grid>
                     </DataTemplate>

@@ -20,13 +20,18 @@ public partial class SettingsViewModel : ObservableObject
     /// List of DisplayItems (as ViewModels).
     public ObservableCollection<DisplayItemViewModel> DisplayItems { get; }
 
-    [ObservableProperty] private DisplayItemViewModel? _selectedDisplayItem;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedItem))]
+    [NotifyPropertyChangedFor(nameof(IsAnyItemSelected))]
+    private DisplayItemViewModel? _selectedDisplayItem;
 
     /// The Dictionary of StreamDeckKey to List of CommandItems (as ViewModels) as a flat list.
     public ObservableCollection<IFlatCommandItemsViewModel> FlatCommandItems { get; } = [];
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddSelectedCommandItemCommand))]
+    [NotifyPropertyChangedFor(nameof(SelectedItem))]
+    [NotifyPropertyChangedFor(nameof(IsAnyItemSelected))]
     private IFlatCommandItemsViewModel? _selectedFlatCommandItem;
 
     /// <summary>
@@ -42,15 +47,11 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnSelectedDisplayItemChanged(DisplayItemViewModel? value)
     {
         if (value != null) SelectedFlatCommandItem = null; // DisplayItem selected -> no CommandItem selected
-        OnPropertyChanged(nameof(SelectedItem));
-        OnPropertyChanged(nameof(IsAnyItemSelected));
     }
 
     partial void OnSelectedFlatCommandItemChanged(IFlatCommandItemsViewModel? value)
     {
         if (value != null) SelectedDisplayItem = null; // CommandItem selected -> no DisplayItem selected
-        OnPropertyChanged(nameof(SelectedItem));
-        OnPropertyChanged(nameof(IsAnyItemSelected));
     }
 
     public SettingsViewModel(Settings settings, ImageManager imageManager, Window parentWindow)
@@ -184,6 +185,43 @@ public partial class SettingsViewModel : ObservableObject
             CommandItemSimHubRole role => new CommandItemSimHubRoleViewModel(role, action),
             _ => throw new InvalidOperationException("Unknown CommandItem type.")
         };
+    }
+
+    #endregion
+
+    #region RemoveItem
+
+    public void RemoveDisplayItem(DisplayItemViewModel item)
+    {
+        // Remove from the underlying model
+        var displayItem = (DisplayItem)item.GetModel();
+        _settings.DisplayItems.Remove(displayItem);
+
+        // Remove from the ViewModel collection
+        DisplayItems.Remove(item);
+
+        // Clear selection if this was the selected item
+        if (SelectedDisplayItem == item)
+        {
+            SelectedDisplayItem = null;
+        }
+    }
+
+    public void RemoveCommandItem(CommandItemViewModel commandItemViewModel)
+    {
+        // Remove from the underlying model
+        var commandItem = (CommandItem)commandItemViewModel.GetModel();
+        var action = commandItemViewModel.ParentAction;
+        _settings.CommandItems[action].Remove(commandItem);
+
+        // Remove from the ViewModel collection
+        FlatCommandItems.Remove(commandItemViewModel);
+
+        // Clear selection if this was the selected item
+        if (SelectedFlatCommandItem == commandItemViewModel)
+        {
+            SelectedFlatCommandItem = null;
+        }
     }
 
     #endregion
