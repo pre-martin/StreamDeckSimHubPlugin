@@ -28,6 +28,9 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         set => SetValue(DraggableTypeProperty, value);
     }
 
+    /// Attached property to mark an element as a drag handle. Drag and drop will only start if the mouse is pressed on an element with this property set to true.
+    public static readonly DependencyProperty IsDragHandleProperty = DependencyProperty.RegisterAttached("IsDragHandle", typeof(bool), typeof(ListBoxDragDropBehavior), new PropertyMetadata(false));
+
     private ListBoxItem? _draggedItem;
     private Point _startPoint;
     private bool _isDragging;
@@ -64,7 +67,15 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
     private void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         _startPoint = e.GetPosition(null);
-        _draggedItem = FindAncestor<ListBoxItem>((DependencyObject)e.OriginalSource);
+
+        // Only start dragging if the mouse is pressed on an element with IsDragHandle set to true
+        var dragHandle = FindAncestorWithDragHandle(e.OriginalSource as DependencyObject);
+        if (dragHandle == null)
+        {
+            return;
+        }
+
+        _draggedItem = FindAncestor<ListBoxItem>(dragHandle);
 
         // If we found a ListBoxItem and it contains a draggable item
         if (_draggedItem != null)
@@ -274,7 +285,7 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
 
     private ListBoxItem? GetItemAtPosition(Point position)
     {
-        HitTestResult? result = VisualTreeHelper.HitTest(AssociatedObject, position);
+        var result = VisualTreeHelper.HitTest(AssociatedObject, position);
         return result == null ? null : FindAncestor<ListBoxItem>(result.VisualHit);
     }
 
@@ -286,6 +297,17 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         }
 
         return current as T;
+    }
+
+    private static DependencyObject? FindAncestorWithDragHandle(DependencyObject? current)
+    {
+        while (current != null)
+        {
+            if (GetIsDragHandle(current as UIElement)) return current;
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -344,5 +366,15 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
                 _insertionAdorner = null;
             }
         }
+    }
+
+    private static bool GetIsDragHandle(UIElement? element)
+    {
+        return (bool) (element?.GetValue(IsDragHandleProperty) ?? false);
+    }
+
+    public static void SetIsDragHandle(UIElement element, bool value)
+    {
+        element.SetValue(IsDragHandleProperty, value);
     }
 }

@@ -82,7 +82,8 @@
                             <Button Grid.Column="1" Background="Transparent" BorderBrush="Transparent" Focusable="False">
                                 <Image Source="{StaticResource DiDeleteRounded}" />
                             </Button>
-                            <TextBlock Grid.Column="2" Text="☰" FontSize="16" Cursor="SizeAll" HorizontalAlignment="Right" />
+                            <TextBlock Grid.Column="2" Text="☰" FontSize="16" Cursor="SizeAll" HorizontalAlignment="Right"
+                                       behaviors:ListBoxDragDropBehavior.IsDragHandle="True" />
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
@@ -133,7 +134,8 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="{Binding DisplayName}" VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="1" Text="☰" FontSize="16" Cursor="SizeAll" HorizontalAlignment="Right" />
+                            <TextBlock Grid.Column="1" Text="☰" FontSize="16" Cursor="SizeAll" HorizontalAlignment="Right"
+                                       behaviors:ListBoxDragDropBehavior.IsDragHandle="True" />
                         </Grid>
                     </DataTemplate>
                 </ListBox.Resources>
