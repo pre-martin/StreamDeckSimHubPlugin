@@ -301,10 +301,19 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
 
     private static DependencyObject? FindAncestorWithDragHandle(DependencyObject? current)
     {
-        while (current != null)
+        try
         {
-            if (GetIsDragHandle(current as UIElement)) return current;
-            current = VisualTreeHelper.GetParent(current);
+            while (current != null)
+            {
+                if (GetIsDragHandle(current as UIElement)) return current;
+                current = VisualTreeHelper.GetParent(current);
+            }
+        }
+        catch
+        {
+            // Handle any exceptions that might occur during design-time in the IDE while rendering the preview.
+            // The visual tree might not be fully constructed, leading to exceptions when calling VisualTreeHelper methods.
+            return null;
         }
 
         return null;
@@ -370,7 +379,7 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
 
     private static bool GetIsDragHandle(UIElement? element)
     {
-        return (bool) (element?.GetValue(IsDragHandleProperty) ?? false);
+        return (bool)(element?.GetValue(IsDragHandleProperty) ?? false);
     }
 
     public static void SetIsDragHandle(UIElement element, bool value)
