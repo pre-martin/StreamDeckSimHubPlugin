@@ -27,6 +27,7 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
         <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.6" />
+        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="NLog" Version="5.3.4" />
         <PackageReference Include="NLog.Extensions.Logging" Version="5.3.14" />
@@ -339,6 +340,10 @@
       <Resource Include="ActionEditor\GenericButtonEditor.ico">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Resource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="ActionEditor\Behaviors\" />
     </ItemGroup>
 
 </Project>

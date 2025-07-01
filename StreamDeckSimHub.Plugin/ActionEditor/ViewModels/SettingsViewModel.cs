@@ -187,5 +187,58 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     #endregion
-}
 
+    #region DragDrop
+
+    /// <summary>
+    /// Updates the underlying model when DisplayItems are reordered
+    /// </summary>
+    public void UpdateDisplayItemsOrder()
+    {
+        // Update the underlying model's DisplayItems list to match the order in the ViewModel
+        // We'll create a new list with the same items but in the new order
+        var newList = new List<DisplayItem>();
+        foreach (var displayItemVm in DisplayItems)
+        {
+            if (displayItemVm.GetModel() is DisplayItem model)
+            {
+                newList.Add(model);
+            }
+        }
+
+        // Clear and repopulate the original list to maintain the reference
+        _settings.DisplayItems.Clear();
+        foreach (var item in newList)
+        {
+            _settings.DisplayItems.Add(item);
+        }
+    }
+
+    /// <summary>
+    /// Updates the underlying model when CommandItems are reordered within a StreamDeckAction
+    /// </summary>
+    public void UpdateCommandItemsOrder(StreamDeckAction action)
+    {
+        // Find all CommandItemViewModel instances for this action in the FlatCommandItems collection
+        var commandItemVms = FlatCommandItems
+            .OfType<CommandItemViewModel>()
+            .Where(vm => vm.ParentAction == action)
+            .ToList();
+
+        // Create a new list with the items in the new order
+        List<CommandItem> newList = commandItemVms
+            .Select(vm => vm.GetModel() as CommandItem)
+            .Where(item => item != null)
+            .ToList()!;
+
+        // Update the list in the dictionary (maintaining the reference)
+        var existingList = _settings.CommandItems[action];
+        existingList.Clear();
+        foreach (var item in newList)
+        {
+            existingList.Add(item);
+        }
+    }
+
+    #endregion
+}

@@ -6,6 +6,8 @@
         xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
         xmlns:converters="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Converters"
         xmlns:views="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Views"
+        xmlns:behaviors="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Behaviors"
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=viewModels:SettingsViewModelDesignTime, IsDesignTimeCreatable=True}"
         Closed="OnClosed"
@@ -60,6 +62,9 @@
                      BorderThickness="0"
                      Background="Transparent"
                      HorizontalContentAlignment="Stretch">
+                <b:Interaction.Behaviors>
+                    <behaviors:ListBoxDragDropBehavior />
+                </b:Interaction.Behaviors>
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="{x:Type ListBoxItem}">
                         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -112,6 +117,9 @@
                      BorderThickness="0"
                      Background="Transparent"
                      HorizontalContentAlignment="Stretch">
+                <b:Interaction.Behaviors>
+                    <behaviors:ListBoxDragDropBehavior DraggableType="{x:Type viewModels:CommandItemViewModel}" />
+                </b:Interaction.Behaviors>
                 <ListBox.Resources>
                     <DataTemplate DataType="{x:Type viewModels:StreamDeckActionViewModel}">
                         <Border Background="#EEE" Padding="4" Margin="0,2,0,2" CornerRadius="3">

@@ -81,4 +81,9 @@ public abstract partial class ItemViewModel : ObservableObject
 
         return msg;
     }
+
+    public Item GetModel()
+    {
+        return _model;
+    }
 }
