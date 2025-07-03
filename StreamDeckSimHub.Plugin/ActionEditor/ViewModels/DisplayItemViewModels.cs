@@ -2,12 +2,17 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SixLabors.Fonts;
+using StreamDeckSimHub.Plugin.ActionEditor.Tools;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.Tools;
+using Color = SixLabors.ImageSharp.Color;
 using Point = SixLabors.ImageSharp.Point;
 using Size = SixLabors.ImageSharp.Size;
 
@@ -19,6 +24,8 @@ namespace StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 public abstract partial class DisplayItemViewModel(DisplayItem model, Window parentWindow) : ItemViewModel(model)
 {
     protected readonly Window ParentWindow = parentWindow;
+
+    public abstract ImageSource? Icon { get; }
 
     [ObservableProperty] private int _posX = model.DisplayParameters.Position.X;
     [ObservableProperty] private int _posY = model.DisplayParameters.Position.Y;
@@ -82,7 +89,10 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, Window par
 public partial class DisplayItemImageViewModel(DisplayItemImage model, ImageManager imageManager, Window parentWindow)
     : DisplayItemViewModel(model, parentWindow)
 {
-    public override string DisplayName => !string.IsNullOrWhiteSpace(Name) ? Name : !string.IsNullOrWhiteSpace(RelativePath) ? Path.GetFileNameWithoutExtension(RelativePath) : "Image";
+    public override ImageSource? Icon => ParentWindow.FindResource("DiInsertPhotoOutlinedGray") as ImageSource;
+
+    public override string DisplayName => !string.IsNullOrWhiteSpace(Name) ? Name :
+        !string.IsNullOrWhiteSpace(RelativePath) ? Path.GetFileNameWithoutExtension(RelativePath) : "Image";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayName))]
@@ -115,17 +125,101 @@ public partial class DisplayItemImageViewModel(DisplayItemImage model, ImageMana
 /// <summary>
 /// ViewModel for DisplayItemText
 /// </summary>
-public class DisplayItemTextViewModel(DisplayItemText model, Window parentWindow) : DisplayItemViewModel(model, parentWindow)
+public partial class DisplayItemTextViewModel(DisplayItemText model, Window parentWindow)
+    : DisplayItemViewModel(model, parentWindow)
 {
-    public override string DisplayName => "Text";
-    // Add properties specific to DisplayItemText here
+    public override ImageSource? Icon => ParentWindow.FindResource("DiTextFieldsGray") as ImageSource;
+
+    public override string DisplayName => !string.IsNullOrWhiteSpace(Name) ? Name :
+        !string.IsNullOrWhiteSpace(Text) ? LineBreakRegex().Replace(Text, " ") : "Text";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayName))]
+    private string _text = model.Text;
+
+    partial void OnTextChanged(string value)
+    {
+        model.Text = value;
+    }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FontAsString))]
+    private Font _font = model.Font;
+
+    partial void OnFontChanged(Font value)
+    {
+        model.Font = value;
+    }
+
+    public string FontAsString => $"{model.Font.Name}, {model.Font.Size}, {model.Font.FontStyle().ToString()}";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ColorHex))]
+    [NotifyPropertyChangedFor(nameof(ColorAsWpf))]
+    private Color _imageSharpColor = model.Color;
+
+    public string ColorHex => $"#{model.Color.ToHexWithoutAlpha()}";
+
+    public System.Windows.Media.Color ColorAsWpf => ImageSharpColor.ToWpfColor();
+
+    partial void OnImageSharpColorChanged(Color value)
+    {
+        model.Color = value;
+    }
+
+    [GeneratedRegex(@"\r\n?|\n")]
+    private static partial Regex LineBreakRegex();
 }
 
 /// <summary>
 /// ViewModel for DisplayItemValue
 /// </summary>
-public class DisplayItemValueViewModel(DisplayItemValue model, Window parentWindow) : DisplayItemViewModel(model, parentWindow)
+public partial class DisplayItemValueViewModel(DisplayItemValue model, Window parentWindow)
+    : DisplayItemViewModel(model, parentWindow)
 {
-    public override string DisplayName => "Value";
-    // Add properties specific to DisplayItemValue here
+    public override ImageSource? Icon => ParentWindow.FindResource("DiAttachMoneyGray") as ImageSource;
+
+    public override string DisplayName => !string.IsNullOrWhiteSpace(Name) ? Name :
+        !string.IsNullOrWhiteSpace(PropertyName) ? PropertyName : "Value";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayName))]
+    private string _propertyName = model.Property;
+
+    partial void OnPropertyNameChanged(string value)
+    {
+        model.Property = value;
+    }
+
+    [ObservableProperty] private string _displayFormat = model.DisplayFormat;
+
+    partial void OnDisplayFormatChanged(string value)
+    {
+        model.DisplayFormat = value;
+    }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FontAsString))]
+    private Font _font = model.Font;
+
+    partial void OnFontChanged(Font value)
+    {
+        model.Font = value;
+    }
+
+    public string FontAsString => $"{model.Font.Name}, {model.Font.Size}, {model.Font.FontStyle().ToString()}";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ColorHex))]
+    [NotifyPropertyChangedFor(nameof(ColorAsWpf))]
+    private Color _imageSharpColor = model.Color;
+
+    public string ColorHex => $"#{model.Color.ToHexWithoutAlpha()}";
+
+    public System.Windows.Media.Color ColorAsWpf => ImageSharpColor.ToWpfColor();
+
+    partial void OnImageSharpColorChanged(Color value)
+    {
+        model.Color = value;
+    }
 }

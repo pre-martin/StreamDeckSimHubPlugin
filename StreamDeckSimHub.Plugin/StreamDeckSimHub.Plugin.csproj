@@ -5,10 +5,11 @@
         <TargetFramework>net8.0-windows</TargetFramework>
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
         <UseWPF>true</UseWPF>
+        <UseWindowsForms>true</UseWindowsForms>
         <PublishSingleFile>true</PublishSingleFile>
         <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
         <SelfContained>false</SelfContained>
-        <ImplicitUsings>enable</ImplicitUsings>
+        <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AssemblyName>StreamDeckSimHub</AssemblyName>
         <LangVersion>12</LangVersion>
@@ -344,6 +345,15 @@
 
     <ItemGroup>
       <Folder Include="ActionEditor\Behaviors\" />
+      <Folder Include="obj\Debug\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Page Update="ActionEditor\Views\DisplayItemValueView.xaml">
+        <Generator>MSBuild:Compile</Generator>
+        <XamlRuntime>Wpf</XamlRuntime>
+        <SubType>Designer</SubType>
+      </Page>
     </ItemGroup>
 
 </Project>

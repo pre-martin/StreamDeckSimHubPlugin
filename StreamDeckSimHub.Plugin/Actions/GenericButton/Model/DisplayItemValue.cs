@@ -13,7 +13,7 @@ public partial class DisplayItemValue : DisplayItem
 
     [ObservableProperty] private string _property = string.Empty;
     [ObservableProperty] private string _displayFormat = string.Empty;
-    [ObservableProperty] private Font _font = SystemFonts.CreateFont("Arial", 12, FontStyle.Regular);
+    [ObservableProperty] private Font _font = SystemFonts.CreateFont("Arial", 20, FontStyle.Regular);
     [ObservableProperty] private Color _color = Color.White;
 
     public static DisplayItemValue Create()

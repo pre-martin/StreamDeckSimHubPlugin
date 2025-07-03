@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using NLog;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
+using StreamDeckSimHub.Plugin.ActionEditor.Tools;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 using StreamDeckSimHub.Plugin.Actions.JsonSettings;
 using StreamDeckSimHub.Plugin.Actions.Model;
@@ -31,7 +32,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
         var settings = new Settings
         {
             KeySize = new Size(dto.KeySize.Width, dto.KeySize.Height),
-            KeyInfo = keyInfo, // TODO Required?
+            KeyInfo = keyInfo
         };
 
 
@@ -130,7 +131,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
                 FontName = text.Font.Name,
                 FontStyle = FontStyleToDto(text.Font),
                 FontSize = text.Font.Size,
-                Color = text.Color.ToHex()
+                Color = text.Color.ToHexWithoutAlpha()
             },
             DisplayItemValue value => new DisplayItemValueDto
             {
@@ -142,7 +143,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
                 FontName = value.Font.Name,
                 FontStyle = FontStyleToDto(value.Font),
                 FontSize = value.Font.Size,
-                Color = value.Color.ToHex()
+                Color = value.Color.ToHexWithoutAlpha()
             },
             _ => null
         };
@@ -165,10 +166,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
 
     private string FontStyleToDto(Font font)
     {
-        if (font is { IsBold: true, IsItalic: true }) return nameof(FontStyle.BoldItalic);
-        if (font.IsBold) return nameof(FontStyle.Bold);
-        if (font.IsItalic) return nameof(FontStyle.Italic);
-        return nameof(FontStyle.Regular);
+        return font.FontStyle().ToString();
     }
 
     private DisplayParameters DisplayParametersToModel(DisplayParametersDto dto)

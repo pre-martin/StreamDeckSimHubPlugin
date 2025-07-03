@@ -3,9 +3,9 @@
 
 namespace StreamDeckSimHub.Plugin.ActionEditor.Views;
 
-public partial class DisplayItemImageView
+public partial class DisplayItemView
 {
-    public DisplayItemImageView()
+    public DisplayItemView()
     {
         InitializeComponent();
     }

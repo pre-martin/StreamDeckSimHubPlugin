@@ -16,10 +16,12 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 /// </summary>
 public class Settings : ObservableObject
 {
+    public static readonly Size NewActionKeySize = new(0, 0);
+
     /// <summary>
     /// Information about the key size on which these elements are used.
     /// </summary>
-    public required Size KeySize { get; set; } = new(0, 0);
+    public required Size KeySize { get; set; } = NewActionKeySize;
 
     /// TODO: Required?
     public StreamDeckKeyInfo KeyInfo { get; set; } = StreamDeckKeyInfoBuilder.DefaultKeyInfo;
