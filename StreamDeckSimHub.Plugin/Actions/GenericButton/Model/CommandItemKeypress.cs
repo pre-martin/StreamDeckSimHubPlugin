@@ -16,6 +16,8 @@ public partial class CommandItemKeypress : CommandItem
     [ObservableProperty] private bool _modifierShift;
     public KeyboardUtils.Hotkey? Hotkey { get; set; }
 
+    protected override string RawDisplayName => "Keypress";
+
     public static CommandItemKeypress Create()
     {
         return new CommandItemKeypress

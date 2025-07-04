@@ -5,7 +5,9 @@ using System.IO.Abstractions.TestingHelpers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using SixLabors.Fonts;
 using SixLabors.ImageSharp;
+using StreamDeckSimHub.Plugin.ActionEditor.Tools;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.Actions.JsonSettings;
@@ -60,10 +62,17 @@ public class SettingsConverterTest
         Assert.That(newSettings.DisplayItems.Count, Is.EqualTo(settings.DisplayItems.Count));
         Assert.That(newSettings.DisplayItems[0].Name, Is.EqualTo(settings.DisplayItems[0].Name));
         Assert.That(newSettings.DisplayItems[1].Name, Is.EqualTo(settings.DisplayItems[1].Name));
-        Assert.That(newSettings.CommandItems[StreamDeckAction.KeyDown][0].Name, Is.EqualTo(settings.CommandItems[StreamDeckAction.KeyDown][0].Name));
-        Assert.That(newSettings.CommandItems[StreamDeckAction.KeyUp][0].Name, Is.EqualTo(settings.CommandItems[StreamDeckAction.KeyUp][0].Name));
-        Assert.That(newSettings.CommandItems[StreamDeckAction.TouchTap][0].Name, Is.EqualTo(settings.CommandItems[StreamDeckAction.TouchTap][0].Name));
-        Assert.That(newSettings.CommandItems[StreamDeckAction.TouchTap][1].Name, Is.EqualTo(settings.CommandItems[StreamDeckAction.TouchTap][1].Name));
+        Assert.That(((DisplayItemText)newSettings.DisplayItems[1]).Font.Family.Name, Is.EqualTo("Arial"));
+        Assert.That(((DisplayItemText)newSettings.DisplayItems[1]).Font.Size, Is.EqualTo(24f));
+        Assert.That(((DisplayItemText)newSettings.DisplayItems[1]).Font.FontStyle(), Is.EqualTo(FontStyle.Italic));
+        Assert.That(newSettings.CommandItems[StreamDeckAction.KeyDown][0].Name,
+            Is.EqualTo(settings.CommandItems[StreamDeckAction.KeyDown][0].Name));
+        Assert.That(newSettings.CommandItems[StreamDeckAction.KeyUp][0].Name,
+            Is.EqualTo(settings.CommandItems[StreamDeckAction.KeyUp][0].Name));
+        Assert.That(newSettings.CommandItems[StreamDeckAction.TouchTap][0].Name,
+            Is.EqualTo(settings.CommandItems[StreamDeckAction.TouchTap][0].Name));
+        Assert.That(newSettings.CommandItems[StreamDeckAction.TouchTap][1].Name,
+            Is.EqualTo(settings.CommandItems[StreamDeckAction.TouchTap][1].Name));
     }
 
     [Test]
@@ -94,10 +103,12 @@ public class SettingsConverterTest
             KeyInfo = StreamDeckKeyInfoBuilder.DefaultKeyInfo
         };
         settings.DisplayItems.Add(new DisplayItemText { Name = "Text1", Text = "Hello" });
-        settings.DisplayItems.Add(new DisplayItemText { Name = "Text2", Text = "World" });
+        settings.DisplayItems.Add(new DisplayItemText
+            { Name = "Text2", Text = "World", Font = SystemFonts.CreateFont("Arial", 24f, FontStyle.Italic) });
         settings.CommandItems[StreamDeckAction.KeyDown].Add(new CommandItemKeypress { Name = "Cmd1", Key = "A" });
         settings.CommandItems[StreamDeckAction.KeyUp].Add(new CommandItemKeypress { Name = "Cmd2", Key = "B" });
-        settings.CommandItems[StreamDeckAction.TouchTap].Add(new CommandItemSimHubControl { Name = "Control1", Control = "ControlA" });
+        settings.CommandItems[StreamDeckAction.TouchTap]
+            .Add(new CommandItemSimHubControl { Name = "Control1", Control = "ControlA" });
         settings.CommandItems[StreamDeckAction.TouchTap].Add(new CommandItemSimHubRole { Name = "Role1", Role = "RoleA" });
 
         return settings;

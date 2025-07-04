@@ -9,9 +9,9 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
 public partial class DisplayParameters : ObservableObject
 {
-    [ObservableProperty] private Point _position = new(0, 0);
     [ObservableProperty] private float _transparency = 1f;
-    [ObservableProperty] private int _rotation;
-    [ObservableProperty] private ScaleType _scale = ScaleType.None;
+    [ObservableProperty] private Point _position = new(0, 0);
     [ObservableProperty] private Size? _size;
+    [ObservableProperty] private ScaleType _scale = ScaleType.None;
+    [ObservableProperty] private int _rotation;
 }

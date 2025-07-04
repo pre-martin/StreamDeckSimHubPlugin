@@ -27,12 +27,17 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, Window par
 
     public abstract ImageSource? Icon { get; }
 
+    [ObservableProperty] private float _transparency = model.DisplayParameters.Transparency;
     [ObservableProperty] private int _posX = model.DisplayParameters.Position.X;
     [ObservableProperty] private int _posY = model.DisplayParameters.Position.Y;
-    [ObservableProperty] private float _transparency = model.DisplayParameters.Transparency;
-    [ObservableProperty] private int _rotation = model.DisplayParameters.Rotation;
     [ObservableProperty] private int? _sizeWidth = model.DisplayParameters.Size?.Width;
     [ObservableProperty] private int? _sizeHeight = model.DisplayParameters.Size?.Height;
+    [ObservableProperty] private int _rotation = model.DisplayParameters.Rotation;
+
+    partial void OnTransparencyChanged(float value)
+    {
+        model.DisplayParameters.Transparency = value;
+    }
 
     partial void OnPosXChanged(int value)
     {
@@ -44,21 +49,11 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, Window par
         model.DisplayParameters.Position = new Point(PosX, value);
     }
 
-    partial void OnTransparencyChanged(float value)
-    {
-        model.DisplayParameters.Transparency = value;
-    }
-
-    partial void OnRotationChanged(int value)
-    {
-        model.DisplayParameters.Rotation = value;
-    }
-
     partial void OnSizeWidthChanged(int? value)
     {
         if (value.HasValue)
         {
-            SizeHeight ??= 0;
+            SizeHeight ??= value.Value; // if width is set, ensure that height is also set.
             model.DisplayParameters.Size = new Size(value.Value, SizeHeight.Value);
         }
         else
@@ -72,7 +67,7 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, Window par
     {
         if (value.HasValue)
         {
-            SizeWidth ??= 0;
+            SizeWidth ??= value.Value; // if height is set, ensure that width is also set.
             model.DisplayParameters.Size = new Size(SizeWidth.Value, value.Value);
         }
         else
@@ -80,6 +75,11 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, Window par
             SizeWidth = null;
             model.DisplayParameters.Size = null;
         }
+    }
+
+    partial void OnRotationChanged(int value)
+    {
+        model.DisplayParameters.Rotation = value;
     }
 }
 
@@ -91,11 +91,8 @@ public partial class DisplayItemImageViewModel(DisplayItemImage model, ImageMana
 {
     public override ImageSource? Icon => ParentWindow.FindResource("DiInsertPhotoOutlinedGray") as ImageSource;
 
-    public override string DisplayName => !string.IsNullOrWhiteSpace(Name) ? Name :
-        !string.IsNullOrWhiteSpace(RelativePath) ? Path.GetFileNameWithoutExtension(RelativePath) : "Image";
-
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(DisplayName))]
+    [NotifyPropertyChangedFor(nameof(DisplayName))] // see DisplayItemImage.DisplayName which uses RelativePath
     [NotifyPropertyChangedFor(nameof(ImageSource))]
     [NotifyPropertyChangedFor(nameof(Resolution))]
     private string _relativePath = model.RelativePath;
@@ -130,11 +127,8 @@ public partial class DisplayItemTextViewModel(DisplayItemText model, Window pare
 {
     public override ImageSource? Icon => ParentWindow.FindResource("DiTextFieldsGray") as ImageSource;
 
-    public override string DisplayName => !string.IsNullOrWhiteSpace(Name) ? Name :
-        !string.IsNullOrWhiteSpace(Text) ? LineBreakRegex().Replace(Text, " ") : "Text";
-
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(DisplayName))]
+    [NotifyPropertyChangedFor(nameof(DisplayName))] // see DisplayItemText.DisplayName which uses Text
     private string _text = model.Text;
 
     partial void OnTextChanged(string value)
@@ -151,7 +145,7 @@ public partial class DisplayItemTextViewModel(DisplayItemText model, Window pare
         model.Font = value;
     }
 
-    public string FontAsString => $"{model.Font.Name}, {model.Font.Size}, {model.Font.FontStyle().ToString()}";
+    public string FontAsString => $"{model.Font.Family.Name}, {model.Font.Size}, {model.Font.FontStyle().ToString()}";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ColorHex))]
@@ -179,11 +173,8 @@ public partial class DisplayItemValueViewModel(DisplayItemValue model, Window pa
 {
     public override ImageSource? Icon => ParentWindow.FindResource("DiAttachMoneyGray") as ImageSource;
 
-    public override string DisplayName => !string.IsNullOrWhiteSpace(Name) ? Name :
-        !string.IsNullOrWhiteSpace(PropertyName) ? PropertyName : "Value";
-
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(DisplayName))]
+    [NotifyPropertyChangedFor(nameof(DisplayName))] // see DisplayItemValue.DisplayName which uses Property
     private string _propertyName = model.Property;
 
     partial void OnPropertyNameChanged(string value)
@@ -207,7 +198,7 @@ public partial class DisplayItemValueViewModel(DisplayItemValue model, Window pa
         model.Font = value;
     }
 
-    public string FontAsString => $"{model.Font.Name}, {model.Font.Size}, {model.Font.FontStyle().ToString()}";
+    public string FontAsString => $"{model.Font.Family.Name}, {model.Font.Size}, {model.Font.FontStyle().ToString()}";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ColorHex))]

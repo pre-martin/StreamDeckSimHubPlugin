@@ -128,7 +128,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
                 DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
                 ConditionsString = model.ConditionsHolder.ConditionString,
                 Text = text.Text,
-                FontName = text.Font.Name,
+                FontName = text.Font.Family.Name,
                 FontStyle = FontStyleToDto(text.Font),
                 FontSize = text.Font.Size,
                 Color = text.Color.ToHexWithoutAlpha()
@@ -140,7 +140,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
                 ConditionsString = model.ConditionsHolder.ConditionString,
                 Property = value.Property,
                 DisplayFormat = value.DisplayFormat,
-                FontName = value.Font.Name,
+                FontName = value.Font.Family.Name,
                 FontStyle = FontStyleToDto(value.Font),
                 FontSize = value.Font.Size,
                 Color = value.Color.ToHexWithoutAlpha()
@@ -173,11 +173,11 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
     {
         return new DisplayParameters
         {
-            Position = new Point(dto.Position.X, dto.Position.Y),
             Transparency = dto.Transparency,
-            Rotation = dto.Rotation,
+            Position = new Point(dto.Position.X, dto.Position.Y),
+            Size = dto.Size != null ? new Size(dto.Size.Width, dto.Size.Height) : null,
             Scale = Enum.TryParse(dto.Scale, out ScaleType scaleType) ? scaleType : ScaleType.None,
-            Size = dto.Size != null ? new Size(dto.Size.Width, dto.Size.Height) : null
+            Rotation = dto.Rotation
         };
     }
 
@@ -185,11 +185,11 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
     {
         return new DisplayParametersDto
         {
-            Position = new PointDto { X = model.Position.X, Y = model.Position.Y },
             Transparency = model.Transparency,
-            Rotation = model.Rotation,
+            Position = new PointDto { X = model.Position.X, Y = model.Position.Y },
+            Size = model.Size != null ? new SizeDto { Width = model.Size.Value.Width, Height = model.Size.Value.Height } : null,
             Scale = model.Scale.ToString(),
-            Size = model.Size != null ? new SizeDto { Width = model.Size.Value.Width, Height = model.Size.Value.Height } : null
+            Rotation = model.Rotation,
         };
     }
 
@@ -298,7 +298,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
         }
         catch (Exception e)
         {
-            Logger.Error(e, $"Failed to create ConditionsHolder from conditions string: {conditionString}");
+            Logger.Warn(e, $"Failed to create ConditionsHolder from conditions string: {conditionString}");
             return new ConditionsHolder { ConditionString = conditionString };
         }
     }

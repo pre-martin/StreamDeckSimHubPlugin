@@ -37,7 +37,6 @@ public abstract class CommandItemViewModel(CommandItem model, StreamDeckAction p
 public class CommandItemKeypressViewModel(CommandItemKeypress model, StreamDeckAction parentAction)
     : CommandItemViewModel(model, parentAction)
 {
-    public override string DisplayName => "Keypress";
     // Add properties specific to CommandItemKeypress here
 }
 
@@ -48,7 +47,6 @@ public class CommandItemSimHubControlViewModel(CommandItemSimHubControl model, S
     : CommandItemViewModel(model,
         parentAction)
 {
-    public override string DisplayName => "SimHub Control";
     // Add properties specific to CommandItemSimHubControl here
 }
 
@@ -58,6 +56,5 @@ public class CommandItemSimHubControlViewModel(CommandItemSimHubControl model, S
 public class CommandItemSimHubRoleViewModel(CommandItemSimHubRole model, StreamDeckAction parentAction)
     : CommandItemViewModel(model, parentAction)
 {
-    public override string DisplayName => "SimHub Role";
     // Add properties specific to CommandItemSimHubRole here
 }

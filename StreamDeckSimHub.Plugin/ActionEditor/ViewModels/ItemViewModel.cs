@@ -20,6 +20,7 @@ public abstract partial class ItemViewModel : ObservableObject
         _name = model.Name;
         _conditionString = model.ConditionsHolder.ConditionString;
 
+        // Populate the error message if the condition string is invalid, so that we have it right when the view is displayed.
         try
         {
             _ncalcHandler.Parse(_conditionString, out _);
@@ -30,10 +31,7 @@ public abstract partial class ItemViewModel : ObservableObject
         }
     }
 
-    /// <summary>
-    /// How shall the element be displayed/called in the UI?
-    /// </summary>
-    public abstract string DisplayName { get; }
+    public string DisplayName => _model.DisplayName;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayName))]

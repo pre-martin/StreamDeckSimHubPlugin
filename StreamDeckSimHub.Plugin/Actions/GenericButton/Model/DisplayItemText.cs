@@ -15,6 +15,9 @@ public partial class DisplayItemText : DisplayItem
     [ObservableProperty] private Font _font = SystemFonts.CreateFont("Arial", 20, FontStyle.Regular);
     [ObservableProperty] private Color _color = Color.White;
 
+    protected override string RawDisplayName => !string.IsNullOrWhiteSpace(Name) ? Name :
+        !string.IsNullOrWhiteSpace(Text) ? Text : "Text";
+
     public static DisplayItemText Create()
     {
         return new DisplayItemText();

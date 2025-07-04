@@ -11,6 +11,8 @@ public partial class CommandItemSimHubRole : CommandItem
 
     [ObservableProperty] private string _role = string.Empty;
 
+    protected override string RawDisplayName => "SimHub Role";
+
     public static CommandItemSimHubRole Create()
     {
         return new CommandItemSimHubRole

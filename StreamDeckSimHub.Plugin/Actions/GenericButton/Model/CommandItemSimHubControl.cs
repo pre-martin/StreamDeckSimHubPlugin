@@ -11,6 +11,8 @@ public partial class CommandItemSimHubControl : CommandItem
 
     [ObservableProperty] private string _control = string.Empty;
 
+    protected override string RawDisplayName => "SimHub Control";
+
     public static CommandItemSimHubControl Create()
     {
         return new CommandItemSimHubControl

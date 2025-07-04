@@ -24,16 +24,10 @@ public class NCalcHandler
         }
 
         var localNcalcExpression = CreateExpression(expression);
-        localNcalcExpression.EvaluateParameter += (name, args) =>
-        {
-            properties.Add(name);
-            args.Result = 1;
-        };
-
-        localNcalcExpression.Evaluate();
+        var parameters = localNcalcExpression.GetParameterNames();
 
         ncalcExpression = localNcalcExpression;
-        return properties;
+        return new HashSet<string>(parameters, StringComparer.OrdinalIgnoreCase);
     }
 
     private Expression CreateExpression(string expression)

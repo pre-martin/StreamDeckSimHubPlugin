@@ -83,30 +83,24 @@ public class PropertyInformation
 }
 
 /// <summary>
-/// Manages the TCP connection to SimHub Property Server. The class automatically manages reconnects.
+/// Manages the TCP connection to SimHub Property Server. The class automatically manages reconnecting.
 /// </summary>
 /// <remarks>
 /// <p>The plugin "SimHubPropertyServer" is required to be installed in SimHub.</p>
-/// <p>This connection does not support multiplexing. Thus it is only used to receive "Property Changed" messages from the
+/// <p>This connection does not support multiplexing. Thus, it is only used to receive "Property Changed" messages from the
 /// SimHub Property Server. Other receiving communication has to be handled in a different connection.</p>
 /// </remarks>
-public class SimHubConnection : ISimHubConnection
+public class SimHubConnection(IOptions<ConnectionSettings> connectionSettings, PropertyParser propertyParser)
+    : ISimHubConnection
 {
-    private readonly ConnectionSettings _connectionSettings;
+    private readonly ConnectionSettings _connectionSettings = connectionSettings.Value;
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-    private readonly PropertyParser _propertyParser;
     private TcpClient? _tcpClient;
     private long _connected;
     private readonly SemaphoreSlim _semaphore = new(1);
     // Mapping from SimHub property name to PropertyInformation.
     private readonly Dictionary<string, PropertyInformation> _subscriptions = new();
     private readonly HttpClient _apiClient = new() { Timeout = TimeSpan.FromSeconds(2) };
-
-    public SimHubConnection(IOptions<ConnectionSettings> connectionSettings, PropertyParser propertyParser)
-    {
-        _connectionSettings = connectionSettings.Value;
-        _propertyParser = propertyParser;
-    }
 
     private bool Connected
     {
@@ -187,7 +181,7 @@ public class SimHubConnection : ISimHubConnection
             if (_subscriptions.TryGetValue(propertyName, out var propInfo))
             {
                 var receivers = propInfo.PropertyChangedReceivers;
-                // We already have a subscription for this property. So just add the new action to the existing set.
+                // We already have a subscription for this property. So add the new action to the existing set.
                 if (receivers.Contains(propertyChangedReceiver))
                 {
                     Logger.Warn($"Action is already subscribed to {propertyName}, ignoring subscribe request");
@@ -249,7 +243,7 @@ public class SimHubConnection : ISimHubConnection
 
             // If there are still subscriptions for this property: return
             if (receivers.Count > 0) return;
-            // Otherwise remove the entry completely from the list.
+            // Otherwise, remove the entry completely from the list.
             _subscriptions.Remove(propertyName);
         }
         finally
@@ -261,6 +255,14 @@ public class SimHubConnection : ISimHubConnection
         {
             await SendUnsubscribe(propertyName);
         }
+    }
+
+    /// <summary>
+    /// Allows querying the current type and current value of a property.
+    /// </summary>
+    public PropertyChangedArgs? GetProperty(string propertyName)
+    {
+        return _subscriptions.TryGetValue(propertyName, out var propInfo) ? propInfo.CurrentPropertyChangedValue : null;
     }
 
     public async Task SendTriggerInputPressed(string inputName)
@@ -309,7 +311,7 @@ public class SimHubConnection : ISimHubConnection
 
     private async Task ParseProperty(string line)
     {
-        var parserResult = _propertyParser.ParseLine(line);
+        var parserResult = propertyParser.ParseLine(line);
         if (parserResult == null)
         {
             Logger.Warn($"Could not parse property: {Sanitize(line)}");
@@ -327,7 +329,7 @@ public class SimHubConnection : ISimHubConnection
         {
             if (!_subscriptions.TryGetValue(name, out var propInfo))
             {
-                // This could happen, if SimHub was running, we then unsubscribe (change pages or profiles) while SimHub is not running.
+                // This could happen if SimHub was running, we then unsubscribe (change pages or profiles) while SimHub is not running.
                 Logger.Warn($"Received property value from SimHub, but we have no subscribers: {name}");
                 return;
             }

@@ -8,13 +8,13 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 
 public class DisplayParametersDto
 {
-    public PointDto Position { get; set; } = new();
-
     public float Transparency { get; set; } = 1f;
 
-    public int Rotation { get; set; } = 0;
+    public PointDto Position { get; set; } = new();
+
+    public SizeDto? Size { get; set; } = null;
 
     public string Scale { get; set; } = nameof(ScaleType.None);
 
-    public SizeDto? Size { get; set; } = null;
+    public int Rotation { get; set; } = 0;
 }
