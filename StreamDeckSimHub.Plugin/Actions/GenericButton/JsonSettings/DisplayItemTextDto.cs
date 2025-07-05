@@ -11,7 +11,7 @@ public class DisplayItemTextDto : DisplayItemDto
 
     public required string FontName { get; set; } = "Arial";
 
-    public required float FontSize { get; set; } = 20f;
+    public required float FontSize { get; set; } = 16f;
 
     public required string FontStyle { get; set; } = nameof(SixLabors.Fonts.FontStyle.Regular);
 

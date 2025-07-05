@@ -12,7 +12,7 @@ public partial class DisplayItemText : DisplayItem
     public const string UiName = "Text";
 
     [ObservableProperty] private string _text = string.Empty;
-    [ObservableProperty] private Font _font = SystemFonts.CreateFont("Arial", 20, FontStyle.Regular);
+    [ObservableProperty] private Font _font = SystemFonts.CreateFont("Arial", 16, FontStyle.Regular);
     [ObservableProperty] private Color _color = Color.White;
 
     protected override string RawDisplayName => !string.IsNullOrWhiteSpace(Name) ? Name :
