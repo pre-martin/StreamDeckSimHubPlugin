@@ -2,33 +2,34 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.ObjectModel;
-using System.Numerics;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.Drawing.Text;
+using System.IO;
 using NLog;
-using SixLabors.Fonts;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing;
-using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using StreamDeckSimHub.Plugin.ActionEditor.Tools;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.Tools;
+using Size = SixLabors.ImageSharp.Size;
 
-namespace StreamDeckSimHub.Plugin.Actions.GenericButton;
+namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Renderer;
 
-/// <summary>
-/// Delegate to retrieve a property value by its name.
-/// </summary>
-public delegate IComparable? GetPropertyDelegate(string propertyName);
-
-public class ButtonRenderer(GetPropertyDelegate getProperty)
+public class ButtonRendererGdi(GetPropertyDelegate getProperty) : IButtonRenderer
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private static readonly StreamDeckKeyInfo DefaultKeyInfo = StreamDeckKeyInfoBuilder.DefaultKeyInfo;
 
-    public Image<Rgba32> Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems)
+    public string Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems)
     {
-        var image = new Image<Rgba32>(targetKeyInfo.KeySize.Width, targetKeyInfo.KeySize.Height);
+        using var renderBitmap = new Bitmap(targetKeyInfo.KeySize.Width, targetKeyInfo.KeySize.Height);
+        using var renderGraphics = Graphics.FromImage(renderBitmap);
+
+        // Set graphics quality settings
+        renderGraphics.SmoothingMode = SmoothingMode.AntiAlias;
+        renderGraphics.TextRenderingHint = TextRenderingHint.AntiAlias;
+        renderGraphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
 
         // Iterate over all display items.
         foreach (var displayItem in displayItems)
@@ -45,13 +46,13 @@ public class ButtonRenderer(GetPropertyDelegate getProperty)
             switch (displayItem)
             {
                 case DisplayItemImage imageItem:
-                    RenderImage(image, targetKeyInfo, imageItem);
+                    RenderImage(renderGraphics, targetKeyInfo, imageItem);
                     break;
                 case DisplayItemText textItem:
-                    RenderText(image, targetKeyInfo, textItem);
+                    RenderText(renderGraphics, targetKeyInfo, textItem);
                     break;
                 case DisplayItemValue valueItem:
-                    RenderValue(image, targetKeyInfo, valueItem);
+                    RenderValue(renderGraphics, targetKeyInfo, valueItem);
                     break;
                 default:
                     Logger.Warn($"Unknown DisplayItem type: {displayItem.GetType().Name}");
@@ -59,13 +60,17 @@ public class ButtonRenderer(GetPropertyDelegate getProperty)
             }
         }
 
-        return image;
+        // Convert bitmap to base64 string
+        using var memoryStream = new MemoryStream();
+        renderBitmap.Save(memoryStream, ImageFormat.Png);
+        var imageBytes = memoryStream.ToArray();
+        return Convert.ToBase64String(imageBytes);
     }
 
     /// <summary>
     /// Renders an image display item to the image.
     /// </summary>
-    private void RenderImage(Image<Rgba32> image, StreamDeckKeyInfo keyInfo, DisplayItemImage imageItem)
+    private void RenderImage(Graphics renderGraphics, StreamDeckKeyInfo keyInfo, DisplayItemImage imageItem)
     {
         // TODO: Implement image rendering
         // Use imageItem.Image
@@ -75,52 +80,65 @@ public class ButtonRenderer(GetPropertyDelegate getProperty)
     /// <summary>
     /// Renders a text display item to the image.
     /// </summary>
-    private void RenderText(Image<Rgba32> image, StreamDeckKeyInfo keyInfo, DisplayItemText textItem)
+    private void RenderText(Graphics renderGraphics, StreamDeckKeyInfo keyInfo, DisplayItemText textItem)
     {
         if (string.IsNullOrWhiteSpace(textItem.Text)) return;
 
         try
         {
-            // Scale font to the device key size. This way we can use the same font size across different Stream Deck models.
-            var scaledFont = ScaleFont(textItem.Font, keyInfo.KeySize);
+            // Scale font to the device key size.
+            var scaledFont = ScaleFont(textItem.Font.ToWindowsFormsFont(), keyInfo.KeySize);
 
             // Color + Transparency
-            var color = textItem.Color.WithAlpha(textItem.DisplayParameters.Transparency);
+            var c = textItem.Color.ToPixel<Argb32>();
+            var color = Color.FromArgb((int)(textItem.DisplayParameters.Transparency * 255f), c.R, c.G, c.B);
 
             // Position + Size
             var position = textItem.DisplayParameters.Position;
             var boundingSize = textItem.DisplayParameters.Size ?? keyInfo.KeySize;
-            var boundingRect = new RectangleF(position.X, position. Y, boundingSize.Width, boundingSize.Height);
+            var boundingRect = new RectangleF(position.X, position.Y, boundingSize.Width, boundingSize.Height);
 
             // Center point of the bounding rectangle
             var centerPoint = new PointF(boundingRect.X + boundingRect.Width / 2f, boundingRect.Y + boundingRect.Height / 2f);
 
-            // Configure text options - set origin to the center point for proper rotation
-            var textOptions = new RichTextOptions(scaledFont)
+            // Create a StringFormat for text alignment
+            var stringFormat = new StringFormat
             {
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                WrappingLength = boundingRect.Width,
-                WordBreaking = WordBreaking.BreakAll,
-                Origin = centerPoint
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center,
+                Trimming = StringTrimming.Word,
+                FormatFlags = StringFormatFlags.NoWrap
             };
 
             // Rotation
-            var rotationRadians = textItem.DisplayParameters.Rotation * (float)Math.PI / 180f;
+            var rotationDegrees = textItem.DisplayParameters.Rotation;
 
-            // Move the center point to origin, apply rotation, then move back to the original center point.
-            var transform = Matrix3x2.CreateTranslation(-centerPoint) *
-                           Matrix3x2.CreateRotation(rotationRadians) *
-                           Matrix3x2.CreateTranslation(centerPoint);
+            // Save the current state of the graphics object
+            var state = renderGraphics.Save();
 
-            image.Mutate(ctx =>
+            try
             {
-                ctx.SetDrawingTransform(transform);
-                ctx.DrawText(textOptions, textItem.Text, color);
-                ctx.Draw(Color.LightGray, 2f, boundingRect);            // Debug: Draw the bounding rectangle
-                ctx.Fill(Color.Red, new EllipsePolygon(centerPoint, 3f)); // Debug: Draw center point
-                ctx.SetDrawingTransform(Matrix3x2.Identity);
-            });
+                // Set up the transform for rotation
+                renderGraphics.TranslateTransform(centerPoint.X, centerPoint.Y);
+                renderGraphics.RotateTransform(rotationDegrees);
+                renderGraphics.TranslateTransform(-centerPoint.X, -centerPoint.Y);
+
+                // Draw the text
+                renderGraphics.DrawString(textItem.Text, scaledFont, new SolidBrush(color), boundingRect, stringFormat);
+
+                // Debug: Draw the bounding rectangle
+                renderGraphics.DrawRectangle(new Pen(Color.LightGray, 2f),
+                    boundingRect.X, boundingRect.Y, boundingRect.Width, boundingRect.Height);
+
+                // Debug: Draw center point
+                renderGraphics.FillEllipse(new SolidBrush(Color.Red),
+                    centerPoint.X - 3f, centerPoint.Y - 3f, 6f, 6f);
+            }
+            finally
+            {
+                // Restore the graphics state
+                renderGraphics.Restore(state);
+            }
         }
         catch (Exception ex)
         {
@@ -131,7 +149,7 @@ public class ButtonRenderer(GetPropertyDelegate getProperty)
     /// <summary>
     /// Renders a value display item to the image.
     /// </summary>
-    private void RenderValue(Image<Rgba32> image, StreamDeckKeyInfo keyInfo, DisplayItemValue valueItem)
+    private void RenderValue(Graphics renderGraphics, StreamDeckKeyInfo keyInfo, DisplayItemValue valueItem)
     {
         // TODO: Implement value rendering
         // 1. Get the property value using getProperty delegate: var value = getProperty(valueItem.Property)
@@ -162,12 +180,16 @@ public class ButtonRenderer(GetPropertyDelegate getProperty)
         return result is true or > 0;
     }
 
+    /// <summary>
+    /// Scale the font size based on the key resolution. So we can use the same font size across different Stream Deck models.
+    /// Base size is a standard Stream Deck with 72 x 72 pixels.
+    /// </summary>
     private Font ScaleFont(Font font, Size keySize)
     {
         if (keySize.Height != DefaultKeyInfo.KeySize.Height)
         {
             var scaleFactor = keySize.Height / DefaultKeyInfo.KeySize.Height;
-            return new Font(font.Family, font.Size * scaleFactor, font.FontStyle());
+            return new Font(font.Name, font.Size * scaleFactor, font.Style);
         }
 
         return font;

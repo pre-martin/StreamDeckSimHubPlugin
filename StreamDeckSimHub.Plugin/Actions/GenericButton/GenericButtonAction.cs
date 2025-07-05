@@ -6,11 +6,10 @@ using Microsoft.Extensions.Logging;
 using SharpDeck;
 using SharpDeck.Events.Received;
 using SharpDeck.PropertyInspectors;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Png;
 using StreamDeckSimHub.Plugin.ActionEditor;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.Renderer;
 using StreamDeckSimHub.Plugin.SimHub;
 using StreamDeckSimHub.Plugin.Tools;
 
@@ -27,7 +26,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     private readonly ActionEditorManager _actionEditorManager;
     private readonly SimHubConnection _simHubConnection;
     private readonly IPropertyChangedReceiver _statePropertyChangedReceiver;
-    private readonly ButtonRenderer _buttonRenderer;
+    private readonly IButtonRenderer _buttonRenderer;
 
     private StreamDeckKeyInfo? _sdKeyInfo;
     private Coordinates? _coordinates;
@@ -44,7 +43,8 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         _actionEditorManager = actionEditorManager;
         _simHubConnection = simHubConnection;
         _statePropertyChangedReceiver = new PropertyChangedDelegate(PropertyChanged);
-        _buttonRenderer = new ButtonRenderer(GetProperty);
+        _buttonRenderer = new ButtonRendererImageSharp(GetProperty);
+        //_buttonRenderer = new ButtonRendererGdi(GetProperty);
     }
 
     private void SubscribeToSettingsChanges()
@@ -240,7 +240,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         if (_settings == null) return;
 
         var image = _buttonRenderer.Render(_settings.KeyInfo, _settings.DisplayItems);
-        await SetImageAsync(image.ToBase64String(PngFormat.Instance));
+        await SetImageAsync(image);
     }
 
     private IComparable? GetProperty(string propertyName)
