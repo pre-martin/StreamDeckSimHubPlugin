@@ -55,22 +55,21 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         }
     }
 
-    private async void OnSettingsChanged(object? sender, EventArgs args)
+    private async void OnSettingsChanged(object? sender, PropertyChangedEventArgs args)
     {
         try
         {
             // Special handling for DisplayItemImage.RelativePath: When the property changes, we update the Image in this central location.
-            if (sender is DisplayItemImage diImage && args is PropertyChangedEventArgs
-                {
-                    PropertyName: nameof(DisplayItemImage.RelativePath)
-                } && _sdKeyInfo != null)
+            if (sender is DisplayItemImage displayItemImage &&
+                args.PropertyName == nameof(DisplayItemImage.RelativePath) &&
+                _sdKeyInfo != null)
             {
-                diImage.Image = _imageManager.GetCustomImage(diImage.RelativePath, _sdKeyInfo);
+                displayItemImage.Image = _imageManager.GetCustomImage(displayItemImage.RelativePath, _sdKeyInfo);
             }
 
             if (_settings != null)
             {
-                Logger.LogDebug("Settings changed: sender={sender}, args={args}", sender, args);
+                Logger.LogDebug("Settings changed: sender={sender}, property={args}", sender, args.PropertyName);
                 var settingsDto = _settingsConverter.SettingsToDto(_settings);
                 await SetSettingsAsync(settingsDto);
             }
@@ -82,6 +81,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
 
         // Update subscription as the used properties may have changed.
         await SubscribeProperties();
+        // TODO Do not render when just the DisplayName was modified
         await Render();
     }
 

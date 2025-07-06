@@ -36,7 +36,7 @@ public class Settings : ObservableObject
     /// </summary>
     public SortedDictionary<StreamDeckAction, ObservableCollection<CommandItem>> CommandItems { get; } = new();
 
-    public event EventHandler? SettingsChanged;
+    public event PropertyChangedEventHandler? SettingsChanged;
 
     public Settings()
     {
@@ -55,7 +55,7 @@ public class Settings : ObservableObject
                 }
             }
 
-            SettingsChanged?.Invoke(this, EventArgs.Empty);
+            SettingsChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayItems)));
         };
 
         foreach (StreamDeckAction action in Enum.GetValues(typeof(StreamDeckAction)))
@@ -75,7 +75,7 @@ public class Settings : ObservableObject
                     }
                 }
 
-                SettingsChanged?.Invoke(this, EventArgs.Empty);
+                SettingsChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CommandItems)));
             };
         }
     }
@@ -83,6 +83,6 @@ public class Settings : ObservableObject
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
-        SettingsChanged?.Invoke(this, EventArgs.Empty);
+        SettingsChanged?.Invoke(this, e);
     }
 }
