@@ -52,9 +52,7 @@ public abstract partial class ItemViewModel : ObservableObject
 
     partial void OnConditionStringChanged(string value)
     {
-        // Update ConditionString in any case...
-        _model.ConditionsHolder.ConditionString = value;
-
+        // Update the NCalcExpression and the UsedProperties first. Reason: See comment in Item.cs#OnConditionsHolderChanged().
         ErrorMessage = null;
         try
         {
@@ -67,6 +65,9 @@ public abstract partial class ItemViewModel : ObservableObject
         {
             ErrorMessage = BuildNCalcErrorMessage(e);
         }
+
+        // Then update the ConditionString in any case
+        _model.ConditionsHolder.ConditionString = value;
     }
 
     private string BuildNCalcErrorMessage(Exception e)

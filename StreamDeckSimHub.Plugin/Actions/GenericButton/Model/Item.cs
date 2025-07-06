@@ -16,6 +16,10 @@ public abstract partial class Item : ObservableObject
     partial void OnConditionsHolderChanged(ConditionsHolder value)
     {
         value.PropertyChanged += (_, args) => OnPropertyChanged(args.PropertyName);
+        // No event handler on UsedProperties.CollectionChanged.
+        // We rely only on the event of ConditionsHolder.ConditionString. This means that UsedProperties already has to contain
+        // the new state when ConditionString is being updated.
+        //value.UsedProperties.CollectionChanged += (_, _) => OnPropertyChanged(nameof(ConditionsHolder.UsedProperties));
     }
 
     /// <summary>
