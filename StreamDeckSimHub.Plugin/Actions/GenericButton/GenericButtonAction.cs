@@ -69,14 +69,14 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
 
             if (_settings != null)
             {
-                Logger.LogDebug("Settings changed: sender={sender}, property={args}", sender, args.PropertyName);
+                Logger.LogDebug("({coords}) Settings changed: sender={sender}, property={args}", _coordinates, sender, args.PropertyName);
                 var settingsDto = _settingsConverter.SettingsToDto(_settings);
                 await SetSettingsAsync(settingsDto);
             }
         }
         catch (Exception e)
         {
-            Logger.LogError(e, "Error while saving settings");
+            Logger.LogError(e, "({coords}) Error while saving settings", _coordinates);
         }
 
         // Update subscription as the used properties may have changed.
@@ -89,6 +89,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     {
         Logger.LogInformation("OnWillAppear ({coords})", args.Payload.Coordinates);
         _coordinates = args.Payload.Coordinates;
+        _buttonRenderer.SetCoordinates(_coordinates);
 
         _sdKeyInfo = StreamDeckKeyInfoBuilder.Build(StreamDeck.Info, args.Device, args.Payload.Controller);
         _settings = await ConvertSettings(args.Payload.GetSettings<SettingsDto>(), _sdKeyInfo);
@@ -149,7 +150,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         {
             // GenericButton is used on a different StreamDeck key. Scale it.
             // TODO Scale, update KeyInfo and save config with SetSettings()
-            Logger.LogWarning("Key size changed from {old} to {new}", settings.KeySize, sdKeyInfo.KeySize);
+            Logger.LogWarning("({coords}) Key size changed from {old} to {new}", _coordinates, settings.KeySize, sdKeyInfo.KeySize);
         }
 
         return settings;

@@ -8,6 +8,7 @@ using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.IO;
 using NLog;
+using SharpDeck.Events.Received;
 using SixLabors.ImageSharp.PixelFormats;
 using StreamDeckSimHub.Plugin.ActionEditor.Tools;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
@@ -18,9 +19,15 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Renderer;
 
 public class ButtonRendererGdi(GetPropertyDelegate getProperty) : IButtonRenderer
 {
+    private Coordinates _coords = new() { Column = -1, Row = -1 };
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private static readonly StreamDeckKeyInfo DefaultKeyInfo = StreamDeckKeyInfoBuilder.DefaultKeyInfo;
 
+    public void SetCoordinates(Coordinates coordinates)
+    {
+        _coords = coordinates;
+    }
+    
     public string Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems)
     {
         using var renderBitmap = new Bitmap(targetKeyInfo.KeySize.Width, targetKeyInfo.KeySize.Height);
@@ -36,12 +43,12 @@ public class ButtonRendererGdi(GetPropertyDelegate getProperty) : IButtonRendere
         {
             if (!IsVisible(displayItem))
             {
-                Logger.Debug($"Skipping rendering of \"{displayItem.DisplayName}\" due to visibility conditions not met.");
+                Logger.Debug($"({_coords}) Skipping rendering of \"{displayItem.DisplayName}\" due to visibility conditions not met.");
                 continue; // Skip to next item
             }
 
             // Render the item.
-            Logger.Debug($"Rendering \"{displayItem.DisplayName}\"...");
+            Logger.Debug($"({_coords}) Rendering \"{displayItem.DisplayName}\"...");
 
             switch (displayItem)
             {
@@ -55,7 +62,7 @@ public class ButtonRendererGdi(GetPropertyDelegate getProperty) : IButtonRendere
                     RenderValue(renderGraphics, targetKeyInfo, valueItem);
                     break;
                 default:
-                    Logger.Warn($"Unknown DisplayItem type: {displayItem.GetType().Name}");
+                    Logger.Warn($"({_coords}) Unknown DisplayItem type: {displayItem.GetType().Name}");
                     break;
             }
         }
@@ -142,7 +149,7 @@ public class ButtonRendererGdi(GetPropertyDelegate getProperty) : IButtonRendere
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, $"Error rendering text item \"{textItem.DisplayName}\"");
+            Logger.Error(ex, $"({_coords}) Error rendering text item \"{textItem.DisplayName}\"");
         }
     }
 

@@ -4,24 +4,30 @@
 using System.Collections.ObjectModel;
 using System.Numerics;
 using NLog;
+using SharpDeck.Events.Received;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using StreamDeckSimHub.Plugin.ActionEditor.Tools;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
-using StreamDeckSimHub.Plugin.Actions.Model;
 using StreamDeckSimHub.Plugin.Tools;
+using Size = SixLabors.ImageSharp.Size;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Renderer;
 
 public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButtonRenderer
 {
+    private Coordinates _coords = new Coordinates { Column = -1, Row = -1 };
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private static readonly StreamDeckKeyInfo DefaultKeyInfo = StreamDeckKeyInfoBuilder.DefaultKeyInfo;
+
+    public void SetCoordinates(Coordinates coordinates)
+    {
+        _coords = coordinates;
+    }
 
     public string Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems)
     {
@@ -32,12 +38,12 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
         {
             if (!IsVisible(displayItem))
             {
-                Logger.Debug($"Skipping rendering of \"{displayItem.DisplayName}\" due to visibility conditions not met.");
-                continue; // Skip to next item
+                Logger.Debug($"({_coords}) Skipping rendering of \"{displayItem.DisplayName}\" - not visible.");
+                continue;
             }
 
             // Render the item.
-            Logger.Debug($"Rendering \"{displayItem.DisplayName}\"...");
+            Logger.Debug($"({_coords}) Rendering \"{displayItem.DisplayName}\"...");
 
             switch (displayItem)
             {
@@ -51,17 +57,17 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
                     RenderValue(image, targetKeyInfo, valueItem);
                     break;
                 default:
-                    Logger.Warn($"Unknown DisplayItem type: {displayItem.GetType().Name}");
+                    Logger.Warn($"({_coords}) Unknown DisplayItem type: {displayItem.GetType().Name}");
                     break;
             }
-            //image.SaveAsPng($@"D:\image_{DateTime.Now:yyyy-MM-dd-HH-mm-ss-fff}_{displayItem.DisplayName}.png");
+            //image.SaveAsPng($@"\image_{_coords}_{DateTime.Now:yyyy-MM-dd-HH-mm-ss-fff}_{displayItem.DisplayName}.png");
         }
 
         return image.ToBase64String(PngFormat.Instance);
     }
 
     /// <summary>
-    /// Renders an image display item to the image.
+    /// Renders an image.
     /// </summary>
     private void RenderImage(Image<Rgba32> image, StreamDeckKeyInfo keyInfo, DisplayItemImage imageItem)
     {
@@ -70,78 +76,28 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
             // Position + Size
             var position = imageItem.DisplayParameters.Position;
             var boundingSize = imageItem.DisplayParameters.Size ?? keyInfo.KeySize;
-            var boundingRect = new RectangleF(position.X, position.Y, boundingSize.Width, boundingSize.Height);
 
-            // Center point of the bounding rectangle
-            var centerPoint = new PointF(boundingRect.X + boundingRect.Width / 2f, boundingRect.Y + boundingRect.Height / 2f);
-
-            // Get source image directly (it's already an ImageSharp Image object)
-            var sourceImage = imageItem.Image;
-
-            // Calculate scaling factor based on ScaleType
-            float scaleFactor;
-            switch (imageItem.DisplayParameters.Scale)
+            var resizedImage = imageItem.Image.Clone(ctx => ctx.Resize(new ResizeOptions
             {
-                case ScaleType.None:
-                    scaleFactor = 1.0f;
-                    break;
-                case ScaleType.ToSize:
-                    // Scale to fit the bounding size while maintaining aspect ratio
-                    var widthRatio = boundingRect.Width / sourceImage.Width;
-                    var heightRatio = boundingRect.Height / sourceImage.Height;
-                    scaleFactor = Math.Min(widthRatio, heightRatio);
-                    break;
-                case ScaleType.ToDevice:
-                    // Scale to fit the device key size
-                    var deviceWidthRatio = (float)keyInfo.KeySize.Width / sourceImage.Width;
-                    var deviceHeightRatio = (float)keyInfo.KeySize.Height / sourceImage.Height;
-                    scaleFactor = Math.Min(deviceWidthRatio, deviceHeightRatio);
-                    break;
-                default:
-                    scaleFactor = 1.0f;
-                    break;
-            }
-
-            // Calculate dimensions based on scale factor
-            var scaledWidth = sourceImage.Width * scaleFactor;
-            var scaledHeight = sourceImage.Height * scaleFactor;
-
-            // Calculate position to center the image within the bounding box
-            var offsetX = (boundingRect.Width - scaledWidth) / 2f;
-            var offsetY = (boundingRect.Height - scaledHeight) / 2f;
-
-            // Create a Rectangle for DrawImage (converts from RectangleF to Rectangle)
-            var imageRect = new Rectangle(
-                (int)(boundingRect.X + offsetX),
-                (int)(boundingRect.Y + offsetY),
-                (int)scaledWidth,
-                (int)scaledHeight
-            );
+                Size = boundingSize,
+                Mode = ResizeMode.Max,
+                Position = AnchorPositionMode.Center
+            }));
 
             // Rotation
-            Image rotatedImage;
-            if (imageItem.DisplayParameters.Rotation == 0)
-            {
-                rotatedImage = sourceImage;
-            }
-            else
-            {
-                rotatedImage = sourceImage.CloneAs<Rgba32>();
-                rotatedImage.Mutate(ctx => ctx.Rotate(imageItem.DisplayParameters.Rotation) );
-            }
+            var rotatedImage = imageItem.DisplayParameters.Rotation == 0
+                ? resizedImage
+                : resizedImage.Clone(ctx => ctx.Rotate(imageItem.DisplayParameters.Rotation));
+            // Calculate new position, as the rotated image may be larger than before rotation.
+            var newPosition = new Point(
+                position.X - (rotatedImage.Width - boundingSize.Width) / 2,
+                position.Y - (rotatedImage.Height - boundingSize.Height) / 2);
 
-            // Apply transparency
-            var opacity = imageItem.DisplayParameters.Transparency;
-
-            image.Mutate(ctx =>
-            {
-                // Draw the image with transparency
-                ctx.DrawImage(rotatedImage, imageRect, opacity);
-            });
+            image.Mutate(ctx => ctx.DrawImage(rotatedImage, newPosition, imageItem.DisplayParameters.Transparency));
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, $"Error rendering image item \"{imageItem.DisplayName}\"");
+            Logger.Error(ex, $"({_coords}) Error rendering image item \"{imageItem.DisplayName}\"");
         }
     }
 
@@ -166,7 +122,8 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
             var boundingRect = new RectangleF(position.X, position.Y, boundingSize.Width, boundingSize.Height);
 
             // Center point of the bounding rectangle
-            var centerPoint = new PointF(boundingRect.X + boundingRect.Width / 2f, boundingRect.Y + boundingRect.Height / 2f);
+            var centerPoint = new PointF(boundingRect.X + boundingRect.Width / 2f,
+                boundingRect.Y + boundingRect.Height / 2f);
 
             // Configure text options - set origin to the center point for proper rotation
             var textOptions = new RichTextOptions(scaledFont)
@@ -191,14 +148,14 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
             {
                 ctx.SetDrawingTransform(transform);
                 ctx.DrawText(textOptions, textItem.Text, color);
-                ctx.Draw(Color.LightGray, 2f, boundingRect); // Debug: Draw the bounding rectangle
-                ctx.Fill(Color.Red, new EllipsePolygon(centerPoint, 3f)); // Debug: Draw center point
+                //ctx.Draw(Color.LightGray, 2f, boundingRect); // Debug: Draw the bounding rectangle
+                //ctx.Fill(Color.Red, new EllipsePolygon(centerPoint, 3f)); // Debug: Draw center point
                 ctx.SetDrawingTransform(Matrix3x2.Identity);
             });
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, $"Error rendering text item \"{textItem.DisplayName}\"");
+            Logger.Error(ex, $"({_coords}) Error rendering text item \"{textItem.DisplayName}\"");
         }
     }
 
@@ -226,10 +183,14 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
 
         var expression = item.ConditionsHolder.NCalcExpression;
 
-        // TODO We should set the parameters only once, not for each invocation.
-        foreach (var usedProperty in item.ConditionsHolder.UsedProperties)
+        // Are the parameters of the NCalc expression up-to-date?
+        if (expression.DynamicParameters.Count != item.ConditionsHolder.UsedProperties.Count)
         {
-            expression.DynamicParameters[usedProperty] = _ => getProperty.Invoke(usedProperty);
+            expression.DynamicParameters.Clear();
+            foreach (var usedProperty in item.ConditionsHolder.UsedProperties)
+            {
+                expression.DynamicParameters[usedProperty] = _ => getProperty.Invoke(usedProperty);
+            }
         }
 
         var result = expression.Evaluate();
@@ -242,12 +203,9 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
     /// </summary>
     private Font ScaleFont(Font font, Size keySize)
     {
-        if (keySize.Height != DefaultKeyInfo.KeySize.Height)
-        {
-            var scaleFactor = keySize.Height / DefaultKeyInfo.KeySize.Height;
-            return new Font(font.Family, font.Size * scaleFactor, font.FontStyle());
-        }
+        if (keySize.Height == DefaultKeyInfo.KeySize.Height) return font;
 
-        return font;
+        var scaleFactor = keySize.Height / DefaultKeyInfo.KeySize.Height;
+        return new Font(font.Family, font.Size * scaleFactor, font.FontStyle());
     }
 }

@@ -2,6 +2,7 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.ObjectModel;
+using SharpDeck.Events.Received;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.Tools;
 
@@ -15,8 +16,13 @@ public delegate IComparable? GetPropertyDelegate(string propertyName);
 public interface IButtonRenderer
 {
     /// <summary>
+    /// Context for logging information.
+    /// </summary>
+    void SetCoordinates(Coordinates coordinates);
+    
+    /// <summary>
     /// Renders all display items onto an image.
     /// </summary>
     /// <returns>The base64 encoded image.</returns>
-    public string Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems);
+    string Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems);
 }
