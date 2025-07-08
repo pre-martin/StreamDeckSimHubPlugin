@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Views"
              xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
+             xmlns:controls="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Views.Controls"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewModels:DisplayItemViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="600" d:DesignWidth="550">
@@ -39,10 +40,16 @@
                  Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                  ToolTip="Is only used for the list on the left side!" />
 
-        <ContentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding}" />
+        <ContentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding}">
+            <d:ContentControl.Content>
+                <Border Padding="10" BorderBrush="Gray" BorderThickness="1" Margin="0,5">
+                    <TextBlock Text="Placeholder for concrete DisplayItem" />
+                </Border>
+            </d:ContentControl.Content>
+        </ContentControl>
 
-        <local:DisplayParametersView Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,20,0,0" />
+        <controls:DisplayParametersControl Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,20,0,0" />
 
-        <local:ConditionsView Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,20,0,0" />
+        <controls:ConditionsControl Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,20,0,0" />
     </Grid>
 </UserControl>

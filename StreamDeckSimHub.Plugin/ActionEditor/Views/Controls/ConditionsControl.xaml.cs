@@ -3,11 +3,11 @@
 
 using System.Windows.Controls;
 
-namespace StreamDeckSimHub.Plugin.ActionEditor.Views;
+namespace StreamDeckSimHub.Plugin.ActionEditor.Views.Controls;
 
-public partial class DisplayParametersView : UserControl
+public partial class ConditionsControl : UserControl
 {
-    public DisplayParametersView()
+    public ConditionsControl()
     {
         InitializeComponent();
     }

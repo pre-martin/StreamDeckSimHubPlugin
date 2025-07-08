@@ -123,7 +123,7 @@ public partial class DisplayItemImageViewModel(DisplayItemImage model, ImageMana
 /// ViewModel for DisplayItemText
 /// </summary>
 public partial class DisplayItemTextViewModel(DisplayItemText model, Window parentWindow)
-    : DisplayItemViewModel(model, parentWindow)
+    : DisplayItemViewModel(model, parentWindow), IFontSelectable, IColorSelectable
 {
     public override ImageSource? Icon => ParentWindow.FindResource("DiTextFieldsGray") as ImageSource;
 
@@ -169,7 +169,7 @@ public partial class DisplayItemTextViewModel(DisplayItemText model, Window pare
 /// ViewModel for DisplayItemValue
 /// </summary>
 public partial class DisplayItemValueViewModel(DisplayItemValue model, Window parentWindow)
-    : DisplayItemViewModel(model, parentWindow)
+    : DisplayItemViewModel(model, parentWindow), IFontSelectable, IColorSelectable
 {
     public override ImageSource? Icon => ParentWindow.FindResource("DiAttachMoneyGray") as ImageSource;
 

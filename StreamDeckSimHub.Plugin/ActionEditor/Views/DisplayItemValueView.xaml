@@ -4,14 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
-             xmlns:converters="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Converters"
+             xmlns:controls="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Views.Controls"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewModels:DisplayItemValueViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="600" d:DesignWidth="550">
-
-    <UserControl.Resources>
-        <converters:ColorToBrushConverter x:Key="ColorToBrushConverter" />
-    </UserControl.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -37,24 +33,8 @@
                  Text="{Binding DisplayFormat}"
                  ToolTip="Like :F1 or {4:F1} - see online documentation" />
 
-        <Label Grid.Row="2" Grid.Column="0" Margin="0,10,0,0">Font:</Label>
-        <Label Grid.Row="2" Grid.Column="1" Margin="0,10,0,0" Width="210"
-               HorizontalAlignment="Left" VerticalContentAlignment="Center"
-               Content="{Binding FontAsString}"
-               BorderThickness="1"
-               BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"
-               Cursor="Hand" MouseDown="FontTextBox_OnMouseDown" />
+        <controls:FontSelectorControl Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" />
 
-        <Label Grid.Row="3" Grid.Column="0" Margin="0,10,0,0">Color:</Label>
-        <StackPanel Grid.Row="3" Grid.Column="1" Margin="0,10,0,0" HorizontalAlignment="Left" Orientation="Horizontal">
-            <Rectangle Width="80" Height="24"
-                       Stroke="Black" StrokeThickness="1"
-                       Fill="{Binding ColorAsWpf, Converter={StaticResource ColorToBrushConverter}}"
-                       Cursor="Hand" MouseDown="ColorRectangle_MouseDown" />
-            <TextBox Text="{Binding ColorHex, Mode=OneWay}" Width="80" Margin="50,0,0,0"
-                     IsReadOnly="True"
-                     VerticalContentAlignment="Center" HorizontalContentAlignment="Center" />
-        </StackPanel>
-
+        <controls:ColorSelectorControl Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" />
     </Grid>
 </UserControl>
