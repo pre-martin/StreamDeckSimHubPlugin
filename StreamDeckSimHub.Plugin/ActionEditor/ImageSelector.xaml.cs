@@ -4,9 +4,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
+using StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 using StreamDeckSimHub.Plugin.Tools;
-using SystemColors = System.Windows.SystemColors;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor;
 
@@ -15,14 +14,14 @@ public partial class ImageSelector : Window
     private readonly ImageManager _imageManager;
     private readonly Window _parentWindow;
     private bool _windowAlreadyPositioned;
-    private Image? _previouslySelectedImage;
-    public string RelativePath { get; set; }
+    public string RelativePath { get; private set; }
 
     public ImageSelector(ImageManager imageManager, string relativePath, Window parentWindow)
     {
         _imageManager = imageManager;
         _parentWindow = parentWindow;
         RelativePath = relativePath;
+        DataContext = new ImageSelectorViewModel(imageManager);
         InitializeComponent();
     }
 
@@ -62,58 +61,33 @@ public partial class ImageSelector : Window
     {
         if (DirectoryComboBox.SelectedItem is string selectedDirectory)
         {
-            ImagesPanel.Children.Clear();
-
             var fileNames = _imageManager.ListCustomImages(selectedDirectory);
-            foreach (var fileName in fileNames)
-            {
-                var image = _imageManager.GetCustomImage(fileName, StreamDeckKeyInfoBuilder.DefaultKeyInfo);
-                var bitmapImage = _imageManager.ImageUtils.FromImage(image);
-
-                var imageControl = new Image
-                {
-                    Source = bitmapImage,
-                    Width = 72,
-                    Margin = new Thickness(3),
-                    ToolTip = fileName
-                };
-                imageControl.MouseLeftButtonDown += ImageControlOnMouseLeftButtonDown;
-
-                var isSelectedFile = fileName == RelativePath;
-                if (isSelectedFile) _previouslySelectedImage = imageControl;
-
-                var border = new Border
-                {
-                    Child = imageControl,
-                    BorderThickness = new Thickness(3),
-                    BorderBrush = isSelectedFile ? SystemColors.HighlightBrush : Brushes.Gray,
-                    Background = Brushes.Black // emulate Stream Deck key background color
-                };
-
-                ImagesPanel.Children.Add(border);
-            }
+            ((ImageSelectorViewModel)DataContext).SetFileNames(fileNames, RelativePath);
         }
     }
 
     private void ImageControlOnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (sender is Image image)
+        if (sender is Image { DataContext: ImageViewModel clickedImageViewModel } image)
         {
-            if (_previouslySelectedImage is { Parent: Border previousBorder })
+            var fileName = clickedImageViewModel.FileName;
+            RelativePath = fileName;
+
+            // Get the parent view model to update all items
+            if (DataContext is ImageSelectorViewModel viewModel)
             {
-                previousBorder.BorderBrush = Brushes.Gray;
+                // Set IsSelected to true for the clicked image and false for all others
+                foreach (var imageViewModel in viewModel.Images)
+                {
+                    imageViewModel.IsSelected = imageViewModel.FileName == fileName;
+                }
             }
-
-            RelativePath = image.ToolTip as string ?? string.Empty;
-            if (image.Parent is Border border) border.BorderBrush = SystemColors.HighlightBrush;
-
-            _previouslySelectedImage = image;
         }
     }
 
     private void OkButton_OnClick(object sender, RoutedEventArgs e)
     {
-        DialogResult = RelativePath != string.Empty ? true : false;
+        DialogResult = RelativePath != string.Empty;
         Close();
     }
 }

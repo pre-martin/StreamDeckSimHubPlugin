@@ -3,7 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
         mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance viewModels:ImageSelectorViewModel, IsDesignTimeCreatable=False}"
         Activated="Window_Activated" Loaded="Window_Loaded"
         Icon="/ActionEditor/GenericButtonEditor.ico"
         Title="Select Image" Height="450" Width="800">
@@ -24,12 +26,26 @@
         <ComboBox Grid.Row="0" Grid.Column="1" Name="DirectoryComboBox" MinWidth="180" SelectionChanged="DirectoryComboBox_OnSelectionChanged" />
 
         <ScrollViewer Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,20">
-            <WrapPanel Orientation="Horizontal" Name="ImagesPanel" />
+            <ItemsControl ItemsSource="{Binding Images}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderThickness="3" BorderBrush="{Binding BorderBrush}" Background="Black">
+                            <Image Width="72" Height="72" Source="{Binding ImageSource}" ToolTip="{Binding FileName}"
+                                   MouseLeftButtonDown="ImageControlOnMouseLeftButtonDown" />
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </ScrollViewer>
 
         <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Name="OkButton" MinWidth="50" Margin="16,0,0,0" IsDefault="True" Click="OkButton_OnClick">OK</Button>
-            <Button Name="Cancel" MinWidth="50" Margin="16,0,0,0" IsCancel="True">Cancel</Button>
+            <Button MinWidth="50" Margin="16,0,0,0" IsDefault="True" Click="OkButton_OnClick">OK</Button>
+            <Button MinWidth="50" Margin="16,0,0,0" IsCancel="True">Cancel</Button>
         </StackPanel>
     </Grid>
 </Window>
