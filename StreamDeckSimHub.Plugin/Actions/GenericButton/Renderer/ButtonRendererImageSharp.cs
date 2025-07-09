@@ -2,6 +2,7 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Numerics;
 using NLog;
 using SharpDeck.Events.Received;
@@ -14,15 +15,19 @@ using SixLabors.ImageSharp.Processing;
 using StreamDeckSimHub.Plugin.ActionEditor.Tools;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.Tools;
+using StreamDeckSimHub.Plugin.PropertyLogic;
 using Size = SixLabors.ImageSharp.Size;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Renderer;
 
 public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButtonRenderer
 {
-    private Coordinates _coords = new Coordinates { Column = -1, Row = -1 };
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private static readonly StreamDeckKeyInfo DefaultKeyInfo = StreamDeckKeyInfoBuilder.DefaultKeyInfo;
+
+    private readonly FormatHelper _formatHelper = new();
+    private readonly object _expressionLock = new();
+    private Coordinates _coords = new() { Column = -1, Row = -1 };
 
     public void SetCoordinates(Coordinates coordinates)
     {
@@ -31,6 +36,7 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
 
     public string Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems)
     {
+        Logger.Debug($"({_coords}) Rendering...");
         var image = new Image<Rgba32>(targetKeyInfo.KeySize.Width, targetKeyInfo.KeySize.Height);
 
         // Iterate over all display items.
@@ -38,13 +44,10 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
         {
             if (!IsVisible(displayItem))
             {
-                Logger.Debug($"({_coords}) Skipping rendering of \"{displayItem.DisplayName}\" - not visible.");
                 continue;
             }
 
             // Render the item.
-            Logger.Debug($"({_coords}) Rendering \"{displayItem.DisplayName}\"...");
-
             switch (displayItem)
             {
                 case DisplayItemImage imageItem:
@@ -57,7 +60,7 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
                     RenderValue(image, targetKeyInfo, valueItem);
                     break;
                 default:
-                    Logger.Warn($"({_coords}) Unknown DisplayItem type: {displayItem.GetType().Name}");
+                    Logger.Warn($"({_coords})   Unknown DisplayItem type: {displayItem.GetType().Name}");
                     break;
             }
             //image.SaveAsPng($@"\image_{_coords}_{DateTime.Now:yyyy-MM-dd-HH-mm-ss-fff}_{displayItem.DisplayName}.png");
@@ -97,7 +100,7 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, $"({_coords}) Error rendering image item \"{imageItem.DisplayName}\"");
+            Logger.Error(ex, $"({_coords})   Error rendering image item \"{imageItem.DisplayName}\"");
         }
     }
 
@@ -110,52 +113,11 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
 
         try
         {
-            // Scale font to the device key size
-            var scaledFont = ScaleFont(textItem.Font, keyInfo.KeySize);
-
-            // Color + Transparency
-            var color = textItem.Color.WithAlpha(textItem.DisplayParameters.Transparency);
-
-            // Position + Size
-            var position = textItem.DisplayParameters.Position;
-            var boundingSize = textItem.DisplayParameters.Size ?? keyInfo.KeySize;
-            var boundingRect = new RectangleF(position.X, position.Y, boundingSize.Width, boundingSize.Height);
-
-            // Center point of the bounding rectangle
-            var centerPoint = new PointF(boundingRect.X + boundingRect.Width / 2f,
-                boundingRect.Y + boundingRect.Height / 2f);
-
-            // Configure text options - set origin to the center point for proper rotation
-            var textOptions = new RichTextOptions(scaledFont)
-            {
-                HorizontalAlignment = HorizontalAlignment.Center, // text box
-                VerticalAlignment = VerticalAlignment.Center, // text box
-                TextAlignment = TextAlignment.Center, // text alignment within the text box
-                WrappingLength = boundingRect.Width,
-                WordBreaking = WordBreaking.BreakAll,
-                Origin = centerPoint
-            };
-
-            // Rotation
-            var rotationRadians = textItem.DisplayParameters.Rotation * (float)Math.PI / 180f;
-
-            // Move the center point to origin, apply rotation, then move back to the original center point.
-            var transform = Matrix3x2.CreateTranslation(-centerPoint) *
-                            Matrix3x2.CreateRotation(rotationRadians) *
-                            Matrix3x2.CreateTranslation(centerPoint);
-
-            image.Mutate(ctx =>
-            {
-                ctx.SetDrawingTransform(transform);
-                ctx.DrawText(textOptions, textItem.Text, color);
-                //ctx.Draw(Color.LightGray, 2f, boundingRect); // Debug: Draw the bounding rectangle
-                //ctx.Fill(Color.Red, new EllipsePolygon(centerPoint, 3f)); // Debug: Draw center point
-                ctx.SetDrawingTransform(Matrix3x2.Identity);
-            });
+            RenderString(image, keyInfo, textItem, textItem.Font, textItem.Color, textItem.Text);
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, $"({_coords}) Error rendering text item \"{textItem.DisplayName}\"");
+            Logger.Error(ex, $"({_coords})   Error rendering text item \"{textItem.DisplayName}\"");
         }
     }
 
@@ -164,11 +126,69 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
     /// </summary>
     private void RenderValue(Image<Rgba32> image, StreamDeckKeyInfo keyInfo, DisplayItemValue valueItem)
     {
-        // TODO: Implement value rendering
-        // 1. Get the property value using getProperty delegate: var value = getProperty(valueItem.Property)
-        // 2. Format the value using valueItem.DisplayFormat if provided
-        // 3. Render the formatted value with valueItem.Font and valueItem.Color
-        // 4. Apply positioning, transparency, rotation, and scaling from valueItem.DisplayParameters
+        try
+        {
+            var value = EvaluateExpression($"({_coords})   Value of \"{valueItem.DisplayName}\"", valueItem.NCalcPropertyHolder);
+            var format = _formatHelper.CompleteFormatString(valueItem.DisplayFormat);
+            var formattedValue = string.Format(CultureInfo.CurrentCulture, format, value);
+            RenderString(image, keyInfo, valueItem, valueItem.Font, valueItem.Color, formattedValue);
+        }
+        catch (FormatException ex)
+        {
+            Logger.Warn(
+                $"({_coords})   Error formatting value for item \"{valueItem.DisplayName}\" with format \"{valueItem.DisplayFormat}\": {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, $"({_coords})   Error rendering value item \"{valueItem.DisplayName}\"");
+        }
+    }
+
+    private void RenderString(Image<Rgba32> image, StreamDeckKeyInfo keyInfo,
+        DisplayItem displayItem, Font font, Color color, string s)
+    {
+        // Scale font to the device key size
+        var scaledFont = ScaleFont(font, keyInfo.KeySize);
+
+        // Color + Transparency
+        var colorWithAlpha = color.WithAlpha(displayItem.DisplayParameters.Transparency);
+
+        // Position + Size
+        var position = displayItem.DisplayParameters.Position;
+        var boundingSize = displayItem.DisplayParameters.Size ?? keyInfo.KeySize;
+        var boundingRect = new RectangleF(position.X, position.Y, boundingSize.Width, boundingSize.Height);
+
+        // Center point of the bounding rectangle
+        var centerPoint = new PointF(boundingRect.X + boundingRect.Width / 2f,
+            boundingRect.Y + boundingRect.Height / 2f);
+
+        // Configure text options - set origin to the center point for proper rotation
+        var textOptions = new RichTextOptions(scaledFont)
+        {
+            HorizontalAlignment = HorizontalAlignment.Center, // text box
+            VerticalAlignment = VerticalAlignment.Center, // text box
+            TextAlignment = TextAlignment.Center, // text alignment within the text box
+            WrappingLength = boundingRect.Width,
+            WordBreaking = WordBreaking.BreakAll,
+            Origin = centerPoint
+        };
+
+        // Rotation
+        var rotationRadians = displayItem.DisplayParameters.Rotation * (float)Math.PI / 180f;
+
+        // Move the center point to origin, apply rotation, then move back to the original center point.
+        var transform = Matrix3x2.CreateTranslation(-centerPoint) *
+                        Matrix3x2.CreateRotation(rotationRadians) *
+                        Matrix3x2.CreateTranslation(centerPoint);
+
+        image.Mutate(ctx =>
+        {
+            ctx.SetDrawingTransform(transform);
+            ctx.DrawText(textOptions, s, colorWithAlpha);
+            //ctx.Draw(Color.LightGray, 2f, boundingRect); // Debug: Draw the bounding rectangle
+            //ctx.Fill(Color.Red, new EllipsePolygon(centerPoint, 3f)); // Debug: Draw center point
+            ctx.SetDrawingTransform(Matrix3x2.Identity);
+        });
     }
 
     /// <summary>
@@ -176,25 +196,53 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
     /// </summary>
     private bool IsVisible(Item item)
     {
-        if (item.ConditionsHolder.NCalcExpression == null)
+        if (item.NCalcConditionHolder.NCalcExpression == null)
         {
             return true; // No condition means always visible.
         }
 
-        var expression = item.ConditionsHolder.NCalcExpression;
+        var value = EvaluateExpression($"({_coords})   Visibility of \"{item.DisplayName}\"", item.NCalcConditionHolder);
+        return value is true or > 0 or > 0.0f or > 0.0d;
+    }
 
-        // Are the parameters of the NCalc expression up-to-date?
-        if (expression.DynamicParameters.Count != item.ConditionsHolder.UsedProperties.Count)
+    private object? EvaluateExpression(string loggingContext, NCalcHolder nCalcHolder)
+    {
+        if (nCalcHolder.NCalcExpression == null) return null;
+
+        var expression = nCalcHolder.NCalcExpression;
+
+        lock (_expressionLock)
         {
-            expression.DynamicParameters.Clear();
-            foreach (var usedProperty in item.ConditionsHolder.UsedProperties)
+            // Are the parameters of the NCalc expression up to date?
+            if (expression.DynamicParameters.Count != nCalcHolder.UsedProperties.Count)
             {
-                expression.DynamicParameters[usedProperty] = _ => getProperty.Invoke(usedProperty);
+                expression.DynamicParameters.Clear();
+                foreach (var usedProperty in nCalcHolder.UsedProperties)
+                {
+                    expression.DynamicParameters[usedProperty] = _ => getProperty.Invoke(usedProperty);
+                }
             }
         }
 
-        var result = expression.Evaluate();
-        return result is true or > 0;
+        try
+        {
+            var result = expression.Evaluate();
+            if (Logger.IsDebugEnabled)
+            {
+                var msg = $"{loggingContext}: ";
+                msg += $"\"{expression.ExpressionString}\" => \"{result}\", parameters: ";
+                msg = nCalcHolder.UsedProperties.Aggregate(msg,
+                    (current, propName) => current + $"\"{propName}\"=\"{getProperty.Invoke(propName)}\", ");
+                Logger.Debug(msg);
+            }
+
+            return result;
+        }
+        catch (Exception e)
+        {
+            Logger.Warn($"{loggingContext} Error evaluating expression: {e.Message}");
+            return null;
+        }
     }
 
     /// <summary>

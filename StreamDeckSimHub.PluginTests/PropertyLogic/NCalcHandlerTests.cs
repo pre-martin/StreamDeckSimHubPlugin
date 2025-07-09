@@ -1,6 +1,7 @@
 ﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using NCalc;
 using NCalc.Exceptions;
 using StreamDeckSimHub.Plugin.PropertyLogic;
 
@@ -47,13 +48,13 @@ public class NCalcHandlerTests
     [Test]
     public void Parse_InvalidExpression_ThrowsException()
     {
-        NCalc.Expression? ncalcExpression = null;
+        Expression? ncalcExpression = null;
         try
         {
             _handler.Parse("invalid expression", out ncalcExpression);
             Assert.Fail("Expected NCalcParserException was not thrown.");
         }
-        catch (NCalcParserException ex)
+        catch (NCalcParserException)
         {
             // The "out" variable must not have been set in case of an exception
             Assert.That(ncalcExpression, Is.Null);
@@ -66,5 +67,20 @@ public class NCalcHandlerTests
         var result = _handler.Parse(string.Empty, out var ncalcExpression);
         Assert.That(ncalcExpression, Is.Null);
         Assert.That(result, Is.Empty);
+    }
+
+    [Test]
+    public void UpdateNCalcHolder_InvalidExpression()
+    {
+        var ncalcHolder = new NCalcHolder { UsedProperties = ["testProperty"] };
+
+        var errorMessage = _handler.UpdateNCalcHolder("invalid expression", ncalcHolder);
+
+        // We want an error message, an updated expressions string, but no changes to NCalcExpression or UsedProperties.
+        Assert.That(errorMessage, Is.Not.Null);
+        Assert.That(ncalcHolder.ExpressionString, Is.EqualTo("invalid expression"));
+        Assert.That(ncalcHolder.NCalcExpression, Is.Null);
+        Assert.That(ncalcHolder.UsedProperties, Has.Count.EqualTo(1));
+        Assert.That(ncalcHolder.UsedProperties, Is.EquivalentTo(new[] { "testProperty" }));
     }
 }

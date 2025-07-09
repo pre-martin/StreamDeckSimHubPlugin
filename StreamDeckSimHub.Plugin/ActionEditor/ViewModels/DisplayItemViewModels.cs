@@ -2,7 +2,6 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.IO;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -11,6 +10,7 @@ using CommunityToolkit.Mvvm.Input;
 using SixLabors.Fonts;
 using StreamDeckSimHub.Plugin.ActionEditor.Tools;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
+using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.Tools;
 using Color = SixLabors.ImageSharp.Color;
 using Point = SixLabors.ImageSharp.Point;
@@ -160,57 +160,80 @@ public partial class DisplayItemTextViewModel(DisplayItemText model, Window pare
     {
         model.Color = value;
     }
-
-    [GeneratedRegex(@"\r\n?|\n")]
-    private static partial Regex LineBreakRegex();
 }
 
 /// <summary>
 /// ViewModel for DisplayItemValue
 /// </summary>
-public partial class DisplayItemValueViewModel(DisplayItemValue model, Window parentWindow)
-    : DisplayItemViewModel(model, parentWindow), IFontSelectable, IColorSelectable
+public partial class DisplayItemValueViewModel : DisplayItemViewModel, IFontSelectable, IColorSelectable
 {
+    private readonly NCalcHandler _ncalcHandler = new();
+    private readonly DisplayItemValue _model;
+
+    public DisplayItemValueViewModel(DisplayItemValue model, Window parentWindow) : base(model, parentWindow)
+    {
+        _model = model;
+        _propertyString = model.NCalcPropertyHolder.ExpressionString;
+        _displayFormat = model.DisplayFormat;
+        _font = model.Font;
+        _imageSharpColor = model.Color;
+
+        // Populate the error message if the condition string is invalid, so that we have it right when the view is displayed.
+        try
+        {
+            _ncalcHandler.Parse(_propertyString, out _);
+        }
+        catch (Exception e)
+        {
+            PropertyErrorMessage = _ncalcHandler.BuildNCalcErrorMessage(e);
+        }
+    }
+
     public override ImageSource? Icon => ParentWindow.FindResource("DiAttachMoneyGray") as ImageSource;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(DisplayName))] // see DisplayItemValue.DisplayName which uses Property
-    private string _propertyName = model.Property;
+    private string _propertyString;
 
-    partial void OnPropertyNameChanged(string value)
+    partial void OnPropertyStringChanged(string value)
     {
-        model.Property = value;
+        PropertyErrorMessage = _ncalcHandler.UpdateNCalcHolder(value, _model.NCalcPropertyHolder);
     }
 
-    [ObservableProperty] private string _displayFormat = model.DisplayFormat;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PropertyErrorVisibility))]
+    private string? _propertyErrorMessage;
+
+    public Visibility PropertyErrorVisibility => PropertyErrorMessage is not null ? Visibility.Visible : Visibility.Collapsed;
+
+    [ObservableProperty] private string _displayFormat;
 
     partial void OnDisplayFormatChanged(string value)
     {
-        model.DisplayFormat = value;
+        _model.DisplayFormat = value;
     }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FontAsString))]
-    private Font _font = model.Font;
+    private Font _font;
 
     partial void OnFontChanged(Font value)
     {
-        model.Font = value;
+        _model.Font = value;
     }
 
-    public string FontAsString => $"{model.Font.Family.Name}, {model.Font.Size}, {model.Font.FontStyle().ToString()}";
+    public string FontAsString => $"{_model.Font.Family.Name}, {_model.Font.Size}, {_model.Font.FontStyle().ToString()}";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ColorHex))]
     [NotifyPropertyChangedFor(nameof(ColorAsWpf))]
-    private Color _imageSharpColor = model.Color;
+    private Color _imageSharpColor;
 
-    public string ColorHex => $"#{model.Color.ToHexWithoutAlpha()}";
+    public string ColorHex => $"#{_model.Color.ToHexWithoutAlpha()}";
 
     public System.Windows.Media.Color ColorAsWpf => ImageSharpColor.ToWpfColor();
 
     partial void OnImageSharpColorChanged(Color value)
     {
-        model.Color = value;
+        _model.Color = value;
     }
 }

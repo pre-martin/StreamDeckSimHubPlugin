@@ -4,6 +4,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
+using StreamDeckSimHub.Plugin.PropertyLogic;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
@@ -11,13 +12,22 @@ public partial class DisplayItemValue : DisplayItem
 {
     public const string UiName = "Value";
 
-    [ObservableProperty] private string _property = string.Empty;
+    [ObservableProperty] private NCalcHolder _nCalcPropertyHolder = new();
+
+    partial void OnNCalcPropertyHolderChanged(NCalcHolder value)
+    {
+        value.PropertyChanged += (_, args) => OnPropertyChanged(args.PropertyName);
+        // No event handler on UsedProperties.CollectionChanged.
+        // We rely only on the event of NCalcHolder.ExpressionString. This means that UsedProperties already has to contain
+        // the new state when ExpressionString is being updated.
+        //value.UsedProperties.CollectionChanged += (_, _) => OnPropertyChanged(nameof(NCalcHolder.UsedProperties));
+    }
+
     [ObservableProperty] private string _displayFormat = string.Empty;
     [ObservableProperty] private Font _font = SystemFonts.CreateFont("Arial", 16, FontStyle.Regular);
     [ObservableProperty] private Color _color = Color.White;
 
-    protected override string RawDisplayName => !string.IsNullOrWhiteSpace(Name) ? Name :
-        !string.IsNullOrWhiteSpace(Property) ? Property : "Value";
+    protected override string RawDisplayName => !string.IsNullOrWhiteSpace(Name) ? Name : "Value";
 
     public static DisplayItemValue Create()
     {

@@ -3,7 +3,7 @@
 
 using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
-using StreamDeckSimHub.Plugin.Actions.Model;
+using StreamDeckSimHub.Plugin.PropertyLogic;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
@@ -11,15 +11,15 @@ public abstract partial class Item : ObservableObject
 {
     [ObservableProperty] private string _name = string.Empty;
 
-    [ObservableProperty] private ConditionsHolder _conditionsHolder = new();
+    [ObservableProperty] private NCalcHolder _nCalcConditionHolder = new();
 
-    partial void OnConditionsHolderChanged(ConditionsHolder value)
+    partial void OnNCalcConditionHolderChanged(NCalcHolder value)
     {
         value.PropertyChanged += (_, args) => OnPropertyChanged(args.PropertyName);
         // No event handler on UsedProperties.CollectionChanged.
-        // We rely only on the event of ConditionsHolder.ConditionString. This means that UsedProperties already has to contain
-        // the new state when ConditionString is being updated.
-        //value.UsedProperties.CollectionChanged += (_, _) => OnPropertyChanged(nameof(ConditionsHolder.UsedProperties));
+        // We rely only on the event of NCalcHolder.ExpressionString. This means that UsedProperties already has to contain
+        // the new state when ExpressionString is being updated.
+        //value.UsedProperties.CollectionChanged += (_, _) => OnPropertyChanged(nameof(NCalcHolder.UsedProperties));
     }
 
     /// <summary>

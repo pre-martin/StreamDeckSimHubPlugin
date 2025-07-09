@@ -5,9 +5,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
              xmlns:controls="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Views.Controls"
+             xmlns:converters="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Converters"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewModels:DisplayItemValueViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="600" d:DesignWidth="550">
+
+    <UserControl.Resources>
+        <converters:InverseVisibilityConverter x:Key="InverseVisibilityConverter" />
+    </UserControl.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -22,15 +27,24 @@
         </Grid.ColumnDefinitions>
 
         <Label Grid.Row="0" Grid.Column="0" Margin="0,10,0,0">Property:</Label>
-        <TextBox Grid.Row="0" Grid.Column="1" Margin="0,10,0,0"
-                 MinWidth="150" VerticalContentAlignment="Center"
-                 Text="{Binding PropertyName}"
-                 ToolTip="Enter a valid SimHub property, like DataCorePlugin.Computed.Fuel_RemainingLaps" />
+        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Vertical" Margin="0,10,0,0">
+            <TextBox Text="{Binding PropertyString, UpdateSourceTrigger=PropertyChanged}"
+                     AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" MinHeight="64" MaxHeight="200"
+                     ToolTip="Please enter a valid NCalc expression, that returns a value" />
+
+            <TextBlock FontWeight="DemiBold" Text="{Binding PropertyErrorMessage}" Foreground="Red"
+                       Visibility="{Binding PropertyErrorVisibility}" />
+            <TextBlock FontWeight="Light" TextWrapping="Wrap"
+                       Visibility="{Binding PropertyErrorVisibility, Converter={StaticResource InverseVisibilityConverter}}">
+                Property names have to be enclosed in square brackets, e.g.<LineBreak />
+                round( [DataCorePlugin.GameData.Fuel], 1)
+            </TextBlock>
+        </StackPanel>
 
         <Label Grid.Row="1" Grid.Column="0" Margin="0,10,0,0">Display Format:</Label>
         <TextBox Grid.Row="1" Grid.Column="1" Margin="0,10,0,0"
-                 MinWidth="150" VerticalContentAlignment="Center"
-                 Text="{Binding DisplayFormat}"
+                 Text="{Binding DisplayFormat, UpdateSourceTrigger=PropertyChanged}"
+                 AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" MinHeight="40" MaxHeight="80"
                  ToolTip="Like :F1 or {4:F1} - see online documentation" />
 
         <controls:FontSelectorControl Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" />

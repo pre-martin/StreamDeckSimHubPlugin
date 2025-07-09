@@ -8,9 +8,9 @@ namespace StreamDeckSimHub.Plugin.PropertyLogic;
 /// <summary>
 /// Helper class for formatting of string.
 /// </summary>
-public class FormatHelper
+public partial class FormatHelper
 {
-    private readonly Regex _formatStringRegex = new Regex("(?<prefix>.*?){(?<format>.+)}(?<suffix>.*)", RegexOptions.Singleline);
+    private readonly Regex _formatStringRegex = FormatStringRegex();
 
     /// <summary>
     /// Properties can be formatted with a format string. To make it easier for the user, there is a "simple format" and
@@ -45,4 +45,7 @@ public class FormatHelper
 
         return fullFormatString;
     }
+
+    [GeneratedRegex("(?<prefix>.*?){(?<format>.+)}(?<suffix>.*)", RegexOptions.Singleline)]
+    private static partial Regex FormatStringRegex();
 }

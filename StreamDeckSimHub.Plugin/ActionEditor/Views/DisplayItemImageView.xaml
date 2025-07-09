@@ -4,17 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
-             xmlns:views="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Views"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewModels:DisplayItemImageViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="600" d:DesignWidth="550">
-
-    <!--
-    <TabControl>
-        <TabItem Header="Element" />    <!- DisplayItem with all properties and conditions ->
-        <TabItem Header="Modifiers" />  <!- Runtime specific modifiers (flash?, transparency?), each with conditions ->
-    </TabControl>
-    -->
 
     <Grid>
         <Grid.RowDefinitions>

@@ -32,8 +32,10 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     private Coordinates? _coordinates;
     private Settings? _settings;
     private readonly HashSet<string> _subscribedProperties = new(StringComparer.OrdinalIgnoreCase);
+    private CancellationTokenSource _settingsChangedDebounceCts = new();
 
-    public GenericButtonAction(SettingsConverter settingsConverter,
+    public GenericButtonAction(
+        SettingsConverter settingsConverter,
         ImageManager imageManager,
         ActionEditorManager actionEditorManager,
         SimHubConnection simHubConnection)
@@ -67,22 +69,38 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
                 displayItemImage.Image = _imageManager.GetCustomImage(displayItemImage.RelativePath, _sdKeyInfo);
             }
 
-            if (_settings != null)
+            // Debounce the more expensive calls.
+            await _settingsChangedDebounceCts.CancelAsync();
+            _settingsChangedDebounceCts = new CancellationTokenSource();
+            var token = _settingsChangedDebounceCts.Token;
+            _ = Task.Run(async () =>
             {
-                Logger.LogDebug("({coords}) Settings changed: sender={sender}, property={args}", _coordinates, sender, args.PropertyName);
-                var settingsDto = _settingsConverter.SettingsToDto(_settings);
-                await SetSettingsAsync(settingsDto);
-            }
+                try
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(800), token);
+                    if (!token.IsCancellationRequested)
+                    {
+                        if (_settings != null)
+                        {
+                            Logger.LogDebug("({coords}) Settings changed: sender={sender}, property={args}",
+                                _coordinates, sender, args.PropertyName);
+                            var settingsDto = _settingsConverter.SettingsToDto(_settings);
+                            await SetSettingsAsync(settingsDto, token);
+                        }
+
+                        await SubscribeProperties();
+                        await Render();
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                }
+            }, token);
         }
         catch (Exception e)
         {
             Logger.LogError(e, "({coords}) Error while saving settings", _coordinates);
         }
-
-        // Update subscription as the used properties may have changed.
-        await SubscribeProperties();
-        // TODO Do not render when just the DisplayName was modified
-        await Render();
     }
 
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
@@ -150,7 +168,8 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         {
             // GenericButton is used on a different StreamDeck key. Scale it.
             // TODO Scale, update KeyInfo and save config with SetSettings()
-            Logger.LogWarning("({coords}) Key size changed from {old} to {new}", _coordinates, settings.KeySize, sdKeyInfo.KeySize);
+            Logger.LogWarning("({coords}) Key size changed from {old} to {new}", _coordinates, settings.KeySize,
+                sdKeyInfo.KeySize);
         }
 
         return settings;
@@ -162,22 +181,27 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     /// </summary>
     private async Task SubscribeProperties()
     {
+        Logger.LogDebug("({coords}) SubscribeProperties", _coordinates);
         var newProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var displayItem in _settings?.DisplayItems ?? [])
         {
             // Conditions in DisplayItems can contain properties.
-            foreach (var propName in displayItem.ConditionsHolder.UsedProperties)
+            foreach (var propName in displayItem.NCalcConditionHolder.UsedProperties)
             {
+                Logger.LogDebug("({coords})   Found property \"{propName}\" in \"{name}\"", _coordinates, propName,
+                    displayItem.DisplayName);
                 newProperties.Add(propName);
             }
 
-            // DisplayItemValue.Property contains a property.
+            // DisplayItemValue.PropertyHolder contains properties.
             if (displayItem is DisplayItemValue displayItemValue)
             {
-                if (!string.IsNullOrEmpty(displayItemValue.Property))
+                foreach (var propName in displayItemValue.NCalcPropertyHolder.UsedProperties)
                 {
-                    newProperties.Add(displayItemValue.Property);
+                    Logger.LogDebug("({coords})   Found property \"{propName}\" in \"{name}\"", _coordinates, propName,
+                        displayItem.DisplayName);
+                    newProperties.Add(propName);
                 }
             }
         }
@@ -189,8 +213,10 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
                 foreach (var commandItem in commandItemList)
                 {
                     // Conditions in CommandItems can contain properties
-                    foreach (var propName in commandItem.ConditionsHolder.UsedProperties)
+                    foreach (var propName in commandItem.NCalcConditionHolder.UsedProperties)
                     {
+                        Logger.LogDebug("({coords})   Found property \"{propName}\" in \"{name}\"", _coordinates, propName,
+                            commandItem.DisplayName);
                         newProperties.Add(propName);
                     }
                 }
@@ -199,6 +225,13 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
 
         var danglingProps = _subscribedProperties.Except(newProperties).ToList();
         var newToSubProps = newProperties.Except(_subscribedProperties).ToList();
+
+        _subscribedProperties.Clear();
+        _subscribedProperties.UnionWith(newProperties);
+
+        Logger.LogDebug("({coords})   danglingProps : {danglingProps}", _coordinates, danglingProps);
+        Logger.LogDebug("({coords})   newToSubProps : {newToSubProps}", _coordinates, newToSubProps);
+        Logger.LogDebug("({coords})   now subscribed: {subscribedProps}", _coordinates, _subscribedProperties);
 
         foreach (var prop in danglingProps)
         {
@@ -209,14 +242,6 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         {
             await _simHubConnection.Subscribe(prop, _statePropertyChangedReceiver);
         }
-
-
-        _subscribedProperties.Clear();
-        _subscribedProperties.UnionWith(newProperties);
-
-        Logger.LogDebug("({coords}) danglingProps : {danglingProps}", _coordinates, danglingProps);
-        Logger.LogDebug("({coords}) newToSubProps : {newToSubProps}", _coordinates, newToSubProps);
-        Logger.LogDebug("({coords}) now subscribed: {subscribedProps}", _coordinates, _subscribedProperties);
     }
 
     private async Task UnsubscribeProperties()

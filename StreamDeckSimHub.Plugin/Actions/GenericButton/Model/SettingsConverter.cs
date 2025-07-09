@@ -91,7 +91,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
             },
             DisplayItemValueDto valueDto => new DisplayItemValue
             {
-                Property = valueDto.Property,
+                NCalcPropertyHolder = ExpressionStringToModel(valueDto.Property),
                 DisplayFormat = valueDto.DisplayFormat,
                 Font = FontToModel(valueDto.FontName, valueDto.FontSize, valueDto.FontStyle),
                 Color = Color.TryParseHex(valueDto.Color, out var color) ? color : Color.White
@@ -103,7 +103,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
         {
             displayItem.Name = dto.Name;
             displayItem.DisplayParameters = DisplayParametersToModel(dto.DisplayParameters);
-            displayItem.ConditionsHolder = ConditionsToModel(dto.ConditionsString);
+            displayItem.NCalcConditionHolder = ExpressionStringToModel(dto.ConditionsString);
             return displayItem;
         }
 
@@ -119,14 +119,14 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
             {
                 Name = model.Name,
                 DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
-                ConditionsString = model.ConditionsHolder.ConditionString,
+                ConditionsString = model.NCalcConditionHolder.ExpressionString,
                 RelativePath = image.RelativePath,
             },
             DisplayItemText text => new DisplayItemTextDto
             {
                 Name = model.Name,
                 DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
-                ConditionsString = model.ConditionsHolder.ConditionString,
+                ConditionsString = model.NCalcConditionHolder.ExpressionString,
                 Text = text.Text,
                 FontName = text.Font.Family.Name,
                 FontStyle = FontStyleToDto(text.Font),
@@ -137,8 +137,8 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
             {
                 Name = model.Name,
                 DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
-                ConditionsString = model.ConditionsHolder.ConditionString,
-                Property = value.Property,
+                ConditionsString = model.NCalcConditionHolder.ExpressionString,
+                Property = value.NCalcPropertyHolder.ExpressionString,
                 DisplayFormat = value.DisplayFormat,
                 FontName = value.Font.Family.Name,
                 FontStyle = FontStyleToDto(value.Font),
@@ -238,7 +238,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
         if (commandItem != null)
         {
             commandItem.Name = dto.Name;
-            commandItem.ConditionsHolder = ConditionsToModel(dto.ConditionsString);
+            commandItem.NCalcConditionHolder = ExpressionStringToModel(dto.ConditionsString);
             return commandItem;
         }
 
@@ -253,7 +253,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
             CommandItemKeypress keypress => new CommandItemKeypressDto
             {
                 Name = model.Name,
-                ConditionsString = model.ConditionsHolder.ConditionString,
+                ConditionsString = model.NCalcConditionHolder.ExpressionString,
                 Key = keypress.Key,
                 ModifierCtrl = keypress.ModifierCtrl,
                 ModifierAlt = keypress.ModifierAlt,
@@ -262,13 +262,13 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
             CommandItemSimHubControl control => new CommandItemSimHubControlDto
             {
                 Name = model.Name,
-                ConditionsString = model.ConditionsHolder.ConditionString,
+                ConditionsString = model.NCalcConditionHolder.ExpressionString,
                 Control = control.Control
             },
             CommandItemSimHubRole role => new CommandItemSimHubRoleDto
             {
                 Name = model.Name,
-                ConditionsString = model.ConditionsHolder.ConditionString,
+                ConditionsString = model.NCalcConditionHolder.ExpressionString,
                 Role = role.Role
             },
             _ => null
@@ -285,21 +285,21 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
 
     #endregion
 
-    private ConditionsHolder ConditionsToModel(string conditionString)
+    private NCalcHolder ExpressionStringToModel(string expressionString)
     {
         try
         {
-            var usedProperties = ncalcHandler.Parse(conditionString, out var ncalcExpression);
-            return new ConditionsHolder {
-                ConditionString = conditionString,
+            var usedProperties = ncalcHandler.Parse(expressionString, out var ncalcExpression);
+            return new NCalcHolder {
+                ExpressionString = expressionString,
                 NCalcExpression = ncalcExpression,
-                UsedProperties = new ObservableCollection<string>(usedProperties)
+                UsedProperties = usedProperties
             };
         }
         catch (Exception e)
         {
-            Logger.Warn(e, $"Failed to create ConditionsHolder from conditions string: {conditionString}");
-            return new ConditionsHolder { ConditionString = conditionString };
+            Logger.Warn(e, $"Failed to create ConditionsHolder from conditions string: {expressionString}");
+            return new NCalcHolder { ExpressionString = expressionString };
         }
     }
 }

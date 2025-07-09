@@ -27,7 +27,7 @@ public class ButtonRendererGdi(GetPropertyDelegate getProperty) : IButtonRendere
     {
         _coords = coordinates;
     }
-    
+
     public string Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems)
     {
         using var renderBitmap = new Bitmap(targetKeyInfo.KeySize.Width, targetKeyInfo.KeySize.Height);
@@ -170,15 +170,15 @@ public class ButtonRendererGdi(GetPropertyDelegate getProperty) : IButtonRendere
     /// </summary>
     private bool IsVisible(Item item)
     {
-        if (item.ConditionsHolder.NCalcExpression == null)
+        if (item.NCalcConditionHolder.NCalcExpression == null)
         {
             return true; // No condition means always visible.
         }
 
-        var expression = item.ConditionsHolder.NCalcExpression;
+        var expression = item.NCalcConditionHolder.NCalcExpression;
 
         // TODO We should set the parameters only once, not for each invocation.
-        foreach (var usedProperty in item.ConditionsHolder.UsedProperties)
+        foreach (var usedProperty in item.NCalcConditionHolder.UsedProperties)
         {
             expression.DynamicParameters[usedProperty] = _ => getProperty.Invoke(usedProperty);
         }

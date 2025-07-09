@@ -1,7 +1,6 @@
 ﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
-using System.Collections.ObjectModel;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
@@ -18,7 +17,7 @@ public abstract partial class ItemViewModel : ObservableObject
     {
         _model = model;
         _name = model.Name;
-        _conditionString = model.ConditionsHolder.ConditionString;
+        _conditionString = model.NCalcConditionHolder.ExpressionString;
 
         // Populate the error message if the condition string is invalid, so that we have it right when the view is displayed.
         try
@@ -27,7 +26,7 @@ public abstract partial class ItemViewModel : ObservableObject
         }
         catch (Exception e)
         {
-            ErrorMessage = BuildNCalcErrorMessage(e);
+            ConditionErrorMessage = _ncalcHandler.BuildNCalcErrorMessage(e);
         }
     }
 
@@ -40,10 +39,10 @@ public abstract partial class ItemViewModel : ObservableObject
     [ObservableProperty] private string _conditionString;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ErrorVisibility))]
-    private string? _errorMessage;
+    [NotifyPropertyChangedFor(nameof(ConditionErrorVisibility))]
+    private string? _conditionErrorMessage;
 
-    public Visibility ErrorVisibility => ErrorMessage is not null ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility ConditionErrorVisibility => ConditionErrorMessage is not null ? Visibility.Visible : Visibility.Collapsed;
 
     partial void OnNameChanged(string value)
     {
@@ -52,33 +51,7 @@ public abstract partial class ItemViewModel : ObservableObject
 
     partial void OnConditionStringChanged(string value)
     {
-        // Update the NCalcExpression and the UsedProperties first. Reason: See comment in Item.cs#OnConditionsHolderChanged().
-        ErrorMessage = null;
-        try
-        {
-            var usedProperties = _ncalcHandler.Parse(value, out var ncalcExpression);
-            // ...update NCalcExpression and UsedProperties only if parsing was successful
-            _model.ConditionsHolder.NCalcExpression = ncalcExpression;
-            _model.ConditionsHolder.UsedProperties = new ObservableCollection<string>(usedProperties);
-        }
-        catch (Exception e)
-        {
-            ErrorMessage = BuildNCalcErrorMessage(e);
-        }
-
-        // Then update the ConditionString in any case
-        _model.ConditionsHolder.ConditionString = value;
-    }
-
-    private string BuildNCalcErrorMessage(Exception e)
-    {
-        var msg = e.Message;
-        if (e.InnerException != null)
-        {
-            msg += "\n" + e.InnerException.Message;
-        }
-
-        return msg;
+        ConditionErrorMessage = _ncalcHandler.UpdateNCalcHolder(value, _model.NCalcConditionHolder);
     }
 
     public Item GetModel()
