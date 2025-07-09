@@ -167,41 +167,9 @@
                     <DataTemplate DataType="{x:Type viewModels:DisplayItemViewModel}">
                         <views:DisplayItemView />
                     </DataTemplate>
-                    <!--
-                    <DataTemplate DataType="{x:Type viewModels:DisplayItemImageViewModel}">
-                        <views:DisplayItemImageView />
+                    <DataTemplate DataType="{x:Type viewModels:CommandItemViewModel}">
+                        <views:CommandItemView />
                     </DataTemplate>
-                    <DataTemplate DataType="{x:Type viewModels:DisplayItemTextViewModel}">
-                        <StackPanel>
-                            <TextBlock Text="Text-Name:" FontWeight="Bold" Margin="0,0,0,4" />
-                            <TextBox Width="250" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                        </StackPanel>
-                    </DataTemplate>
-                    <DataTemplate DataType="{x:Type viewModels:DisplayItemValueViewModel}">
-                        <StackPanel>
-                            <TextBlock Text="Value-Name:" FontWeight="Bold" Margin="0,0,0,4" />
-                            <TextBox Width="250" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                        </StackPanel>
-                    </DataTemplate>
-                    <DataTemplate DataType="{x:Type viewModels:CommandItemKeypressViewModel}">
-                        <StackPanel>
-                            <TextBlock Text="Keypress-Name:" FontWeight="Bold" Margin="0,0,0,4" />
-                            <TextBox Width="250" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                        </StackPanel>
-                    </DataTemplate>
-                    <DataTemplate DataType="{x:Type viewModels:CommandItemSimHubControlViewModel}">
-                        <StackPanel>
-                            <TextBlock Text="SimHubControl-Name:" FontWeight="Bold" Margin="0,0,0,4" />
-                            <TextBox Width="250" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                        </StackPanel>
-                    </DataTemplate>
-                    <DataTemplate DataType="{x:Type viewModels:CommandItemSimHubRoleViewModel}">
-                        <StackPanel>
-                            <TextBlock Text="SimHubRole-Name:" FontWeight="Bold" Margin="0,0,0,4" />
-                            <TextBox Width="250" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                        </StackPanel>
-                    </DataTemplate>
-                    -->
                 </ContentControl.Resources>
             </ContentControl>
         </Grid>

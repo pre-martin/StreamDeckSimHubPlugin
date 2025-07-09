@@ -1,6 +1,8 @@
 // Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using System.Windows;
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.Actions.Model;
@@ -25,8 +27,10 @@ public class StreamDeckActionViewModel(StreamDeckAction action) : ObservableObje
 /// <summary>
 /// Base ViewModel for all CommandItems
 /// </summary>
-public abstract class CommandItemViewModel(CommandItem model, StreamDeckAction parentAction)
-    : ItemViewModel(model), IFlatCommandItemsViewModel
+public abstract class CommandItemViewModel(
+    CommandItem model,
+    Window parentWindow,
+    StreamDeckAction parentAction) : ItemViewModel(model, parentWindow), IFlatCommandItemsViewModel
 {
     public StreamDeckAction ParentAction { get; } = parentAction;
 }
@@ -34,27 +38,87 @@ public abstract class CommandItemViewModel(CommandItem model, StreamDeckAction p
 /// <summary>
 /// ViewModel for CommandItemKeypress
 /// </summary>
-public class CommandItemKeypressViewModel(CommandItemKeypress model, StreamDeckAction parentAction)
-    : CommandItemViewModel(model, parentAction)
+public partial class CommandItemKeypressViewModel(
+    CommandItemKeypress model,
+    Window parentWindow,
+    StreamDeckAction parentAction) : CommandItemViewModel(model, parentWindow, parentAction)
 {
-    // Add properties specific to CommandItemKeypress here
+    public override ImageSource? Icon => null;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayName))]
+    private string _key = model.Key;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayName))]
+    private bool _modifierCtrl = model.ModifierCtrl;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayName))]
+    private bool _modifierAlt = model.ModifierAlt;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayName))]
+    private bool _modifierShift = model.ModifierShift;
+
+    partial void OnKeyChanged(string value)
+    {
+        model.Key = value;
+    }
+
+    partial void OnModifierCtrlChanged(bool value)
+    {
+        model.ModifierCtrl = value;
+    }
+
+    partial void OnModifierAltChanged(bool value)
+    {
+        model.ModifierAlt = value;
+    }
+
+    partial void OnModifierShiftChanged(bool value)
+    {
+        model.ModifierShift = value;
+    }
 }
 
 /// <summary>
 /// ViewModel for CommandItemSimHubControl
 /// </summary>
-public class CommandItemSimHubControlViewModel(CommandItemSimHubControl model, StreamDeckAction parentAction)
-    : CommandItemViewModel(model,
-        parentAction)
+public partial class CommandItemSimHubControlViewModel(
+    CommandItemSimHubControl model,
+    Window parentWindow,
+    StreamDeckAction parentAction) : CommandItemViewModel(model, parentWindow, parentAction)
 {
-    // Add properties specific to CommandItemSimHubControl here
+    public override ImageSource? Icon => null;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayName))] // see CommandItemSimHubControl.RawDisplayName which uses Control
+    private string _control = model.Control;
+
+    partial void OnControlChanged(string value)
+    {
+        model.Control = value;
+    }
 }
 
 /// <summary>
 /// ViewModel for CommandItemSimHubRole
 /// </summary>
-public class CommandItemSimHubRoleViewModel(CommandItemSimHubRole model, StreamDeckAction parentAction)
-    : CommandItemViewModel(model, parentAction)
+public partial class CommandItemSimHubRoleViewModel(
+    CommandItemSimHubRole model,
+    Window parentWindow,
+    StreamDeckAction parentAction)
+    : CommandItemViewModel(model, parentWindow, parentAction)
 {
-    // Add properties specific to CommandItemSimHubRole here
+    public override ImageSource? Icon => null;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayName))] // see CommandItemSimHubRole.RawDisplayName which uses Control
+    private string _role = model.Role;
+
+    partial void OnRoleChanged(string value)
+    {
+        model.Role = value;
+    }
 }

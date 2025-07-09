@@ -180,9 +180,9 @@ public partial class SettingsViewModel : ObservableObject
     {
         return commandItem switch
         {
-            CommandItemKeypress keypress => new CommandItemKeypressViewModel(keypress, action),
-            CommandItemSimHubControl control => new CommandItemSimHubControlViewModel(control, action),
-            CommandItemSimHubRole role => new CommandItemSimHubRoleViewModel(role, action),
+            CommandItemKeypress keypress => new CommandItemKeypressViewModel(keypress, _parentWindow, action),
+            CommandItemSimHubControl control => new CommandItemSimHubControlViewModel(control, _parentWindow, action),
+            CommandItemSimHubRole role => new CommandItemSimHubRoleViewModel(role, _parentWindow, action),
             _ => throw new InvalidOperationException("Unknown CommandItem type.")
         };
     }

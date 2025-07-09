@@ -2,6 +2,7 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Windows;
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.PropertyLogic;
@@ -12,10 +13,12 @@ public abstract partial class ItemViewModel : ObservableObject
 {
     private readonly NCalcHandler _ncalcHandler = new();
     private readonly Item _model;
+    protected readonly Window ParentWindow;
 
-    protected ItemViewModel(Item model)
+    protected ItemViewModel(Item model, Window parentWindow)
     {
         _model = model;
+        ParentWindow = parentWindow;
         _name = model.Name;
         _conditionString = model.NCalcConditionHolder.ExpressionString;
 
@@ -29,6 +32,8 @@ public abstract partial class ItemViewModel : ObservableObject
             ConditionErrorMessage = _ncalcHandler.BuildNCalcErrorMessage(e);
         }
     }
+
+    public abstract ImageSource? Icon { get; }
 
     public string DisplayName => _model.DisplayName;
 

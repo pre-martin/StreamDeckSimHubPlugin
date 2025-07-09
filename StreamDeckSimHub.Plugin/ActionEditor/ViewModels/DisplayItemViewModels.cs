@@ -21,12 +21,8 @@ namespace StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 /// <summary>
 /// Base ViewModel for all DisplayItems
 /// </summary>
-public abstract partial class DisplayItemViewModel(DisplayItem model, Window parentWindow) : ItemViewModel(model)
+public abstract partial class DisplayItemViewModel(DisplayItem model, Window parentWindow) : ItemViewModel(model, parentWindow)
 {
-    protected readonly Window ParentWindow = parentWindow;
-
-    public abstract ImageSource? Icon { get; }
-
     [ObservableProperty] private float _transparency = model.DisplayParameters.Transparency;
     [ObservableProperty] private int _posX = model.DisplayParameters.Position.X;
     [ObservableProperty] private int _posY = model.DisplayParameters.Position.Y;
