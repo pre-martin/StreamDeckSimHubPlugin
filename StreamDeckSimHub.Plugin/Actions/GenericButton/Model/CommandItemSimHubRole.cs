@@ -2,6 +2,8 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using CommunityToolkit.Mvvm.ComponentModel;
+using SharpDeck.Events.Received;
+using StreamDeckSimHub.Plugin.Actions.Model;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
@@ -16,9 +18,11 @@ public partial class CommandItemSimHubRole : CommandItem
 
     public static CommandItemSimHubRole Create()
     {
-        return new CommandItemSimHubRole
-        {
-            Role = string.Empty
-        };
+        return new CommandItemSimHubRole();
+    }
+
+    public override async Task Accept<TPayload>(ICommandVisitor visitor, StreamDeckAction action, ActionEventArgs<TPayload> args)
+    {
+        await visitor.Visit(this, action, args);
     }
 }

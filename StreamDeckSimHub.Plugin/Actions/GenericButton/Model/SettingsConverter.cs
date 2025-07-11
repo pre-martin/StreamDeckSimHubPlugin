@@ -31,8 +31,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
 
         var settings = new Settings
         {
-            KeySize = new Size(dto.KeySize.Width, dto.KeySize.Height),
-            KeyInfo = keyInfo
+            KeySize = new Size(dto.KeySize.Width, dto.KeySize.Height)
         };
 
 
@@ -221,8 +220,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
                 ModifierCtrl = keypressDto.ModifierCtrl,
                 ModifierAlt = keypressDto.ModifierAlt,
                 ModifierShift = keypressDto.ModifierShift,
-                Hotkey = KeyboardUtils.CreateHotkey(keypressDto.ModifierCtrl, keypressDto.ModifierAlt, keypressDto.ModifierShift,
-                    keypressDto.Key),
+                LongEnabled = keypressDto.LongEnabled,
             },
             CommandItemSimHubControlDto controlDto => new CommandItemSimHubControl
             {
@@ -257,7 +255,8 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
                 Key = keypress.Key,
                 ModifierCtrl = keypress.ModifierCtrl,
                 ModifierAlt = keypress.ModifierAlt,
-                ModifierShift = keypress.ModifierShift
+                ModifierShift = keypress.ModifierShift,
+                LongEnabled = keypress.LongEnabled,
             },
             CommandItemSimHubControl control => new CommandItemSimHubControlDto
             {

@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.ComponentModel;
@@ -10,8 +10,10 @@ using StreamDeckSimHub.Plugin.ActionEditor;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Renderer;
+using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.SimHub;
 using StreamDeckSimHub.Plugin.Tools;
+using StreamDeckAction = StreamDeckSimHub.Plugin.Actions.Model.StreamDeckAction;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton;
 
@@ -19,12 +21,15 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton;
 /// Completely customizable button.
 /// </summary>
 [StreamDeckAction("net.planetrenner.simhub.generic-button")]
-public class GenericButtonAction : StreamDeckAction<SettingsDto>
+public class GenericButtonAction : StreamDeckAction<SettingsDto>, ICommandVisitor
 {
     private readonly SettingsConverter _settingsConverter;
     private readonly ImageManager _imageManager;
     private readonly ActionEditorManager _actionEditorManager;
     private readonly SimHubConnection _simHubConnection;
+    private readonly NCalcHandler _ncalcHandler;
+    private readonly SimHubManager _simHubManager;
+    private readonly KeyQueue _dialKeyQueue;
     private readonly IPropertyChangedReceiver _statePropertyChangedReceiver;
     private readonly IButtonRenderer _buttonRenderer;
 
@@ -34,19 +39,24 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     private readonly HashSet<string> _subscribedProperties = new(StringComparer.OrdinalIgnoreCase);
     private CancellationTokenSource _settingsChangedDebounceCts = new();
 
+    private List<CommandItem> _activeCommandItems = new();
+
     public GenericButtonAction(
         SettingsConverter settingsConverter,
         ImageManager imageManager,
         ActionEditorManager actionEditorManager,
-        SimHubConnection simHubConnection)
+        SimHubConnection simHubConnection,
+        NCalcHandler ncalcHandler)
     {
         _settingsConverter = settingsConverter;
         _imageManager = imageManager;
         _actionEditorManager = actionEditorManager;
         _simHubConnection = simHubConnection;
+        _ncalcHandler = ncalcHandler;
+        _simHubManager = new SimHubManager(simHubConnection);
+        _dialKeyQueue = new KeyQueue(simHubConnection);
         _statePropertyChangedReceiver = new PropertyChangedDelegate(PropertyChanged);
         _buttonRenderer = new ButtonRendererImageSharp(GetProperty);
-        //_buttonRenderer = new ButtonRendererGdi(GetProperty);
     }
 
     private void SubscribeToSettingsChanges()
@@ -82,13 +92,19 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
                     {
                         if (_settings != null)
                         {
-                            Logger.LogDebug("({coords}) Settings changed: sender={sender}, property={args}",
+                            Logger.LogDebug("({coords}) Settings changed: sender={sender}, property={prop}",
                                 _coordinates, sender, args.PropertyName);
                             var settingsDto = _settingsConverter.SettingsToDto(_settings);
                             await SetSettingsAsync(settingsDto, token);
                         }
 
                         await SubscribeProperties();
+
+                        // Element added/removed from CommandItems: No rendering needed.
+                        if (args.PropertyName == nameof(Settings.CommandItems)) return;
+                        // CommandItem modified: No rendering needed.
+                        if (sender is CommandItem) return;
+
                         await Render();
                     }
                 }
@@ -103,15 +119,18 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         }
     }
 
+    #region Stream Deck event handlers
+
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
     {
-        Logger.LogInformation("OnWillAppear ({coords})", args.Payload.Coordinates);
+        Logger.LogInformation("({coords}) OnWillAppear", args.Payload.Coordinates);
         _coordinates = args.Payload.Coordinates;
         _buttonRenderer.SetCoordinates(_coordinates);
 
         _sdKeyInfo = StreamDeckKeyInfoBuilder.Build(StreamDeck.Info, args.Device, args.Payload.Controller);
         _settings = await ConvertSettings(args.Payload.GetSettings<SettingsDto>(), _sdKeyInfo);
         SubscribeToSettingsChanges();
+        _dialKeyQueue.Start();
         await SubscribeProperties();
         await Render();
 
@@ -120,18 +139,21 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
 
     protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
     {
-        Logger.LogInformation("OnWillDisappear ({coords})", args.Payload.Coordinates);
+        Logger.LogInformation("({coords}) OnWillDisappear", args.Payload.Coordinates);
         _actionEditorManager.RemoveGenericButtonEditor(Context);
+        _dialKeyQueue.Stop();
         await UnsubscribeProperties();
+        await _simHubManager.Deactivate();
 
         await base.OnWillDisappear(args);
     }
 
     protected override async Task OnDidReceiveSettings(ActionEventArgs<ActionPayload> args)
     {
-        // Should not get called, because we have no PropertyInspector.
+        // Should not get called, because we have no PropertyInspector. Implementation is the same as in OnWillAppear, but
+        // we can omit the code for the StreamDeckKeyInfo.
 
-        Logger.LogInformation("OnDidReceiveSettings ({coords})", args.Payload.Coordinates);
+        Logger.LogInformation("({coords}) OnDidReceiveSettings", args.Payload.Coordinates);
         _coordinates = args.Payload.Coordinates;
 
         _settings = await ConvertSettings(args.Payload.GetSettings<SettingsDto>(), _sdKeyInfo!);
@@ -142,6 +164,86 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         await base.OnDidReceiveSettings(args);
     }
 
+    protected override async Task OnKeyDown(ActionEventArgs<KeyPayload> args)
+    {
+        if (_settings == null) return;
+        Logger.LogInformation("({coords}) OnKeyDown", args.Payload.Coordinates);
+
+        // We want to execute the "Up" action exactly on those keys, that were also pressed down.
+        _activeCommandItems = _settings.CommandItems[StreamDeckAction.KeyDown].Where(IsActive).ToList();
+        foreach (var commandItem in _activeCommandItems)
+        {
+            await commandItem.Accept(this, StreamDeckAction.KeyDown, args);
+        }
+    }
+
+    protected override async Task OnKeyUp(ActionEventArgs<KeyPayload> args)
+    {
+        Logger.LogInformation("({coords}) OnKeyUp", args.Payload.Coordinates);
+
+        var localCommandItems = new List<CommandItem>(_activeCommandItems);
+        _activeCommandItems.Clear();
+        foreach (var commandItem in localCommandItems)
+        {
+            await commandItem.Accept(this, StreamDeckAction.KeyUp, args);
+        }
+    }
+
+    protected override async Task OnDialRotate(ActionEventArgs<DialRotatePayload> args)
+    {
+        if (_settings == null) return;
+        Logger.LogInformation("({coords}) OnDialRotate (Ticks {ticks})", args.Payload.Coordinates, args.Payload.Ticks);
+
+        var activeCommandItems = args.Payload.Ticks < 0
+            ? _settings.CommandItems[StreamDeckAction.DialLeft].Where(IsActive).ToList()
+            : _settings.CommandItems[StreamDeckAction.DialRight].Where(IsActive).ToList();
+
+        foreach (var commandItem in activeCommandItems)
+        {
+            await commandItem.Accept(this, args.Payload.Ticks < 0 ? StreamDeckAction.DialLeft : StreamDeckAction.DialRight, args);
+        }
+    }
+
+    protected override async Task OnDialDown(ActionEventArgs<DialPayload> args)
+    {
+        if (_settings == null) return;
+        Logger.LogInformation("({coords}) OnDialDown", args.Payload.Coordinates);
+
+        // We want to execute the "Up" action exactly on those keys, that were also pressed down.
+        _activeCommandItems = _settings.CommandItems[StreamDeckAction.DialDown].Where(IsActive).ToList();
+        foreach (var commandItem in _activeCommandItems)
+        {
+            await commandItem.Accept(this, StreamDeckAction.DialDown, args);
+        }
+    }
+
+    protected override async Task OnDialUp(ActionEventArgs<DialPayload> args)
+    {
+        Logger.LogInformation("({coords}) OnDialUp", args.Payload.Coordinates);
+
+        var localCommandItems = new List<CommandItem>(_activeCommandItems);
+        _activeCommandItems.Clear();
+        foreach (var commandItem in localCommandItems)
+        {
+            await commandItem.Accept(this, StreamDeckAction.KeyUp, args);
+        }
+    }
+
+    protected override async Task OnTouchTap(ActionEventArgs<TouchTapPayload> args)
+    {
+        if (_settings == null) return;
+        Logger.LogInformation("({coords}) OnTouchTap", args.Payload.Coordinates);
+
+        var activeCommandItems = _settings.CommandItems[StreamDeckAction.TouchTap].Where(IsActive).ToList();
+        foreach (var commandItem in activeCommandItems)
+        {
+            await commandItem.Accept(this, StreamDeckAction.TouchTap, args);
+        }
+    }
+
+    /// <summary>
+    /// Called from the Property Inspector to open the editor for this action.
+    /// </summary>
     [PropertyInspectorMethod("openEditor")]
     public void OpenEditor()
     {
@@ -151,6 +253,8 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
             _actionEditorManager.ShowGenericButtonEditor(Context, _settings);
         }
     }
+
+    #endregion
 
     private async Task<Settings> ConvertSettings(SettingsDto dto, StreamDeckKeyInfo sdKeyInfo)
     {
@@ -263,9 +367,9 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
 
     private async Task Render()
     {
-        if (_settings == null) return;
+        if (_settings == null || _sdKeyInfo == null) return;
 
-        var image = _buttonRenderer.Render(_settings.KeyInfo, _settings.DisplayItems);
+        var image = _buttonRenderer.Render(_sdKeyInfo, _settings.DisplayItems);
         await SetImageAsync(image);
     }
 
@@ -274,4 +378,86 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         var propertyChangedArgs = _simHubConnection.GetProperty(propertyName);
         return propertyChangedArgs?.PropertyValue;
     }
+
+    private bool IsActive(Item item)
+    {
+        return _ncalcHandler.IsConditionActive(item.NCalcConditionHolder, GetProperty,
+            $"({_coordinates})   IsActive of \"{item.DisplayName}\"");
+    }
+
+    #region ICommandVisitor implementation
+
+    public async Task Visit<TPayload>(CommandItemKeypress command, StreamDeckAction action, ActionEventArgs<TPayload> args)
+    {
+        var ticks = args is ActionEventArgs<DialRotatePayload> dialArgs ? dialArgs.Payload.Ticks : -1;
+
+        switch (action)
+        {
+            case StreamDeckAction.KeyDown or StreamDeckAction.DialDown:
+                if (!command.LongEnabled) KeyboardUtils.KeyDown(command.Hotkey);
+                break;
+            case StreamDeckAction.KeyUp or StreamDeckAction.DialUp:
+                if (!command.LongEnabled) KeyboardUtils.KeyUp(command.Hotkey);
+                break;
+            case StreamDeckAction.DialLeft:
+                _dialKeyQueue.Enqueue(command.Hotkey, null, null, -ticks);
+                break;
+            case StreamDeckAction.DialRight:
+                _dialKeyQueue.Enqueue(command.Hotkey, null, null, ticks);
+                break;
+            case StreamDeckAction.TouchTap:
+                _dialKeyQueue.Enqueue(command.Hotkey, null, null, 1);
+                break;
+        }
+    }
+
+    public async Task Visit<TPayload>(CommandItemSimHubControl command, StreamDeckAction action, ActionEventArgs<TPayload> args)
+    {
+        var ticks = args is ActionEventArgs<DialRotatePayload> dialArgs ? dialArgs.Payload.Ticks : -1;
+
+        switch (action)
+        {
+            case StreamDeckAction.KeyDown or StreamDeckAction.DialDown:
+                await _simHubManager.TriggerInputPressed(command.Control);
+                break;
+            case StreamDeckAction.KeyUp or StreamDeckAction.DialUp:
+                await _simHubManager.TriggerInputReleased(command.Control);
+                break;
+            case StreamDeckAction.DialLeft:
+                _dialKeyQueue.Enqueue(null, command.Control, null, -ticks);
+                break;
+            case StreamDeckAction.DialRight:
+                _dialKeyQueue.Enqueue(null, command.Control, null, ticks);
+                break;
+            case StreamDeckAction.TouchTap:
+                _dialKeyQueue.Enqueue(null, command.Control, null, 1);
+                break;
+        }
+    }
+
+    public async Task Visit<TPayload>(CommandItemSimHubRole command, StreamDeckAction action, ActionEventArgs<TPayload> args)
+    {
+        var ticks = args is ActionEventArgs<DialRotatePayload> dialArgs ? dialArgs.Payload.Ticks : -1;
+
+        switch (action)
+        {
+            case StreamDeckAction.KeyDown or StreamDeckAction.DialDown:
+                await _simHubManager.RolePressed(Context, command.Role);
+                break;
+            case StreamDeckAction.KeyUp or StreamDeckAction.DialUp:
+                await _simHubManager.RoleReleased(Context, command.Role);
+                break;
+            case StreamDeckAction.DialLeft:
+                _dialKeyQueue.Enqueue(null, null, (Context, command.Role), -ticks);
+                break;
+            case StreamDeckAction.DialRight:
+                _dialKeyQueue.Enqueue(null, null, (Context, command.Role), ticks);
+                break;
+            case StreamDeckAction.TouchTap:
+                _dialKeyQueue.Enqueue(null, null, (Context, command.Role), 1);
+                break;
+        }
+    }
+
+    #endregion
 }

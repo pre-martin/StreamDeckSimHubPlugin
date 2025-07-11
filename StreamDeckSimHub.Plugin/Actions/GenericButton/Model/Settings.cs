@@ -7,7 +7,6 @@ using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SixLabors.ImageSharp;
 using StreamDeckSimHub.Plugin.Actions.Model;
-using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
@@ -22,9 +21,6 @@ public class Settings : ObservableObject
     /// Information about the key size on which these elements are used.
     /// </summary>
     public required Size KeySize { get; set; } = NewActionKeySize;
-
-    /// TODO: Required?
-    public StreamDeckKeyInfo KeyInfo { get; set; } = StreamDeckKeyInfoBuilder.DefaultKeyInfo;
 
     /// <summary>
     /// List of elements that should be displayed.
@@ -58,7 +54,7 @@ public class Settings : ObservableObject
             SettingsChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayItems)));
         };
 
-        foreach (StreamDeckAction action in Enum.GetValues(typeof(StreamDeckAction)))
+        foreach (var action in ModelDefinitions.GetCommandItemActions())
         {
             CommandItems[action] = [];
             CommandItems[action].CollectionChanged += (_, args) =>

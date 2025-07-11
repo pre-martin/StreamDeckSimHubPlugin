@@ -14,19 +14,18 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using StreamDeckSimHub.Plugin.ActionEditor.Tools;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
-using StreamDeckSimHub.Plugin.Tools;
 using StreamDeckSimHub.Plugin.PropertyLogic;
+using StreamDeckSimHub.Plugin.Tools;
 using Size = SixLabors.ImageSharp.Size;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Renderer;
 
 public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButtonRenderer
 {
-    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-    private static readonly StreamDeckKeyInfo DefaultKeyInfo = StreamDeckKeyInfoBuilder.DefaultKeyInfo;
-
+    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly StreamDeckKeyInfo _defaultKeyInfo = StreamDeckKeyInfoBuilder.DefaultKeyInfo;
+    private readonly NCalcHandler _ncalcHandler = new();
     private readonly FormatHelper _formatHelper = new();
-    private readonly object _expressionLock = new();
     private Coordinates _coords = new() { Column = -1, Row = -1 };
 
     public void SetCoordinates(Coordinates coordinates)
@@ -36,7 +35,7 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
 
     public string Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems)
     {
-        Logger.Debug($"({_coords}) Rendering...");
+        _logger.Debug($"({_coords}) Rendering...");
         var image = new Image<Rgba32>(targetKeyInfo.KeySize.Width, targetKeyInfo.KeySize.Height);
 
         // Iterate over all display items.
@@ -60,7 +59,7 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
                     RenderValue(image, targetKeyInfo, valueItem);
                     break;
                 default:
-                    Logger.Warn($"({_coords})   Unknown DisplayItem type: {displayItem.GetType().Name}");
+                    _logger.Warn($"({_coords})   Unknown DisplayItem type: {displayItem.GetType().Name}");
                     break;
             }
             //image.SaveAsPng($@"\image_{_coords}_{DateTime.Now:yyyy-MM-dd-HH-mm-ss-fff}_{displayItem.DisplayName}.png");
@@ -100,7 +99,7 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, $"({_coords})   Error rendering image item \"{imageItem.DisplayName}\"");
+            _logger.Error(ex, $"({_coords})   Error rendering image item \"{imageItem.DisplayName}\"");
         }
     }
 
@@ -117,7 +116,7 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, $"({_coords})   Error rendering text item \"{textItem.DisplayName}\"");
+            _logger.Error(ex, $"({_coords})   Error rendering text item \"{textItem.DisplayName}\"");
         }
     }
 
@@ -128,19 +127,20 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
     {
         try
         {
-            var value = EvaluateExpression($"({_coords})   Value of \"{valueItem.DisplayName}\"", valueItem.NCalcPropertyHolder);
+            var value = _ncalcHandler.EvaluateExpression(valueItem.NCalcPropertyHolder, getProperty,
+                $"({_coords})   Value of \"{valueItem.DisplayName}\"");
             var format = _formatHelper.CompleteFormatString(valueItem.DisplayFormat);
             var formattedValue = string.Format(CultureInfo.CurrentCulture, format, value);
             RenderString(image, keyInfo, valueItem, valueItem.Font, valueItem.Color, formattedValue);
         }
         catch (FormatException ex)
         {
-            Logger.Warn(
+            _logger.Warn(
                 $"({_coords})   Error formatting value for item \"{valueItem.DisplayName}\" with format \"{valueItem.DisplayFormat}\": {ex.Message}");
         }
         catch (Exception ex)
         {
-            Logger.Error(ex, $"({_coords})   Error rendering value item \"{valueItem.DisplayName}\"");
+            _logger.Error(ex, $"({_coords})   Error rendering value item \"{valueItem.DisplayName}\"");
         }
     }
 
@@ -196,53 +196,8 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
     /// </summary>
     private bool IsVisible(Item item)
     {
-        if (item.NCalcConditionHolder.NCalcExpression == null)
-        {
-            return true; // No condition means always visible.
-        }
-
-        var value = EvaluateExpression($"({_coords})   Visibility of \"{item.DisplayName}\"", item.NCalcConditionHolder);
-        return value is true or > 0 or > 0.0f or > 0.0d;
-    }
-
-    private object? EvaluateExpression(string loggingContext, NCalcHolder nCalcHolder)
-    {
-        if (nCalcHolder.NCalcExpression == null) return null;
-
-        var expression = nCalcHolder.NCalcExpression;
-
-        lock (_expressionLock)
-        {
-            // Are the parameters of the NCalc expression up to date?
-            if (expression.DynamicParameters.Count != nCalcHolder.UsedProperties.Count)
-            {
-                expression.DynamicParameters.Clear();
-                foreach (var usedProperty in nCalcHolder.UsedProperties)
-                {
-                    expression.DynamicParameters[usedProperty] = _ => getProperty.Invoke(usedProperty);
-                }
-            }
-        }
-
-        try
-        {
-            var result = expression.Evaluate();
-            if (Logger.IsDebugEnabled)
-            {
-                var msg = $"{loggingContext}: ";
-                msg += $"\"{expression.ExpressionString}\" => \"{result}\", parameters: ";
-                msg = nCalcHolder.UsedProperties.Aggregate(msg,
-                    (current, propName) => current + $"\"{propName}\"=\"{getProperty.Invoke(propName)}\", ");
-                Logger.Debug(msg);
-            }
-
-            return result;
-        }
-        catch (Exception e)
-        {
-            Logger.Warn($"{loggingContext} Error evaluating expression: {e.Message}");
-            return null;
-        }
+        return _ncalcHandler.IsConditionActive(item.NCalcConditionHolder, getProperty,
+            $"({_coords})   Visibility of \"{item.DisplayName}\"");
     }
 
     /// <summary>
@@ -251,9 +206,9 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
     /// </summary>
     private Font ScaleFont(Font font, Size keySize)
     {
-        if (keySize.Height == DefaultKeyInfo.KeySize.Height) return font;
+        if (keySize.Height == _defaultKeyInfo.KeySize.Height) return font;
 
-        var scaleFactor = keySize.Height / DefaultKeyInfo.KeySize.Height;
+        var scaleFactor = keySize.Height / _defaultKeyInfo.KeySize.Height;
         return new Font(font.Family, font.Size * scaleFactor, font.FontStyle());
     }
 }

@@ -131,18 +131,20 @@
                         </Border>
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type viewModels:CommandItemViewModel}">
-                        <Grid HorizontalAlignment="Stretch" Margin="16,0,0,0">
+                        <Grid HorizontalAlignment="Stretch" Margin="8,0,0,0">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{Binding DisplayName}" VerticalAlignment="Center" />
-                            <Button Grid.Column="1" Background="Transparent" BorderBrush="Transparent" Focusable="False"
+                            <Image Grid.Column="0" Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,5,0" />
+                            <TextBlock Grid.Column="1" Text="{Binding DisplayName}" VerticalAlignment="Center" />
+                            <Button Grid.Column="2" Background="Transparent" BorderBrush="Transparent" Focusable="False"
                                     Click="CommandItemDelete_OnClick">
                                 <Image Source="{StaticResource DiDeleteRounded}" Height="16" />
                             </Button>
-                            <TextBlock Grid.Column="2" Text="☰" FontSize="16" Cursor="SizeAll" HorizontalAlignment="Right"
+                            <TextBlock Grid.Column="3" Text="☰" FontSize="16" Cursor="SizeAll" HorizontalAlignment="Right"
                                        behaviors:ListBoxDragDropBehavior.IsDragHandle="True" />
                         </Grid>
                     </DataTemplate>

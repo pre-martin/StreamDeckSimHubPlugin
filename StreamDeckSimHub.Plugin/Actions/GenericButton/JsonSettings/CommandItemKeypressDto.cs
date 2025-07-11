@@ -12,4 +12,6 @@ public class CommandItemKeypressDto : CommandItemDto
     public required bool ModifierAlt { get; set; }
 
     public required bool ModifierShift { get; set; }
+
+    public required bool LongEnabled { get; set; }
 }

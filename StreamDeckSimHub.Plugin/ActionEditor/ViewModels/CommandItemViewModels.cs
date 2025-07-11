@@ -43,7 +43,7 @@ public partial class CommandItemKeypressViewModel(
     Window parentWindow,
     StreamDeckAction parentAction) : CommandItemViewModel(model, parentWindow, parentAction)
 {
-    public override ImageSource? Icon => null;
+    public override ImageSource? Icon => ParentWindow.FindResource("DiKeyboardOutlinedGray") as ImageSource;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayName))]
@@ -80,6 +80,22 @@ public partial class CommandItemKeypressViewModel(
     {
         model.ModifierShift = value;
     }
+
+    [ObservableProperty]
+    private bool _longEnabled = IsLongPressAllowed(parentAction) && model.LongEnabled;
+
+    public bool LongPressAllowed => IsLongPressAllowed(ParentAction);
+
+    partial void OnLongEnabledChanged(bool value)
+    {
+        model.LongEnabled = value;
+    }
+
+    private static bool IsLongPressAllowed(StreamDeckAction action)
+    {
+        // Long press is only allowed for actions that support it
+        return action is StreamDeckAction.KeyDown or StreamDeckAction.DialDown;
+    }
 }
 
 /// <summary>
@@ -90,7 +106,7 @@ public partial class CommandItemSimHubControlViewModel(
     Window parentWindow,
     StreamDeckAction parentAction) : CommandItemViewModel(model, parentWindow, parentAction)
 {
-    public override ImageSource? Icon => null;
+    public override ImageSource? Icon => ParentWindow.FindResource("DiSimHubControlGray") as ImageSource;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayName))] // see CommandItemSimHubControl.RawDisplayName which uses Control
@@ -111,7 +127,7 @@ public partial class CommandItemSimHubRoleViewModel(
     StreamDeckAction parentAction)
     : CommandItemViewModel(model, parentWindow, parentAction)
 {
-    public override ImageSource? Icon => null;
+    public override ImageSource? Icon => ParentWindow.FindResource("DiSimHubRoleGray") as ImageSource;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayName))] // see CommandItemSimHubRole.RawDisplayName which uses Control

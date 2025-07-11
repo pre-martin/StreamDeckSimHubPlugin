@@ -20,3 +20,21 @@ public enum ScaleType
     ToSize = 1,
     ToDevice = 2,
 }
+
+public abstract class ModelDefinitions
+{
+    /// <summary>
+    /// Returns the list of actions that we can use to add CommandItems to them.
+    /// </summary>
+    public static IEnumerable<StreamDeckAction> GetCommandItemActions()
+    {
+        return new List<StreamDeckAction>
+        {
+            StreamDeckAction.KeyDown,
+            StreamDeckAction.DialLeft,
+            StreamDeckAction.DialRight,
+            StreamDeckAction.DialDown,
+            StreamDeckAction.TouchTap
+        };
+    }
+}

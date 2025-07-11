@@ -8,18 +8,13 @@ using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Renderer;
 
-/// <summary>
-/// Delegate to retrieve a property value by its name.
-/// </summary>
-public delegate IComparable? GetPropertyDelegate(string propertyName);
-
 public interface IButtonRenderer
 {
     /// <summary>
     /// Context for logging information.
     /// </summary>
     void SetCoordinates(Coordinates coordinates);
-    
+
     /// <summary>
     /// Renders all display items onto an image.
     /// </summary>

@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2023 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.Concurrent;
@@ -12,32 +12,24 @@ namespace StreamDeckSimHub.Plugin.Actions;
 /// If the time between KeyDown and KeyUp is shorter than "longPressTimeSpan", the callback "OnShortPress" will be called.
 /// If the time is larger, the callback "OnLongPress" will be called.
 /// </summary>
-public class ShortAndLongPressHandler
+public class ShortAndLongPressHandler(
+    TimeSpan longPressTimeSpan,
+    Func<ActionEventArgs<KeyPayload>, Task> onShortPress,
+    Func<ActionEventArgs<KeyPayload>, Task> onLongPress,
+    Func<Task> onLongReleased)
 {
     private ConcurrentStack<ActionEventArgs<KeyPayload>> KeyPressStack { get; } = new();
-    public TimeSpan LongPressTimeSpan { get; set; }
-    private Func<ActionEventArgs<KeyPayload>, Task> OnShortPress { get; }
-    private Func<ActionEventArgs<KeyPayload>, Task> OnLongPress { get; }
-    private Func<Task> OnLongReleased { get; }
-    private CancellationTokenSource? _cancellationTokenSource;
+    public TimeSpan LongPressTimeSpan { get; set; } = longPressTimeSpan;
+    private Func<ActionEventArgs<KeyPayload>, Task> OnShortPress { get; } = onShortPress;
+    private Func<ActionEventArgs<KeyPayload>, Task> OnLongPress { get; } = onLongPress;
+    private Func<Task> OnLongReleased { get; } = onLongReleased;
+    private CancellationTokenSource _cancellationTokenSource = new();
 
     public ShortAndLongPressHandler(
         Func<ActionEventArgs<KeyPayload>, Task> onShortPress,
         Func<ActionEventArgs<KeyPayload>, Task> onLongPress,
         Func<Task> onLongReleased) : this(TimeSpan.FromMilliseconds(500), onShortPress, onLongPress, onLongReleased)
     {
-    }
-
-    public ShortAndLongPressHandler(
-        TimeSpan longPressTimeSpan,
-        Func<ActionEventArgs<KeyPayload>, Task> onShortPress,
-        Func<ActionEventArgs<KeyPayload>, Task> onLongPress,
-        Func<Task> onLongReleased)
-    {
-        LongPressTimeSpan = longPressTimeSpan;
-        OnShortPress = onShortPress;
-        OnLongPress = onLongPress;
-        OnLongReleased = onLongReleased;
     }
 
     public Task KeyDown(ActionEventArgs<KeyPayload> args)
@@ -50,7 +42,7 @@ public class ShortAndLongPressHandler
                 try
                 {
                     var me = this;
-                    _cancellationTokenSource = new();
+                    _cancellationTokenSource = new CancellationTokenSource();
                     await Task.Delay(LongPressTimeSpan, _cancellationTokenSource.Token);
                     await me.TryHandlePress(OnLongPress);
                 }
@@ -71,13 +63,13 @@ public class ShortAndLongPressHandler
 
     private async Task TryHandlePress(Func<ActionEventArgs<KeyPayload>, Task> handler)
     {
-        // We reach this code either
+        // we reach this code either:
         // - when "KeyUp" was received before the end of the "Delay" (= short key press)
         // - when the "Delay" has expired (= start of long key press).
         // - when "KeyUp" was received after the Delay (= end of long key press)
         if (KeyPressStack.TryPop(out var eventArgs))
         {
-            _cancellationTokenSource?.Cancel();
+            await _cancellationTokenSource.CancelAsync();
             await handler(eventArgs);
         }
         else

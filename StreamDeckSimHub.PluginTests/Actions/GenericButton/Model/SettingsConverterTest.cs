@@ -67,8 +67,8 @@ public class SettingsConverterTest
         Assert.That(((DisplayItemText)newSettings.DisplayItems[1]).Font.FontStyle(), Is.EqualTo(FontStyle.Italic));
         Assert.That(newSettings.CommandItems[StreamDeckAction.KeyDown][0].Name,
             Is.EqualTo(settings.CommandItems[StreamDeckAction.KeyDown][0].Name));
-        Assert.That(newSettings.CommandItems[StreamDeckAction.KeyUp][0].Name,
-            Is.EqualTo(settings.CommandItems[StreamDeckAction.KeyUp][0].Name));
+        Assert.That(newSettings.CommandItems[StreamDeckAction.DialLeft][0].Name,
+            Is.EqualTo(settings.CommandItems[StreamDeckAction.DialLeft][0].Name));
         Assert.That(newSettings.CommandItems[StreamDeckAction.TouchTap][0].Name,
             Is.EqualTo(settings.CommandItems[StreamDeckAction.TouchTap][0].Name));
         Assert.That(newSettings.CommandItems[StreamDeckAction.TouchTap][1].Name,
@@ -90,23 +90,22 @@ public class SettingsConverterTest
         Assert.That(settings, Is.Not.Null);
         Assert.That(settings.KeySize, Is.EqualTo(new Size(140, 100)));
         Assert.That(settings.DisplayItems.Count, Is.EqualTo(0));
-        Assert.That(settings.CommandItems.Count, Is.EqualTo(7)); // Default command items should be present
+        Assert.That(settings.CommandItems.Count, Is.EqualTo(5)); // Default command items should be present
         Assert.That(settings.CommandItems[StreamDeckAction.KeyDown].Count, Is.EqualTo(0));
-        Assert.That(settings.CommandItems[StreamDeckAction.KeyUp].Count, Is.EqualTo(0));
+        Assert.That(settings.CommandItems[StreamDeckAction.DialLeft].Count, Is.EqualTo(0));
     }
 
     private Settings BuildSettings()
     {
         var settings = new Settings
         {
-            KeySize = new Size(140, 100),
-            KeyInfo = StreamDeckKeyInfoBuilder.DefaultKeyInfo
+            KeySize = new Size(140, 100)
         };
         settings.DisplayItems.Add(new DisplayItemText { Name = "Text1", Text = "Hello" });
         settings.DisplayItems.Add(new DisplayItemText
             { Name = "Text2", Text = "World", Font = SystemFonts.CreateFont("Arial", 24f, FontStyle.Italic) });
         settings.CommandItems[StreamDeckAction.KeyDown].Add(new CommandItemKeypress { Name = "Cmd1", Key = "A" });
-        settings.CommandItems[StreamDeckAction.KeyUp].Add(new CommandItemKeypress { Name = "Cmd2", Key = "B" });
+        settings.CommandItems[StreamDeckAction.DialLeft].Add(new CommandItemKeypress { Name = "Cmd2", Key = "B" });
         settings.CommandItems[StreamDeckAction.TouchTap]
             .Add(new CommandItemSimHubControl { Name = "Control1", Control = "ControlA" });
         settings.CommandItems[StreamDeckAction.TouchTap].Add(new CommandItemSimHubRole { Name = "Role1", Role = "RoleA" });

@@ -110,8 +110,8 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     protected override Task OnDialRotate(ActionEventArgs<DialRotatePayload> args)
     {
         Logger.LogInformation("OnDialRotate ({coords}): Ticks: {ticks}", args.Payload.Coordinates, args.Payload.Ticks);
-        // Rotate events can appear faster than they are processed (because we have a delay between "key down" and "key up".
-        // Thus we have to place them into a queue, where they are processed by a different thread.
+        // Rotate events can appear faster than they are processed (because we have a delay between "key down" and "key up").
+        // Thus, we have to place them into a queue, where they are processed by a different thread.
         switch (args.Payload.Ticks)
         {
             case < 0:

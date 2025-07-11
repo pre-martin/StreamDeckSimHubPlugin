@@ -3,6 +3,8 @@
 
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using SharpDeck.Events.Received;
+using StreamDeckSimHub.Plugin.Actions.Model;
 using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
@@ -16,6 +18,8 @@ public partial class CommandItemKeypress : CommandItem
     [ObservableProperty] private bool _modifierAlt;
     [ObservableProperty] private bool _modifierShift;
     public KeyboardUtils.Hotkey? Hotkey { get; set; }
+
+    [ObservableProperty] private bool _longEnabled;
 
     protected override string RawDisplayName => !string.IsNullOrWhiteSpace(Name) ? Name :
         !string.IsNullOrEmpty(Key) ? KeyDisplayName() : "Keypress";
@@ -33,19 +37,21 @@ public partial class CommandItemKeypress : CommandItem
 
     public static CommandItemKeypress Create()
     {
-        return new CommandItemKeypress
-        {
-            Key = string.Empty,
-            ModifierCtrl = false,
-            ModifierAlt = false,
-            ModifierShift = false,
-            Hotkey = null
-        };
+        return new CommandItemKeypress();
     }
 
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
-        Hotkey = KeyboardUtils.CreateHotkey(ModifierCtrl, ModifierAlt, ModifierShift, Key);
+        if (e.PropertyName is nameof(ModifierCtrl) or nameof(ModifierAlt) or nameof(ModifierShift) or nameof(Key))
+        {
+            Hotkey = KeyboardUtils.CreateHotkey(ModifierCtrl, ModifierAlt, ModifierShift, Key);
+        }
+
         base.OnPropertyChanged(e);
+    }
+
+    public override async Task Accept<TPayload>(ICommandVisitor visitor, StreamDeckAction action, ActionEventArgs<TPayload> args)
+    {
+        await visitor.Visit(this, action, args);
     }
 }
