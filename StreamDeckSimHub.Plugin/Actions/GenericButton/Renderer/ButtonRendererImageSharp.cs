@@ -208,7 +208,7 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
     {
         if (keySize.Height == _defaultKeyInfo.KeySize.Height) return font;
 
-        var scaleFactor = keySize.Height / _defaultKeyInfo.KeySize.Height;
+        var scaleFactor = (float)keySize.Height / _defaultKeyInfo.KeySize.Height;
         return new Font(font.Family, font.Size * scaleFactor, font.FontStyle());
     }
 }

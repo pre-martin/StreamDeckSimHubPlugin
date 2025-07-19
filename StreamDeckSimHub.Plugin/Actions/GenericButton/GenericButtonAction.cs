@@ -3,8 +3,10 @@
 
 using System.ComponentModel;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using SharpDeck;
 using SharpDeck.Events.Received;
+using SharpDeck.Layouts;
 using SharpDeck.PropertyInspectors;
 using StreamDeckSimHub.Plugin.ActionEditor;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
@@ -340,7 +342,14 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         if (_settings == null || _sdKeyInfo == null) return;
 
         var image = _buttonRenderer.Render(_sdKeyInfo, _settings.DisplayItems);
-        await SetImageAsync(image);
+        if (_sdKeyInfo.IsDial)
+        {
+            await SetFeedbackAsync(new DialLayout { Content = new Pixmap { Value = image } });
+        }
+        else
+        {
+            await SetImageAsync(image);
+        }
     }
 
     private IComparable? GetProperty(string propertyName)
@@ -353,5 +362,11 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     {
         return _ncalcHandler.IsConditionActive(item.NCalcConditionHolder, GetProperty,
             $"({_coordinates})   IsActive of \"{item.DisplayName}\"");
+    }
+
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
+    public class DialLayout
+    {
+        public Pixmap Content { get; set; } = "";
     }
 }

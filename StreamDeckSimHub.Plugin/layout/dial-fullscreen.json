@@ -3,7 +3,7 @@
   "id": "net.planetrenner.simhub.dial-fullscreen",
   "items": [
     {
-      "key": "x",
+      "key": "content",
       "rect": [ 0, 0, 200, 100 ],
       "type": "pixmap"
     }
