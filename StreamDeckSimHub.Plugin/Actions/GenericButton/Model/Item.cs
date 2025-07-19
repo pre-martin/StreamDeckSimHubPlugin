@@ -11,7 +11,13 @@ public abstract partial class Item : ObservableObject
 {
     [ObservableProperty] private string _name = string.Empty;
 
-    [ObservableProperty] private NCalcHolder _nCalcConditionHolder = new();
+    [ObservableProperty] private NCalcHolder _nCalcConditionHolder;
+
+    protected Item()
+    {
+        // Set in constructor via the generated property to ensure that OnNCalcConditionHolderChanged is called.
+        NCalcConditionHolder = new NCalcHolder();
+    }
 
     partial void OnNCalcConditionHolderChanged(NCalcHolder value)
     {

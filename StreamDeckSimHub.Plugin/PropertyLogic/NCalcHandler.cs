@@ -134,6 +134,7 @@ public class NCalcHandler
     {
         if (nCalcConditionHolder.NCalcExpression == null)
         {
+            _logger.Debug($"{loggingContext}: No condition set, always active.");
             return true; // No condition means always active.
         }
 

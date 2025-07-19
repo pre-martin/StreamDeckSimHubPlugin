@@ -12,7 +12,13 @@ public partial class DisplayItemValue : DisplayItem
 {
     public const string UiName = "Value";
 
-    [ObservableProperty] private NCalcHolder _nCalcPropertyHolder = new();
+    [ObservableProperty] private NCalcHolder _nCalcPropertyHolder;
+
+    public DisplayItemValue()
+    {
+        // Set in constructor via the generated property to ensure that OnNCalcPropertyHolderChanged is called.
+        NCalcPropertyHolder = new NCalcHolder();
+    }
 
     partial void OnNCalcPropertyHolderChanged(NCalcHolder value)
     {
