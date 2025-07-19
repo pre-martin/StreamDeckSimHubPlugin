@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Diagnostics;
@@ -13,20 +13,13 @@ namespace StreamDeckSimHub.Plugin.SimHub;
 
 
 /// <summary>
-/// Parameters of the event, that gets fired when a new property value was received from SimHub.
+/// Parameters of the event, which gets fired when a new property value was received from SimHub.
 /// </summary>
-public class PropertyChangedArgs
+public class PropertyChangedArgs(string propertyName, PropertyType propertyType, IComparable? propertyValue = null)
 {
-    public PropertyChangedArgs(string propertyName, PropertyType propertyType, IComparable? propertyValue = null)
-    {
-        PropertyName = propertyName;
-        PropertyType = propertyType;
-        PropertyValue = propertyValue;
-    }
-
-    public string PropertyName { get; }
-    public PropertyType PropertyType { get; }
-    public IComparable? PropertyValue { get; }
+    public string PropertyName { get; } = propertyName;
+    public PropertyType PropertyType { get; } = propertyType;
+    public IComparable? PropertyValue { get; } = propertyValue;
 
     public PropertyChangedArgs Clone()
     {

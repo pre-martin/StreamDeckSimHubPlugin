@@ -9,20 +9,22 @@ namespace StreamDeckSimHub.Plugin.Tools;
 
 public class KeyQueueEntry
 {
-    internal KeyboardUtils.Hotkey? Hotkey { get; init; }
+    internal Hotkey? Hotkey { get; init; }
     internal string? SimHubControl { get; init; }
     internal (string owner, string? role)? SimHubRole { get; init; }
 }
 
 /// <summary>
 /// Manages a queue of keystrokes and SimHubControls. Entries can be placed in the queue, where they are processed by a thread.
+/// The thread "presses" and "releases" each entry in order.
 /// <p/>
 /// This class is especially useful for Dial actions, where Down/Up or Press/Release events have to be sent for each Dial step.
 /// </summary>
-public class KeyQueue(SimHubConnection simHubConnection)
+public class PressAndReleaseQueue(ISimHubConnection simHubConnection)
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private readonly SimHubManager _simHubManager = new(simHubConnection);
+    private readonly KeyboardUtils _keyboardUtils = new();
     private readonly ConcurrentQueue<KeyQueueEntry> _hotkeyQueue = new();
     private Thread? _workerThread;
     private readonly AutoResetEvent _waitHandle = new(false);
@@ -36,19 +38,21 @@ public class KeyQueue(SimHubConnection simHubConnection)
         _workerThread.Start();
     }
 
-    public void Stop()
+    public async Task Stop()
     {
         _workerThread?.Interrupt();
-        _ = _simHubManager.Deactivate();
+        await _simHubManager.Deactivate();
     }
 
-    internal void Enqueue(KeyboardUtils.Hotkey? hotkey, string? simHubControl, (string owner, string? role)? simHubRole, int count)
+    internal void Enqueue(Hotkey? hotkey, string? simHubControl, (string owner, string? role)? simHubRole,
+        int count)
     {
-        Logger.Debug("Adding entries to queue");
-        for (var i = 0; i < count; i++)
+        Logger.Debug($"Adding {Math.Abs(count)} entries to queue");
+        for (var i = 0; i < Math.Abs(count); i++)
         {
             _hotkeyQueue.Enqueue(new KeyQueueEntry { Hotkey = hotkey, SimHubControl = simHubControl, SimHubRole = simHubRole });
         }
+
         _waitHandle.Set();
     }
 
@@ -60,7 +64,7 @@ public class KeyQueue(SimHubConnection simHubConnection)
             {
                 if (_hotkeyQueue.TryDequeue(out var queueEntry))
                 {
-                    Press(queueEntry.Hotkey, queueEntry.SimHubControl, queueEntry.SimHubRole).Wait();
+                    PressAndRelease(queueEntry.Hotkey, queueEntry.SimHubControl, queueEntry.SimHubRole).Wait();
                 }
                 else
                 {
@@ -75,17 +79,17 @@ public class KeyQueue(SimHubConnection simHubConnection)
         }
     }
 
-    private async Task Press(KeyboardUtils.Hotkey? hotkey, string? simHubControl, (string owner, string? role)? simHubRole)
+    private async Task PressAndRelease(
+        Hotkey? hotkey, string? simHubControl, (string owner, string? role)? simHubRole)
     {
-        KeyboardUtils.KeyDown(hotkey);
+        _keyboardUtils.KeyDown(hotkey);
         await _simHubManager.TriggerInputPressed(simHubControl);
         if (simHubRole != null) await _simHubManager.RolePressed(simHubRole.Value.owner, simHubRole.Value.role);
 
         await Task.Delay(TimeSpan.FromMilliseconds(20));
 
-        KeyboardUtils.KeyUp(hotkey);
+        _keyboardUtils.KeyUp(hotkey);
         await _simHubManager.TriggerInputReleased(simHubControl);
         if (simHubRole != null) await _simHubManager.RoleReleased(simHubRole.Value.owner, simHubRole.Value.role);
     }
-
 }

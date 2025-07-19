@@ -1,10 +1,9 @@
-// Copyright (C) 2023 Martin Renner
+// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
-using SharpDeck.Events.Received;
-using StreamDeckSimHub.Plugin.Actions;
+using StreamDeckSimHub.Plugin.Tools;
 
-namespace StreamDeckSimHub.PluginTests.Actions;
+namespace StreamDeckSimHub.PluginTests.Tools;
 
 public class ShortAndLongPressHandlerTests
 {
@@ -15,25 +14,27 @@ public class ShortAndLongPressHandlerTests
     [Test]
     public async Task TestShortPress()
     {
+        var handlerArgs = new HandlerArgs();
         var cb = new CallbackHolder();
         var handler = new ShortAndLongPressHandler(_timeSpan, cb.OnShortPress, cb.OnLongPress, cb.OnLongReleased);
-        await handler.KeyDown(new ActionEventArgs<KeyPayload>());
+        await handler.KeyDown(handlerArgs);
         await Task.Delay(_timeSpanShorter);
         await handler.KeyUp();
 
-        cb.AssertAndReset(true, false);
+        cb.AssertAndReset(true, false, handlerArgs);
     }
 
     [Test]
     public async Task TestLongPress()
     {
+        var handlerArgs = new HandlerArgs();
         var cb = new CallbackHolder();
         var handler = new ShortAndLongPressHandler(_timeSpan, cb.OnShortPress, cb.OnLongPress, cb.OnLongReleased);
-        await handler.KeyDown(new ActionEventArgs<KeyPayload>());
+        await handler.KeyDown(handlerArgs);
         await Task.Delay(_timeSpanLonger);
         await handler.KeyUp();
 
-        cb.AssertAndReset(false, true);
+        cb.AssertAndReset(false, true, handlerArgs);
     }
 
     [Test]
@@ -41,20 +42,22 @@ public class ShortAndLongPressHandlerTests
     {
         // Short+Short must not trigger Short+Long! See https://github.com/GeekyEggo/SharpDeck/issues/18 for details.
 
+        var firstHandlerArgs = new HandlerArgs();
         var cb = new CallbackHolder();
         var handler = new ShortAndLongPressHandler(_timeSpan, cb.OnShortPress, cb.OnLongPress, cb.OnLongReleased);
 
-        await handler.KeyDown(new ActionEventArgs<KeyPayload>());
+        await handler.KeyDown(firstHandlerArgs);
         await Task.Delay(_timeSpanShorter);
         await handler.KeyUp();
 
-        cb.AssertAndReset(true, false);
+        cb.AssertAndReset(true, false, firstHandlerArgs);
 
-        await handler.KeyDown(new ActionEventArgs<KeyPayload>());
+        var secondHandlerArgs = new HandlerArgs();
+        await handler.KeyDown(secondHandlerArgs);
         await Task.Delay(_timeSpanShorter);
         await handler.KeyUp();
 
-        cb.AssertAndReset(true, false);
+        cb.AssertAndReset(true, false, secondHandlerArgs);
     }
 
     [Test]
@@ -62,53 +65,62 @@ public class ShortAndLongPressHandlerTests
     {
         // Long+Long to test that the delay timer works several times
 
+        var firstHandlerArgs = new HandlerArgs();
         var cb = new CallbackHolder();
         var handler = new ShortAndLongPressHandler(_timeSpan, cb.OnShortPress, cb.OnLongPress, cb.OnLongReleased);
 
-        await handler.KeyDown(new ActionEventArgs<KeyPayload>());
+        await handler.KeyDown(firstHandlerArgs);
         await Task.Delay(_timeSpanLonger);
         await handler.KeyUp();
 
-        cb.AssertAndReset(false, true);
+        cb.AssertAndReset(false, true, firstHandlerArgs);
 
-        await handler.KeyDown(new ActionEventArgs<KeyPayload>());
+        var secondHandlerArgs = new HandlerArgs();
+        await handler.KeyDown(secondHandlerArgs);
         await Task.Delay(_timeSpanLonger);
         await handler.KeyUp();
 
-        cb.AssertAndReset(false, true);
+        cb.AssertAndReset(false, true, secondHandlerArgs);
     }
 
     private class CallbackHolder
     {
         private bool _shortWasCalled;
         private bool _longWasCalled;
+        private HandlerArgs? _receivedArgs;
 
-        internal void AssertAndReset(bool expectedShort, bool expectedLong)
+        internal void AssertAndReset(bool expectedShort, bool expectedLong, IHandlerArgs? expectedHandlerArgs)
         {
             Assert.Multiple(() =>
             {
                 Assert.That(_shortWasCalled, Is.EqualTo(expectedShort), $"Short {(expectedShort ? "must" : "must not")} be called");
                 Assert.That(_longWasCalled, Is.EqualTo(expectedLong), $"Long {(expectedLong ? "must" : "must not")} be called");
+                Assert.That(_receivedArgs, Is.EqualTo(expectedHandlerArgs), "Received args must match the original args");
             });
             _shortWasCalled = false;
             _longWasCalled = false;
         }
 
-        internal Task OnShortPress(ActionEventArgs<KeyPayload> args)
+        internal Task OnShortPress(IHandlerArgs? args)
         {
+            _receivedArgs = args as HandlerArgs;
             _shortWasCalled = true;
             return Task.CompletedTask;
         }
 
-        internal Task OnLongPress(ActionEventArgs<KeyPayload> args)
+        internal Task OnLongPress(IHandlerArgs? args)
         {
+            _receivedArgs = args as HandlerArgs;
             _longWasCalled = true;
             return Task.CompletedTask;
         }
 
-        internal Task OnLongReleased()
+        internal Task OnLongReleased(IHandlerArgs? args)
         {
+            _receivedArgs = args as HandlerArgs;
             return Task.CompletedTask;
         }
     }
+
+    private class HandlerArgs : IHandlerArgs;
 }

@@ -87,7 +87,8 @@ public class SerializationTest
                         {
                             Name = "My Role action",
                             ConditionsString = string.Empty,
-                            Role = "SomeRole"
+                            Role = "SomeRole",
+                            LongEnabled = false
                         }
                     ]
                 },
@@ -97,13 +98,15 @@ public class SerializationTest
                         {
                             Name = "My Control action",
                             ConditionsString = string.Empty,
-                            Control = "SomeControl"
+                            Control = "SomeControl",
+                            LongEnabled = false
                         },
                         new CommandItemSimHubRoleDto
                         {
                             Name = "Another Role action",
                             ConditionsString = string.Empty,
-                            Role = "SomeOtherRole"
+                            Role = "SomeOtherRole",
+                            LongEnabled = false
                         }
                     ]
                 },

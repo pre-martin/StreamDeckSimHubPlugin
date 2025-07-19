@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
+             xmlns:controls="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Views.Controls"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewModels:CommandItemKeypressViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="600" d:DesignWidth="550">
@@ -41,25 +42,8 @@
             </CheckBox>
         </StackPanel>
 
-        <UserControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,10,0,0"
-                     Visibility="{Binding LongPressAllowed, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" MinWidth="120" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-
-                <Label Grid.Row="0" Grid.Column="0">Long Keypress:</Label>
-                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
-                    <CheckBox IsChecked="{Binding LongEnabled}" VerticalContentAlignment="Center">
-                        Enabled
-                    </CheckBox>
-                </StackPanel>
-            </Grid>
-        </UserControl>
+        <controls:LongPressControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,10,0,0"
+                                   Visibility="{Binding LongPressAllowed, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
     </Grid>
 </UserControl>

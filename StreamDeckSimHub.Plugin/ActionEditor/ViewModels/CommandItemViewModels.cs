@@ -33,6 +33,12 @@ public abstract class CommandItemViewModel(
     StreamDeckAction parentAction) : ItemViewModel(model, parentWindow), IFlatCommandItemsViewModel
 {
     public StreamDeckAction ParentAction { get; } = parentAction;
+
+    protected static bool IsLongPressAllowed(StreamDeckAction action)
+    {
+        // Long press is only allowed for KeyDown and DialDown.
+        return action is StreamDeckAction.KeyDown or StreamDeckAction.DialDown;
+    }
 }
 
 /// <summary>
@@ -81,20 +87,13 @@ public partial class CommandItemKeypressViewModel(
         model.ModifierShift = value;
     }
 
-    [ObservableProperty]
-    private bool _longEnabled = IsLongPressAllowed(parentAction) && model.LongEnabled;
+    [ObservableProperty] private bool _longEnabled = IsLongPressAllowed(parentAction) && model.LongEnabled;
 
     public bool LongPressAllowed => IsLongPressAllowed(ParentAction);
 
     partial void OnLongEnabledChanged(bool value)
     {
         model.LongEnabled = value;
-    }
-
-    private static bool IsLongPressAllowed(StreamDeckAction action)
-    {
-        // Long press is only allowed for actions that support it
-        return action is StreamDeckAction.KeyDown or StreamDeckAction.DialDown;
     }
 }
 
@@ -116,6 +115,15 @@ public partial class CommandItemSimHubControlViewModel(
     {
         model.Control = value;
     }
+
+    [ObservableProperty] private bool _longEnabled = IsLongPressAllowed(parentAction) && model.LongEnabled;
+
+    public bool LongPressAllowed => IsLongPressAllowed(ParentAction);
+
+    partial void OnLongEnabledChanged(bool value)
+    {
+        model.LongEnabled = value;
+    }
 }
 
 /// <summary>
@@ -136,5 +144,14 @@ public partial class CommandItemSimHubRoleViewModel(
     partial void OnRoleChanged(string value)
     {
         model.Role = value;
+    }
+
+    [ObservableProperty] private bool _longEnabled = IsLongPressAllowed(parentAction) && model.LongEnabled;
+
+    public bool LongPressAllowed => IsLongPressAllowed(ParentAction);
+
+    partial void OnLongEnabledChanged(bool value)
+    {
+        model.LongEnabled = value;
     }
 }

@@ -224,11 +224,13 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
             },
             CommandItemSimHubControlDto controlDto => new CommandItemSimHubControl
             {
-                Control = controlDto.Control
+                Control = controlDto.Control,
+                LongEnabled = controlDto.LongEnabled
             },
             CommandItemSimHubRoleDto roleDto => new CommandItemSimHubRole
             {
-                Role = roleDto.Role
+                Role = roleDto.Role,
+                LongEnabled = roleDto.LongEnabled
             },
             _ => null
         };
@@ -262,13 +264,15 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
             {
                 Name = model.Name,
                 ConditionsString = model.NCalcConditionHolder.ExpressionString,
-                Control = control.Control
+                Control = control.Control,
+                LongEnabled = control.LongEnabled
             },
             CommandItemSimHubRole role => new CommandItemSimHubRoleDto
             {
                 Name = model.Name,
                 ConditionsString = model.NCalcConditionHolder.ExpressionString,
-                Role = role.Role
+                Role = role.Role,
+                LongEnabled = role.LongEnabled
             },
             _ => null
         };

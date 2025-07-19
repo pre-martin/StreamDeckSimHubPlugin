@@ -3,13 +3,12 @@
 
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using SharpDeck.Events.Received;
 using StreamDeckSimHub.Plugin.Actions.Model;
 using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
-public partial class CommandItemKeypress : CommandItem
+public partial class CommandItemKeypress : CommandItem, ICommandItemLong
 {
     public const string UiName = "Keypress";
 
@@ -17,7 +16,7 @@ public partial class CommandItemKeypress : CommandItem
     [ObservableProperty] private bool _modifierCtrl;
     [ObservableProperty] private bool _modifierAlt;
     [ObservableProperty] private bool _modifierShift;
-    public KeyboardUtils.Hotkey? Hotkey { get; set; }
+    public Hotkey? Hotkey { get; private set; }
 
     [ObservableProperty] private bool _longEnabled;
 
@@ -50,7 +49,7 @@ public partial class CommandItemKeypress : CommandItem
         base.OnPropertyChanged(e);
     }
 
-    public override async Task Accept<TPayload>(ICommandVisitor visitor, StreamDeckAction action, ActionEventArgs<TPayload> args)
+    public override async Task Accept(ICommandVisitor visitor, StreamDeckAction action, IVisitorArgs? args = null)
     {
         await visitor.Visit(this, action, args);
     }

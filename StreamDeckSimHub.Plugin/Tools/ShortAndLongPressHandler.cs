@@ -2,9 +2,13 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.Concurrent;
-using SharpDeck.Events.Received;
 
-namespace StreamDeckSimHub.Plugin.Actions;
+namespace StreamDeckSimHub.Plugin.Tools;
+
+/// <summary>
+/// Arguments that can be passed to the handler methods OnShortPress, OnLongPress and OnLongReleased.
+/// </summary>
+public interface IHandlerArgs;
 
 /// <summary>
 /// Handles the detection of short and long (key/button) presses.
@@ -14,27 +18,29 @@ namespace StreamDeckSimHub.Plugin.Actions;
 /// </summary>
 public class ShortAndLongPressHandler(
     TimeSpan longPressTimeSpan,
-    Func<ActionEventArgs<KeyPayload>, Task> onShortPress,
-    Func<ActionEventArgs<KeyPayload>, Task> onLongPress,
-    Func<Task> onLongReleased)
+    Func<IHandlerArgs?, Task> onShortPress,
+    Func<IHandlerArgs?, Task> onLongPress,
+    Func<IHandlerArgs?, Task> onLongReleased)
 {
-    private ConcurrentStack<ActionEventArgs<KeyPayload>> KeyPressStack { get; } = new();
+    private ConcurrentStack<IHandlerArgs?> KeyPressStack { get; } = new();
+    private IHandlerArgs? _handlerArgs;
     public TimeSpan LongPressTimeSpan { get; set; } = longPressTimeSpan;
-    private Func<ActionEventArgs<KeyPayload>, Task> OnShortPress { get; } = onShortPress;
-    private Func<ActionEventArgs<KeyPayload>, Task> OnLongPress { get; } = onLongPress;
-    private Func<Task> OnLongReleased { get; } = onLongReleased;
+    private Func<IHandlerArgs?, Task> OnShortPress { get; } = onShortPress;
+    private Func<IHandlerArgs?, Task> OnLongPress { get; } = onLongPress;
+    private Func<IHandlerArgs?, Task> OnLongReleased { get; } = onLongReleased;
     private CancellationTokenSource _cancellationTokenSource = new();
 
     public ShortAndLongPressHandler(
-        Func<ActionEventArgs<KeyPayload>, Task> onShortPress,
-        Func<ActionEventArgs<KeyPayload>, Task> onLongPress,
-        Func<Task> onLongReleased) : this(TimeSpan.FromMilliseconds(500), onShortPress, onLongPress, onLongReleased)
+        Func<IHandlerArgs?, Task> onShortPress,
+        Func<IHandlerArgs?, Task> onLongPress,
+        Func<IHandlerArgs?, Task> onLongReleased) : this(TimeSpan.FromMilliseconds(500), onShortPress, onLongPress, onLongReleased)
     {
     }
 
-    public Task KeyDown(ActionEventArgs<KeyPayload> args)
+    public Task KeyDown(IHandlerArgs? args = null)
     {
         KeyPressStack.Push(args);
+        _handlerArgs = args;
         if (LongPressTimeSpan > TimeSpan.Zero)
         {
             Task.Run(async () =>
@@ -61,20 +67,21 @@ public class ShortAndLongPressHandler(
         await TryHandlePress(OnShortPress);
     }
 
-    private async Task TryHandlePress(Func<ActionEventArgs<KeyPayload>, Task> handler)
+    private async Task TryHandlePress(Func<IHandlerArgs?, Task> handler)
     {
         // we reach this code either:
         // - when "KeyUp" was received before the end of the "Delay" (= short key press)
         // - when the "Delay" has expired (= start of long key press).
         // - when "KeyUp" was received after the Delay (= end of long key press)
-        if (KeyPressStack.TryPop(out var eventArgs))
+        if (KeyPressStack.TryPop(out _))
         {
             await _cancellationTokenSource.CancelAsync();
-            await handler(eventArgs);
+            await handler(_handlerArgs);
         }
         else
         {
-            await OnLongReleased();
+            // we cannot use "out var handlerArgs" from above, because if it is a long press, the stack is already empty.
+            await OnLongReleased(_handlerArgs);
         }
     }
 }

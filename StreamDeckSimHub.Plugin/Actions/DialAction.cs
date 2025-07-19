@@ -21,17 +21,18 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     private readonly DisplayManager _displayManager;
     private readonly SimHubManager _simHubManager;
     private DialActionSettings _settings = new();
-    private KeyboardUtils.Hotkey? _hotkey;
-    private KeyboardUtils.Hotkey? _hotkeyTouchTap;
-    private KeyboardUtils.Hotkey? _hotkeyLeft;
-    private KeyboardUtils.Hotkey? _hotkeyRight;
+    private readonly KeyboardUtils _keyboardUtils = new();
+    private Hotkey? _hotkey;
+    private Hotkey? _hotkeyTouchTap;
+    private Hotkey? _hotkeyLeft;
+    private Hotkey? _hotkeyRight;
     private readonly ShakeItStructureFetcher _shakeItStructureFetcher;
-    private readonly KeyQueue _keyQueue;
+    private readonly PressAndReleaseQueue _pressAndReleaseQueue;
 
     public DialAction(SimHubConnection simHubConnection, PropertyComparer propertyComparer, ImageUtils imageUtils, ShakeItStructureFetcher shakeItStructureFetcher)
     {
         _imageUtils = imageUtils;
-        _keyQueue = new KeyQueue(simHubConnection);
+        _pressAndReleaseQueue = new PressAndReleaseQueue(simHubConnection);
         _shakeItStructureFetcher = shakeItStructureFetcher;
         _stateManager = new StateManager(propertyComparer, simHubConnection, StateChangedFunc);
         _displayManager = new DisplayManager(simHubConnection, DisplayChangedFunc);
@@ -74,7 +75,7 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     {
         var settings = args.Payload.GetSettings<DialActionSettings>();
         Logger.LogInformation("OnWillAppear ({coords}): {settings}", args.Payload.Coordinates, settings);
-        _keyQueue.Start();
+        _pressAndReleaseQueue.Start();
         await SetSettings(settings, true);
 
         await base.OnWillAppear(args);
@@ -83,7 +84,7 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
     {
         Logger.LogInformation("OnWillDisappear ({coords}): {settings}", args.Payload.Coordinates, args.Payload.GetSettings<DialActionSettings>());
-        _keyQueue.Stop();
+        await _pressAndReleaseQueue.Stop();
         _stateManager.Deactivate();
         _displayManager.Deactivate();
         await _simHubManager.Deactivate();
@@ -115,10 +116,10 @@ public class DialAction : StreamDeckAction<DialActionSettings>
         switch (args.Payload.Ticks)
         {
             case < 0:
-                _keyQueue.Enqueue(_hotkeyLeft, _settings.SimHubControlLeft, (Context, _settings.SimHubRoleLeft), -args.Payload.Ticks);
+                _pressAndReleaseQueue.Enqueue(_hotkeyLeft, _settings.SimHubControlLeft, (Context, _settings.SimHubRoleLeft), -args.Payload.Ticks);
                 break;
             case > 0:
-                _keyQueue.Enqueue(_hotkeyRight, _settings.SimHubControlRight, (Context, _settings.SimHubRoleRight), args.Payload.Ticks);
+                _pressAndReleaseQueue.Enqueue(_hotkeyRight, _settings.SimHubControlRight, (Context, _settings.SimHubRoleRight), args.Payload.Ticks);
                 break;
         }
 
@@ -129,7 +130,7 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     {
         Logger.LogInformation("OnDialDown ({coords})", args.Payload.Coordinates);
 
-        KeyboardUtils.KeyDown(_hotkey);
+        _keyboardUtils.KeyDown(_hotkey);
         await _simHubManager.TriggerInputPressed(_settings.SimHubControl);
         await _simHubManager.RolePressed(Context, _settings.SimHubRole);
     }
@@ -138,7 +139,7 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     {
         Logger.LogInformation("OnDialUp ({coords})", args.Payload.Coordinates);
 
-        KeyboardUtils.KeyUp(_hotkey);
+        _keyboardUtils.KeyUp(_hotkey);
         await _simHubManager.TriggerInputReleased(_settings.SimHubControl);
         await _simHubManager.RoleReleased(Context, _settings.SimHubRole);
     }
@@ -147,13 +148,13 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     {
         Logger.LogInformation("OnTouchTap ({coords})", args.Payload.Coordinates);
 
-        KeyboardUtils.KeyDown(_hotkeyTouchTap);
+        _keyboardUtils.KeyDown(_hotkeyTouchTap);
         await _simHubManager.TriggerInputPressed(_settings.SimHubControlTouchTap);
         await _simHubManager.RolePressed(Context, _settings.SimHubRoleTouchTap);
 
         await Task.Delay(100);
 
-        KeyboardUtils.KeyUp(_hotkeyTouchTap);
+        _keyboardUtils.KeyUp(_hotkeyTouchTap);
         await _simHubManager.TriggerInputReleased(_settings.SimHubControlTouchTap);
         await _simHubManager.RoleReleased(Context, _settings.SimHubRoleTouchTap);
     }

@@ -6,4 +6,6 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 public class CommandItemSimHubRoleDto : CommandItemDto
 {
     public required string Role { get; set; } = string.Empty;
+
+    public required bool LongEnabled { get; set; }
 }
