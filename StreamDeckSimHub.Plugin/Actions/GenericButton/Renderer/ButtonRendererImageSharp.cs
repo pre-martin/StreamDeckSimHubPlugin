@@ -83,7 +83,8 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
             {
                 Size = boundingSize,
                 Mode = ResizeMode.Max,
-                Position = AnchorPositionMode.Center
+                Position = AnchorPositionMode.Center,
+                Sampler = KnownResamplers.Lanczos3
             }));
 
             // Rotation

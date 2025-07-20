@@ -22,7 +22,7 @@
 
         <Label Grid.Row="0" Grid.Column="0">Transparency:</Label>
         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
-            <TextBox Width="50" Text="{Binding Transparency, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox Width="50" Text="{Binding TransparencyText, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
                      VerticalContentAlignment="Center" Margin="30,0,0,0" />
             <Label FontWeight="Light" Margin="20,0,0,0">1.0 = fully opaque, 0.0 = fully transparent</Label>
         </StackPanel>

@@ -14,4 +14,9 @@ public partial class DisplayParameters : ObservableObject
     [ObservableProperty] private Size? _size;
     [ObservableProperty] private ScaleType _scale = ScaleType.None;
     [ObservableProperty] private int _rotation;
+
+    partial void OnTransparencyChanged(float value)
+    {
+        Transparency = Math.Clamp(value, 0f, 1f);
+    }
 }

@@ -1,6 +1,8 @@
 // Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
@@ -21,9 +23,14 @@ namespace StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 /// <summary>
 /// Base ViewModel for all DisplayItems
 /// </summary>
-public abstract partial class DisplayItemViewModel(DisplayItem model, Window parentWindow) : ItemViewModel(model, parentWindow)
+public abstract partial class DisplayItemViewModel(DisplayItem model, Window parentWindow)
+    : ItemViewModel(model, parentWindow), IDataErrorInfo
 {
     [ObservableProperty] private float _transparency = model.DisplayParameters.Transparency;
+
+    [ObservableProperty]
+    private string _transparencyText = model.DisplayParameters.Transparency.ToString(CultureInfo.InvariantCulture);
+
     [ObservableProperty] private int _posX = model.DisplayParameters.Position.X;
     [ObservableProperty] private int _posY = model.DisplayParameters.Position.Y;
     [ObservableProperty] private int? _sizeWidth = model.DisplayParameters.Size?.Width;
@@ -33,6 +40,14 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, Window par
     partial void OnTransparencyChanged(float value)
     {
         model.DisplayParameters.Transparency = value;
+    }
+
+    partial void OnTransparencyTextChanged(string value)
+    {
+        if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
+        {
+            Transparency = parsed;
+        }
     }
 
     partial void OnPosXChanged(int value)
@@ -76,6 +91,27 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, Window par
     partial void OnRotationChanged(int value)
     {
         model.DisplayParameters.Rotation = value;
+    }
+
+    public string Error => string.Empty;
+
+    public string this[string columnName]
+    {
+        get
+        {
+            if (columnName == nameof(TransparencyText))
+            {
+                if (string.IsNullOrWhiteSpace(TransparencyText)) return string.Empty;
+
+                if (!float.TryParse(TransparencyText, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
+                    || parsed < 0f || parsed > 1f)
+                {
+                    return "Invalid transparency value. Please enter a valid number.";
+                }
+            }
+
+            return string.Empty;
+        }
     }
 }
 
@@ -187,8 +223,7 @@ public partial class DisplayItemValueViewModel : DisplayItemViewModel, IFontSele
 
     public override ImageSource? Icon => ParentWindow.FindResource("DiAttachMoneyGray") as ImageSource;
 
-    [ObservableProperty]
-    private string _propertyString;
+    [ObservableProperty] private string _propertyString;
 
     partial void OnPropertyStringChanged(string value)
     {
