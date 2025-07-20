@@ -24,9 +24,16 @@ public partial class App
 
     private async void Application_Startup(object sender, StartupEventArgs e)
     {
-        _host.Services.GetRequiredService<SimHubConnection>().Run();
-        WeakReferenceMessenger.Default.RegisterAll(this);
-        await _host.StartAsync();
+        try
+        {
+            ((SimHubConnection)_host.Services.GetRequiredService<ISimHubConnection>()).Run();
+            WeakReferenceMessenger.Default.RegisterAll(this);
+            await _host.StartAsync();
+        }
+        catch (Exception ex)
+        {
+            NLog.LogManager.GetCurrentClassLogger().Error(ex, "Error during application startup");
+        }
     }
 
     private async void Application_Exit(object sender, ExitEventArgs e)

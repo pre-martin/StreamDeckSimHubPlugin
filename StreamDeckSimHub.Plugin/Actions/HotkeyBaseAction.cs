@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2023 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using Microsoft.Extensions.Logging;
@@ -27,7 +27,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
     private readonly ShortAndLongPressHandler _salHandler;
     protected Coordinates? Coordinates;
 
-    protected HotkeyBaseAction(SimHubConnection simHubConnection, PropertyComparer propertyComparer, bool useCondition)
+    protected HotkeyBaseAction(ISimHubConnection simHubConnection, PropertyComparer propertyComparer, bool useCondition)
     {
         _hotkeySettings = new TSettings();
         _stateManager = new StateManager(propertyComparer, simHubConnection, StateChangedFunc, useCondition);

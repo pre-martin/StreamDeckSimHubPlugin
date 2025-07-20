@@ -24,9 +24,19 @@
         </Grid.ColumnDefinitions>
 
         <Label Grid.Row="0" Grid.Column="0" Margin="0,10,0,0">SimHub Role:</Label>
-        <TextBox Grid.Row="0" Grid.Column="1" Margin="0,10,0,0" MinWidth="150"
-                 Text="{Binding Role, UpdateSourceTrigger=PropertyChanged}"
-                 VerticalContentAlignment="Center" />
+        <Grid Grid.Row="0" Grid.Column="1" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <ComboBox Grid.Column="0" MinWidth="150"
+                      ItemsSource="{Binding AvailableRoles}"
+                      SelectedItem="{Binding Role}" />
+            <Button Grid.Column="1" Command="{Binding ReloadRolesCommand}"
+                    Margin="5,0,0,0">
+                <Image Source="{Binding ReloadRolesIcon}" />
+            </Button>
+        </Grid>
 
         <controls:LongPressControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,10,0,0"
                                    Visibility="{Binding LongPressAllowed, Converter={StaticResource BooleanToVisibilityConverter}}" />

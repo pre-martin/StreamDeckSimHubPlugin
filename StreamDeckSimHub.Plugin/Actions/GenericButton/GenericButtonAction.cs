@@ -28,7 +28,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     private readonly SettingsConverter _settingsConverter;
     private readonly ImageManager _imageManager;
     private readonly ActionEditorManager _actionEditorManager;
-    private readonly SimHubConnection _simHubConnection;
+    private readonly ISimHubConnection _simHubConnection;
     private readonly NCalcHandler _ncalcHandler;
     private readonly IPropertyChangedReceiver _statePropertyChangedReceiver;
     private readonly IButtonRenderer _buttonRenderer;
@@ -44,7 +44,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         SettingsConverter settingsConverter,
         ImageManager imageManager,
         ActionEditorManager actionEditorManager,
-        SimHubConnection simHubConnection,
+        ISimHubConnection simHubConnection,
         NCalcHandler ncalcHandler)
     {
         _settingsConverter = settingsConverter;

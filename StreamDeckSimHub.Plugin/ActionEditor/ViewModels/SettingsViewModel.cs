@@ -7,15 +7,20 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.Actions.Model;
+using StreamDeckSimHub.Plugin.SimHub;
 using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
+    private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
     private readonly Settings _settings;
     private readonly ImageManager _imageManager;
+    private readonly ISimHubConnection _simHubConnection;
     private readonly Window _parentWindow;
+    private List<string> _availableSimHubRoles = [ISimHubConnection.DefaultEmptyRole]; // same default value as used by wotever
 
     /// List of DisplayItems (as ViewModels).
     public ObservableCollection<DisplayItemViewModel> DisplayItems { get; }
@@ -54,10 +59,12 @@ public partial class SettingsViewModel : ObservableObject
         if (value != null) SelectedDisplayItem = null; // CommandItem selected -> no DisplayItem selected
     }
 
-    public SettingsViewModel(Settings settings, ImageManager imageManager, Window parentWindow)
+    public SettingsViewModel(Settings settings, ImageManager imageManager, ISimHubConnection simHubConnection,
+        Window parentWindow)
     {
         _settings = settings;
         _imageManager = imageManager;
+        _simHubConnection = simHubConnection;
         _parentWindow = parentWindow;
 
         DisplayItems = new ObservableCollection<DisplayItemViewModel>(settings.DisplayItems.Select(DisplayItemToViewModel));
@@ -69,6 +76,31 @@ public partial class SettingsViewModel : ObservableObject
             {
                 FlatCommandItems.Add(CommandItemToViewModel(commandItem, kvp.Key));
             }
+        }
+    }
+
+    public async Task FetchControlMapperRoles(bool showError = true)
+    {
+        try
+        {
+            _availableSimHubRoles = await _simHubConnection.FetchControlMapperRoles();
+            foreach (var commandItemViewModel in FlatCommandItems)
+            {
+                if (commandItemViewModel is CommandItemSimHubRoleViewModel roleVm)
+                {
+                    roleVm.SetAvailableRoles(_availableSimHubRoles);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            if (showError)
+            {
+                MessageBox.Show($"Could not fetch Control Mapper roles from SimHub. Is SimHub running?",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            Logger.Warn($"Could not fetch Control Mapper roles from SimHub: {e.Message}");
         }
     }
 
@@ -178,13 +210,19 @@ public partial class SettingsViewModel : ObservableObject
 
     private CommandItemViewModel CommandItemToViewModel(CommandItem commandItem, StreamDeckAction action)
     {
-        return commandItem switch
+        switch (commandItem)
         {
-            CommandItemKeypress keypress => new CommandItemKeypressViewModel(keypress, _parentWindow, action),
-            CommandItemSimHubControl control => new CommandItemSimHubControlViewModel(control, _parentWindow, action),
-            CommandItemSimHubRole role => new CommandItemSimHubRoleViewModel(role, _parentWindow, action),
-            _ => throw new InvalidOperationException("Unknown CommandItem type.")
-        };
+            case CommandItemKeypress keypress:
+                return new CommandItemKeypressViewModel(keypress, _parentWindow, action);
+            case CommandItemSimHubControl control:
+                return new CommandItemSimHubControlViewModel(control, _parentWindow, action);
+            case CommandItemSimHubRole role:
+                var roleVm = new CommandItemSimHubRoleViewModel(role, _parentWindow, action, () => FetchControlMapperRoles());
+                roleVm.SetAvailableRoles(_availableSimHubRoles);
+                return roleVm;
+            default:
+                throw new InvalidOperationException("Unknown CommandItem type.");
+        }
     }
 
     #endregion

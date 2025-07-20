@@ -1,9 +1,11 @@
 // Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.Actions.Model;
 
@@ -132,7 +134,8 @@ public partial class CommandItemSimHubControlViewModel(
 public partial class CommandItemSimHubRoleViewModel(
     CommandItemSimHubRole model,
     Window parentWindow,
-    StreamDeckAction parentAction)
+    StreamDeckAction parentAction,
+    Func<Task> reloadRolesAction)
     : CommandItemViewModel(model, parentWindow, parentAction)
 {
     public override ImageSource? Icon => ParentWindow.FindResource("DiSimHubRoleGray") as ImageSource;
@@ -153,5 +156,42 @@ public partial class CommandItemSimHubRoleViewModel(
     partial void OnLongEnabledChanged(bool value)
     {
         model.LongEnabled = value;
+    }
+
+    public ObservableCollection<string> AvailableRoles { get; } = [];
+
+    public void SetAvailableRoles(IEnumerable<string> roles)
+    {
+        // Save the current role value
+        var currentRole = Role;
+
+        AvailableRoles.Clear();
+        foreach (var role in roles)
+        {
+            AvailableRoles.Add(role);
+        }
+
+        if (AvailableRoles.Contains(currentRole))
+        {
+            Role = currentRole;
+        }
+        else if (!string.IsNullOrEmpty(currentRole))
+        {
+            // Either SimHub is offline or SimHub has no roles configured.
+            AvailableRoles.Add(currentRole);
+            Role = currentRole;
+        }
+        else
+        {
+            Role = AvailableRoles[0];
+        }
+    }
+
+    public ImageSource? ReloadRolesIcon => ParentWindow.FindResource("DiCached") as ImageSource;
+
+    [RelayCommand]
+    private async Task ReloadRoles()
+    {
+        await reloadRolesAction();
     }
 }

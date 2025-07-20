@@ -4,21 +4,37 @@
 using System.Windows;
 using System.Windows.Controls;
 using CommunityToolkit.Mvvm.Messaging;
+using NLog;
 using StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
+using StreamDeckSimHub.Plugin.SimHub;
 using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor;
 
 public partial class GenericButtonEditor
 {
+    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
     private readonly string _actionUuid;
 
-    public GenericButtonEditor(string actionUuid, Settings settings, ImageManager imageManager)
+    public GenericButtonEditor(string actionUuid, Settings settings, ImageManager imageManager, ISimHubConnection simHubConnection)
     {
         _actionUuid = actionUuid;
         InitializeComponent();
-        DataContext = new SettingsViewModel(settings, imageManager, this);
+        DataContext = new SettingsViewModel(settings, imageManager, simHubConnection, this);
+    }
+
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            // No MessageBox here, because we don't want to disturb the user when opening the editor.
+            await ((SettingsViewModel)DataContext).FetchControlMapperRoles(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to fetch control mapper roles from SimHub");
+        }
     }
 
     private void OnClosed(object? sender, EventArgs e)

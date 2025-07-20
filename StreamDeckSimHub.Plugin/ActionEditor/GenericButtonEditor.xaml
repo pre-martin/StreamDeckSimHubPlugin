@@ -10,6 +10,7 @@
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=viewModels:SettingsViewModelDesignTime, IsDesignTimeCreatable=True}"
+        Loaded="OnLoaded"
         Closed="OnClosed"
         Icon="/ActionEditor/GenericButtonEditor.ico"
         Title="Generic Button Editor" Height="750" Width="800" MinHeight="750" MinWidth="800">

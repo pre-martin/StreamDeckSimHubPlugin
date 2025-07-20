@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using Microsoft.Extensions.Logging;
@@ -36,7 +36,7 @@ internal class FlagState
 [StreamDeckAction("net.planetrenner.simhub.flags")]
 public class FlagsAction : StreamDeckAction<FlagsSettings>
 {
-    private readonly SimHubConnection _simHubConnection;
+    private readonly ISimHubConnection _simHubConnection;
     private readonly ImageManager _imageManager;
     private readonly IPropertyChangedReceiver _propertyChangedReceiver;
     private StreamDeckKeyInfo? _sdKeyInfo;
@@ -47,7 +47,7 @@ public class FlagsAction : StreamDeckAction<FlagsSettings>
     private Image? _currentImage;
     private FlagData? _currentFlagData;
 
-    public FlagsAction(SimHubConnection simHubConnection, ImageManager imageManager)
+    public FlagsAction(ISimHubConnection simHubConnection, ImageManager imageManager)
     {
         _simHubConnection = simHubConnection;
         _imageManager = imageManager;

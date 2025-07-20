@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2023 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using Microsoft.Extensions.Logging;
@@ -30,7 +30,7 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
     private readonly DisplayManager _displayManager;
 
     public HotkeyAction(
-        SimHubConnection simHubConnection, PropertyComparer propertyComparer, ShakeItStructureFetcher shakeItStructureFetcher
+        ISimHubConnection simHubConnection, PropertyComparer propertyComparer, ShakeItStructureFetcher shakeItStructureFetcher
     ) : base(simHubConnection, propertyComparer, true)
     {
         _shakeItStructureFetcher = shakeItStructureFetcher;

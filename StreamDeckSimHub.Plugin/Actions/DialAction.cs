@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2023 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using Microsoft.Extensions.Logging;
@@ -29,7 +29,7 @@ public class DialAction : StreamDeckAction<DialActionSettings>
     private readonly ShakeItStructureFetcher _shakeItStructureFetcher;
     private readonly PressAndReleaseQueue _pressAndReleaseQueue;
 
-    public DialAction(SimHubConnection simHubConnection, PropertyComparer propertyComparer, ImageUtils imageUtils, ShakeItStructureFetcher shakeItStructureFetcher)
+    public DialAction(ISimHubConnection simHubConnection, PropertyComparer propertyComparer, ImageUtils imageUtils, ShakeItStructureFetcher shakeItStructureFetcher)
     {
         _imageUtils = imageUtils;
         _pressAndReleaseQueue = new PressAndReleaseQueue(simHubConnection);

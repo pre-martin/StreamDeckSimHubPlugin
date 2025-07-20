@@ -11,7 +11,6 @@ using NLog;
 
 namespace StreamDeckSimHub.Plugin.SimHub;
 
-
 /// <summary>
 /// Parameters of the event, which gets fired when a new property value was received from SimHub.
 /// </summary>
@@ -90,7 +89,9 @@ public class SimHubConnection(IOptions<ConnectionSettings> connectionSettings, P
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private TcpClient? _tcpClient;
     private long _connected;
+
     private readonly SemaphoreSlim _semaphore = new(1);
+
     // Mapping from SimHub property name to PropertyInformation.
     private readonly Dictionary<string, PropertyInformation> _subscriptions = new();
     private readonly HttpClient _apiClient = new() { Timeout = TimeSpan.FromSeconds(2) };
@@ -117,7 +118,8 @@ public class SimHubConnection(IOptions<ConnectionSettings> connectionSettings, P
             _tcpClient = new TcpClient();
             try
             {
-                await _tcpClient.ConnectAsync(_connectionSettings.Host, _connectionSettings.Port).WaitAsync(TimeSpan.FromSeconds(4));
+                await _tcpClient.ConnectAsync(_connectionSettings.Host, _connectionSettings.Port)
+                    .WaitAsync(TimeSpan.FromSeconds(4));
             }
             catch (Exception e)
             {
@@ -182,7 +184,8 @@ public class SimHubConnection(IOptions<ConnectionSettings> connectionSettings, P
                 else
                 {
                     receivers.Add(propertyChangedReceiver);
-                    Logger.Info($"Adding action to existing subscription list for {propertyName}. Has now {receivers.Count} subscribers");
+                    Logger.Info(
+                        $"Adding action to existing subscription list for {propertyName}. Has now {receivers.Count} subscribers");
                     if (propInfo.CurrentPropertyChangedValue != null)
                     {
                         await propertyChangedReceiver.PropertyChanged(propInfo.CurrentPropertyChangedValue);
@@ -231,7 +234,8 @@ public class SimHubConnection(IOptions<ConnectionSettings> connectionSettings, P
             }
             else
             {
-                Logger.Info($"Removed action from existing subscription list for {propertyName}, remaining subscribers {receivers.Count}");
+                Logger.Info(
+                    $"Removed action from existing subscription list for {propertyName}, remaining subscribers {receivers.Count}");
             }
 
             // If there are still subscriptions for this property: return
@@ -290,6 +294,16 @@ public class SimHubConnection(IOptions<ConnectionSettings> connectionSettings, P
         }
     }
 
+    public async Task<List<string>> FetchControlMapperRoles()
+    {
+        List<string> roles = [ISimHubConnection.DefaultEmptyRole]; // same default value as used by wotever
+        using var response = await _apiClient.GetAsync("http://localhost:8888/api/ControlMapper/GetRoles");
+        response.EnsureSuccessStatusCode();
+        var rolesArray = await response.Content.ReadAsStringAsync();
+        var fetchedRoles = System.Text.Json.JsonSerializer.Deserialize<List<string>>(rolesArray) ?? [];
+        return roles.Union(fetchedRoles).ToList();
+    }
+
     private async Task SendSubscribe(string propertyName)
     {
         Logger.Info($"Sending subscribe for {propertyName}");
@@ -344,6 +358,7 @@ public class SimHubConnection(IOptions<ConnectionSettings> connectionSettings, P
         {
             await propertyChangedReceiver.PropertyChanged(args);
         }
+
         Logger.Debug("Dispatched PropertyChanged to receivers");
     }
 
@@ -365,7 +380,8 @@ public class SimHubConnection(IOptions<ConnectionSettings> connectionSettings, P
                     }
                     catch (Exception e)
                     {
-                        Logger.Error(e, $"Unhandled exception while processing data from server. Received line was: \"{Sanitize(line)}\"");
+                        Logger.Error(e,
+                            $"Unhandled exception while processing data from server. Received line was: \"{Sanitize(line)}\"");
                     }
                 }
             }
