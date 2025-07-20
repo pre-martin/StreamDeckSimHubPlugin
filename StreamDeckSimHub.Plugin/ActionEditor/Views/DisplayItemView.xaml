@@ -41,7 +41,7 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Label Grid.Row="0" Grid.Column="0">Name:</Label>
+        <Label Grid.Row="0" Grid.Column="0">Item Name:</Label>
         <TextBox Grid.Row="0" Grid.Column="1" MinWidth="150"
                  VerticalContentAlignment="Center"
                  Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"

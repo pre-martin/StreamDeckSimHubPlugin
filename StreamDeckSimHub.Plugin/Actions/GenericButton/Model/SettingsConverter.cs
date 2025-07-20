@@ -31,6 +31,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
 
         var settings = new Settings
         {
+            Name = dto.Name,
             KeySize = new Size(dto.KeySize.Width, dto.KeySize.Height)
         };
 
@@ -60,6 +61,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
     {
         var settingsDto = new SettingsDto
         {
+            Name = settings.Name,
             KeySize = new SizeDto { Width = settings.KeySize.Width, Height = settings.KeySize.Height },
             DisplayItems = settings.DisplayItems
                 .Select(DisplayItemToDto)

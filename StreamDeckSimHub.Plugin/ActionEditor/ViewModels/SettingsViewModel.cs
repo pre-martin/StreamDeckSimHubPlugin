@@ -22,6 +22,17 @@ public partial class SettingsViewModel : ObservableObject
     private readonly Window _parentWindow;
     private List<string> _availableSimHubRoles = [ISimHubConnection.DefaultEmptyRole]; // same default value as used by wotever
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(NameForTitle))]
+    private string _name;
+
+    partial void OnNameChanged(string value)
+    {
+        _settings.Name = value;
+    }
+
+    public string NameForTitle => string.IsNullOrWhiteSpace(Name) ? "Generic Button Editor" : "Generic Button Editor: " + Name;
+
     /// List of DisplayItems (as ViewModels).
     public ObservableCollection<DisplayItemViewModel> DisplayItems { get; }
 
@@ -66,6 +77,7 @@ public partial class SettingsViewModel : ObservableObject
         _imageManager = imageManager;
         _simHubConnection = simHubConnection;
         _parentWindow = parentWindow;
+        _name = settings.Name;
 
         DisplayItems = new ObservableCollection<DisplayItemViewModel>(settings.DisplayItems.Select(DisplayItemToViewModel));
 

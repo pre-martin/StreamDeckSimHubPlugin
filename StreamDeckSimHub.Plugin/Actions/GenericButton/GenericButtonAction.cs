@@ -96,6 +96,11 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
                             await SetSettingsAsync(settingsDto, token);
                         }
 
+                        // Settings.Name: no subscriptions change, no rendering needed.
+                        if (sender is Settings && args.PropertyName == nameof(Settings.Name)) return;
+                        // Item.Name: no subscriptions change, no rendering needed.
+                        if (sender is Item && args.PropertyName == nameof(Item.Name)) return;
+
                         await SubscribeProperties();
 
                         // Element added/removed from CommandItems: No rendering needed.

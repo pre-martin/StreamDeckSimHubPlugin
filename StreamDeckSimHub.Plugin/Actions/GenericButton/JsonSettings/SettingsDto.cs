@@ -9,6 +9,8 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 
 public class SettingsDto
 {
+    public required string Name { get; set; } = string.Empty;
+
     public required SizeDto KeySize { get; set; } = new();
 
     [JsonIgnore]

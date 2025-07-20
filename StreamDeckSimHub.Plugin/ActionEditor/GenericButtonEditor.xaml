@@ -13,7 +13,8 @@
         Loaded="OnLoaded"
         Closed="OnClosed"
         Icon="/ActionEditor/GenericButtonEditor.ico"
-        Title="Generic Button Editor" Height="750" Width="800" MinHeight="750" MinWidth="800">
+        Title="{Binding NameForTitle}"
+        Height="750" Width="800" MinHeight="750" MinWidth="800">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -156,15 +157,33 @@
         <!-- The main content for details -->
         <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="3" Margin="8">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />    <!-- Name -->
+                <RowDefinition Height="Auto" />    <!-- Separator -->
                 <RowDefinition Height="Auto" />    <!-- Editor (DataTemplate) -->
             </Grid.RowDefinitions>
 
+            <Grid Grid.Row="0" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" MinWidth="120" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" Content="Button Name:" VerticalAlignment="Center" />
+                <TextBox Grid.Column="1" MinWidth="150"
+                         VerticalContentAlignment="Center"
+                         Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="Is only used for visualization" />
+            </Grid>
+
+            <!-- Separator line -->
+            <Separator Grid.Row="1" Margin="0,0,0,10" />
+
             <!-- If nothing is selected -->
-            <TextBlock Grid.Row="0" Text="Please select a display item or a command item." Foreground="#888"
+            <TextBlock Grid.Row="2" Text="Please select a display item or a command item." Foreground="#888"
                        Visibility="{Binding IsAnyItemSelected, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
 
             <!-- Detail editor for the specific item -->
-            <ContentControl Grid.Row="0" Content="{Binding SelectedItem}"
+            <ContentControl Grid.Row="2" Content="{Binding SelectedItem}"
                             Visibility="{Binding IsAnyItemSelected, Converter={StaticResource BoolToVisibilityConverter}}">
                 <ContentControl.Resources>
                     <DataTemplate DataType="{x:Type viewModels:DisplayItemViewModel}">

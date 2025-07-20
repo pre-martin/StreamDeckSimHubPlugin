@@ -13,9 +13,11 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 /// <summary>
 /// Model for the <c>GenericButton</c>.
 /// </summary>
-public class Settings : ObservableObject
+public partial class Settings : ObservableObject
 {
     public static readonly Size NewActionKeySize = new(0, 0);
+
+    [ObservableProperty] private string _name = string.Empty;
 
     /// <summary>
     /// Information about the key size on which these elements are used.
