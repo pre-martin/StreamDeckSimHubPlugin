@@ -80,6 +80,7 @@ public class SettingsConverterTest
     {
         var settingsDto = new SettingsDto
         {
+            Name = string.Empty,
             KeySize = new SizeDto { Width = 140, Height = 100 },
             DisplayItemsString = "invalid json",
             CommandItemsString = "invalid json"

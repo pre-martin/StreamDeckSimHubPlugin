@@ -65,6 +65,7 @@ public class SerializationTest
     {
         return new SettingsDto
         {
+            Name = string.Empty,
             KeySize = new SizeDto
             {
                 Width = 140,
