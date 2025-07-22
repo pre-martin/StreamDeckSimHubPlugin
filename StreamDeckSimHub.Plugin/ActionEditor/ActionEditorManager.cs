@@ -28,28 +28,29 @@ public class ActionEditorManager : IRecipient<GenericButtonEditorClosedEvent>
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
-    public void ShowGenericButtonEditor(string actionUuid, Settings settings)
+    public Window ShowGenericButtonEditor(string actionUuid, Settings settings)
     {
-        Application.Current.Dispatcher.Invoke(() =>
+        return Application.Current.Dispatcher.Invoke(() =>
         {
             if (_actionEditors.TryGetValue(actionUuid, out var editor))
             {
                 Logger.Debug("Showing existing editor for action {ActionUuid}", actionUuid);
                 BringToFront(editor);
+                return editor;
             }
-            else
-            {
-                Logger.Debug("Showing new editor for action {ActionUuid}", actionUuid);
-                var newEditor = new GenericButtonEditor(actionUuid, settings, _imageManager, _simHubConnection)
-                {
-                    WindowStartupLocation = WindowStartupLocation.CenterScreen, // show on the same screen as the Stream Deck software
-                };
-                _actionEditors.TryAdd(actionUuid, newEditor);
-                newEditor.Show();
 
-                // Without these three lines, the window appears in the background
-                BringToFront(newEditor);
-            }
+            Logger.Debug("Showing new editor for action {ActionUuid}", actionUuid);
+            var newEditor = new GenericButtonEditor(actionUuid, settings, _imageManager, _simHubConnection)
+            {
+                WindowStartupLocation =
+                    WindowStartupLocation.CenterScreen, // show on the same screen as the Stream Deck software
+            };
+            _actionEditors.TryAdd(actionUuid, newEditor);
+            newEditor.Show();
+
+            // Without these three lines, the window appears in the background
+            BringToFront(newEditor);
+            return newEditor;
         });
     }
 

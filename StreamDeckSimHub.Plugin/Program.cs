@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.IO.Abstractions;
@@ -21,18 +21,22 @@ namespace StreamDeckSimHub.Plugin;
 /// </summary>
 public abstract class Program
 {
-    public static IHost CreateHost()
+    public static IHost CreateHost(bool devMode = false)
     {
-        var host = Host.CreateDefaultBuilder()
+        var hostBuilder = Host.CreateDefaultBuilder()
             .ConfigureLogging((context, loggingBuilder) =>
             {
                 loggingBuilder
                     .ClearProviders()
                     .AddNLog();
             })
-            .UseStreamDeck()
-            .ConfigureServices(ConfigureServices)
-            .Build();
+            .ConfigureServices(ConfigureServices);
+        if (!devMode)
+        {
+            hostBuilder.UseStreamDeck();
+        }
+
+        var host = hostBuilder.Build();
         return host;
     }
 
