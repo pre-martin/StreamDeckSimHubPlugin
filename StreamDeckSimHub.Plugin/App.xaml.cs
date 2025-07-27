@@ -1,11 +1,11 @@
 ﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
-using System.IO.Abstractions;
 using System.Windows;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using NLog;
 using StreamDeckSimHub.Plugin.ActionEditor;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.SimHub;
@@ -24,7 +24,7 @@ public partial class App
     {
         var localDevMode = Environment.GetCommandLineArgs().Length == 2 && Environment.GetCommandLineArgs()[1] == "dev";
         _host = Program.CreateHost(localDevMode);
-        NLog.LogManager.GetCurrentClassLogger().Info("Starting StreamDeckSimHub plugin {version}", ThisAssembly.AssemblyFileVersion);
+        LogManager.GetCurrentClassLogger().Info("Starting StreamDeckSimHub plugin {version}", ThisAssembly.AssemblyFileVersion);
 
         if (localDevMode)
         {
@@ -32,6 +32,11 @@ public partial class App
             {
                 KeySize = StreamDeckKeyInfoBuilder.DefaultKeyInfo.KeySize
             };
+            settings.SettingsChanged += (sender, e) =>
+            {
+                Console.WriteLine($"sender: {sender} / {e.PropertyName}");
+            };
+
             var actionEditorManager = _host.Services.GetService<ActionEditorManager>();
             var window = actionEditorManager!.ShowGenericButtonEditor("someUuid", settings);
             window.Closed += (_, _) =>
@@ -56,7 +61,7 @@ public partial class App
         }
         catch (Exception ex)
         {
-            NLog.LogManager.GetCurrentClassLogger().Error(ex, "Error during application startup");
+            LogManager.GetCurrentClassLogger().Error(ex, "Error during application startup");
         }
     }
 
