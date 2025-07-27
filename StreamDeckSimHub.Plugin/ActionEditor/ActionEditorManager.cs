@@ -20,11 +20,14 @@ public class ActionEditorManager : IRecipient<GenericButtonEditorClosedEvent>
     private readonly ConcurrentDictionary<string, GenericButtonEditor> _actionEditors = new();
     private readonly ImageManager _imageManager;
     private readonly ISimHubConnection _simHubConnection;
+    private readonly ShakeItStructureFetcher _shakeItStructureFetcher;
 
-    public ActionEditorManager(ImageManager imageManager, ISimHubConnection simHubConnection)
+    public ActionEditorManager(
+        ImageManager imageManager, ISimHubConnection simHubConnection, ShakeItStructureFetcher shakeItStructureFetcher)
     {
         _imageManager = imageManager;
         _simHubConnection = simHubConnection;
+        _shakeItStructureFetcher = shakeItStructureFetcher;
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
@@ -40,11 +43,12 @@ public class ActionEditorManager : IRecipient<GenericButtonEditorClosedEvent>
             }
 
             Logger.Debug("Showing new editor for action {ActionUuid}", actionUuid);
-            var newEditor = new GenericButtonEditor(actionUuid, settings, _imageManager, _simHubConnection)
-            {
-                WindowStartupLocation =
-                    WindowStartupLocation.CenterScreen, // show on the same screen as the Stream Deck software
-            };
+            var newEditor =
+                new GenericButtonEditor(actionUuid, settings, _imageManager, _simHubConnection, _shakeItStructureFetcher)
+                {
+                    WindowStartupLocation =
+                        WindowStartupLocation.CenterScreen, // show on the same screen as the Stream Deck software
+                };
             _actionEditors.TryAdd(actionUuid, newEditor);
             newEditor.Show();
 

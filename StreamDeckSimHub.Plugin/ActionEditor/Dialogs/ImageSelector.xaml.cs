@@ -7,7 +7,7 @@ using System.Windows.Input;
 using StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 using StreamDeckSimHub.Plugin.Tools;
 
-namespace StreamDeckSimHub.Plugin.ActionEditor;
+namespace StreamDeckSimHub.Plugin.ActionEditor.Dialogs;
 
 public partial class ImageSelector : Window
 {

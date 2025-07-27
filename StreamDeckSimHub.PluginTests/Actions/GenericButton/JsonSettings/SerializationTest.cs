@@ -77,6 +77,7 @@ public class SerializationTest
                     Name = "My Image",
                     DisplayParameters = new DisplayParametersDto(),
                     ConditionsString = string.Empty,
+                    ConditionsShakeItDictionary = [],
                     RelativePath = "images/icon.png"
                 }
             ],
@@ -88,6 +89,7 @@ public class SerializationTest
                         {
                             Name = "My Role action",
                             ConditionsString = string.Empty,
+                            ConditionsShakeItDictionary = [],
                             Role = "SomeRole",
                             LongEnabled = false
                         }
@@ -99,6 +101,7 @@ public class SerializationTest
                         {
                             Name = "My Control action",
                             ConditionsString = string.Empty,
+                            ConditionsShakeItDictionary = [],
                             Control = "SomeControl",
                             LongEnabled = false
                         },
@@ -106,6 +109,7 @@ public class SerializationTest
                         {
                             Name = "Another Role action",
                             ConditionsString = string.Empty,
+                            ConditionsShakeItDictionary = [],
                             Role = "SomeOtherRole",
                             LongEnabled = false
                         }

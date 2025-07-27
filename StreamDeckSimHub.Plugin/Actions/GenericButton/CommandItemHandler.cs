@@ -13,7 +13,7 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton;
 /// <summary>
 /// Takes care of handling commands for key presses, dial rotations, and touch taps.
 /// </summary>
-public class CommandHandler(ISimHubConnection simHubConnection, IKeyboardUtils keyboardUtils) : ICommandVisitor
+public class CommandItemHandler(ISimHubConnection simHubConnection, IKeyboardUtils keyboardUtils) : ICommandItemVisitor
 {
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
     private readonly PressAndReleaseQueue _pressAndReleaseQueue = new(simHubConnection);
@@ -189,79 +189,79 @@ public class CommandHandler(ISimHubConnection simHubConnection, IKeyboardUtils k
 
     #region ICommandVisitor implementation
 
-    public Task Visit(CommandItemKeypress command, StreamDeckAction action, IVisitorArgs? args)
+    public Task Visit(CommandItemKeypress commandItem, StreamDeckAction action, IVisitorArgs? args)
     {
-        _logger.Debug($"Visit for Keypress: \"{command.DisplayName}\", action: {action}");
+        _logger.Debug($"Visit for Keypress: \"{commandItem.DisplayName}\", action: {action}");
         var ticks = args is DialVisitorArgs dialArgs ? dialArgs.Ticks : -1;
 
         switch (action)
         {
             case StreamDeckAction.KeyDown or StreamDeckAction.DialDown:
-                keyboardUtils.KeyDown(command.Hotkey);
+                keyboardUtils.KeyDown(commandItem.Hotkey);
                 break;
             case StreamDeckAction.KeyUp or StreamDeckAction.DialUp:
-                keyboardUtils.KeyUp(command.Hotkey);
+                keyboardUtils.KeyUp(commandItem.Hotkey);
                 break;
             case StreamDeckAction.DialLeft:
-                _pressAndReleaseQueue.Enqueue(command.Hotkey, null, null, ticks);
+                _pressAndReleaseQueue.Enqueue(commandItem.Hotkey, null, null, ticks);
                 break;
             case StreamDeckAction.DialRight:
-                _pressAndReleaseQueue.Enqueue(command.Hotkey, null, null, ticks);
+                _pressAndReleaseQueue.Enqueue(commandItem.Hotkey, null, null, ticks);
                 break;
             case StreamDeckAction.TouchTap:
-                _pressAndReleaseQueue.Enqueue(command.Hotkey, null, null, 1);
+                _pressAndReleaseQueue.Enqueue(commandItem.Hotkey, null, null, 1);
                 break;
         }
 
         return Task.CompletedTask;
     }
 
-    public async Task Visit(CommandItemSimHubControl command, StreamDeckAction action, IVisitorArgs? args)
+    public async Task Visit(CommandItemSimHubControl commandItem, StreamDeckAction action, IVisitorArgs? args)
     {
-        _logger.Debug($"Visit for SimHub control: \"{command.DisplayName}\", action: {action}");
+        _logger.Debug($"Visit for SimHub control: \"{commandItem.DisplayName}\", action: {action}");
         var ticks = args is DialVisitorArgs dialArgs ? dialArgs.Ticks : -1;
 
         switch (action)
         {
             case StreamDeckAction.KeyDown or StreamDeckAction.DialDown:
-                await _simHubManager.TriggerInputPressed(command.Control);
+                await _simHubManager.TriggerInputPressed(commandItem.Control);
                 break;
             case StreamDeckAction.KeyUp or StreamDeckAction.DialUp:
-                await _simHubManager.TriggerInputReleased(command.Control);
+                await _simHubManager.TriggerInputReleased(commandItem.Control);
                 break;
             case StreamDeckAction.DialLeft:
-                _pressAndReleaseQueue.Enqueue(null, command.Control, null, -ticks);
+                _pressAndReleaseQueue.Enqueue(null, commandItem.Control, null, -ticks);
                 break;
             case StreamDeckAction.DialRight:
-                _pressAndReleaseQueue.Enqueue(null, command.Control, null, ticks);
+                _pressAndReleaseQueue.Enqueue(null, commandItem.Control, null, ticks);
                 break;
             case StreamDeckAction.TouchTap:
-                _pressAndReleaseQueue.Enqueue(null, command.Control, null, 1);
+                _pressAndReleaseQueue.Enqueue(null, commandItem.Control, null, 1);
                 break;
         }
     }
 
-    public async Task Visit(CommandItemSimHubRole command, StreamDeckAction action, IVisitorArgs? args)
+    public async Task Visit(CommandItemSimHubRole commandItem, StreamDeckAction action, IVisitorArgs? args)
     {
-        _logger.Debug($"Visit SimHub role for \"{command.DisplayName}\", action: {action}");
+        _logger.Debug($"Visit SimHub role for \"{commandItem.DisplayName}\", action: {action}");
         var ticks = args is DialVisitorArgs dialArgs ? dialArgs.Ticks : -1;
 
         switch (action)
         {
             case StreamDeckAction.KeyDown or StreamDeckAction.DialDown:
-                await _simHubManager.RolePressed(Context, command.Role);
+                await _simHubManager.RolePressed(Context, commandItem.Role);
                 break;
             case StreamDeckAction.KeyUp or StreamDeckAction.DialUp:
-                await _simHubManager.RoleReleased(Context, command.Role);
+                await _simHubManager.RoleReleased(Context, commandItem.Role);
                 break;
             case StreamDeckAction.DialLeft:
-                _pressAndReleaseQueue.Enqueue(null, null, (Context, command.Role), -ticks);
+                _pressAndReleaseQueue.Enqueue(null, null, (Context, commandItem.Role), -ticks);
                 break;
             case StreamDeckAction.DialRight:
-                _pressAndReleaseQueue.Enqueue(null, null, (Context, command.Role), ticks);
+                _pressAndReleaseQueue.Enqueue(null, null, (Context, commandItem.Role), ticks);
                 break;
             case StreamDeckAction.TouchTap:
-                _pressAndReleaseQueue.Enqueue(null, null, (Context, command.Role), 1);
+                _pressAndReleaseQueue.Enqueue(null, null, (Context, commandItem.Role), 1);
                 break;
         }
     }

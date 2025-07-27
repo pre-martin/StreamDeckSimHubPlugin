@@ -22,8 +22,8 @@ public partial class CommandItemSimHubControl : CommandItem, ICommandItemLong
         return new CommandItemSimHubControl();
     }
 
-    public override async Task Accept(ICommandVisitor visitor, StreamDeckAction action, IVisitorArgs? args = null)
+    public override async Task Accept(ICommandItemVisitor commandItemVisitor, StreamDeckAction action, IVisitorArgs? args = null)
     {
-        await visitor.Visit(this, action, args);
+        await commandItemVisitor.Visit(this, action, args);
     }
 }

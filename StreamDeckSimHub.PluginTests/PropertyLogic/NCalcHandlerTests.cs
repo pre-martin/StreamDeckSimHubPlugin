@@ -74,7 +74,7 @@ public class NCalcHandlerTests
     {
         var ncalcHolder = new NCalcHolder { UsedProperties = ["testProperty"] };
 
-        var errorMessage = _handler.UpdateNCalcHolder("invalid expression", ncalcHolder);
+        var errorMessage = _handler.UpdateNCalcHolder("invalid expression", [], ncalcHolder);
 
         // We want an error message, an updated expressions string, but no changes to NCalcExpression or UsedProperties.
         Assert.That(errorMessage, Is.Not.Null);

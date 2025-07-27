@@ -7,5 +7,5 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
 public abstract class CommandItem : Item
 {
-    public abstract Task Accept(ICommandVisitor visitor, StreamDeckAction action, IVisitorArgs? args = null);
+    public abstract Task Accept(ICommandItemVisitor commandItemVisitor, StreamDeckAction action, IVisitorArgs? args = null);
 }

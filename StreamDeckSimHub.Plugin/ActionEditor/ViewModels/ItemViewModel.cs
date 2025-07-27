@@ -1,36 +1,31 @@
 ﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
-using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using StreamDeckSimHub.Plugin.ActionEditor.Views.Controls;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
-using StreamDeckSimHub.Plugin.PropertyLogic;
+using StreamDeckSimHub.Plugin.SimHub.ShakeIt;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 
 public abstract partial class ItemViewModel : ObservableObject
 {
-    private readonly NCalcHandler _ncalcHandler = new();
     private readonly Item _model;
-    protected readonly Window ParentWindow;
+    protected readonly IViewModel ParentViewModel;
 
-    protected ItemViewModel(Item model, Window parentWindow)
+    protected ItemViewModel(Item model, IViewModel parentViewModel)
     {
         _model = model;
-        ParentWindow = parentWindow;
+        ParentViewModel = parentViewModel;
         _name = model.Name;
-        _conditionString = model.NCalcConditionHolder.ExpressionString;
-
-        // Populate the error message if the condition string is invalid, so that we have it right when the view is displayed.
-        try
+        _expressionControlConditionViewModel = new ExpressionControlViewModel(model.NCalcConditionHolder)
         {
-            _ncalcHandler.Parse(_conditionString, out _);
-        }
-        catch (Exception e)
-        {
-            ConditionErrorMessage = _ncalcHandler.BuildNCalcErrorMessage(e);
-        }
+            ExpressionLabel = "Conditions:",
+            ExpressionToolTip = "Please enter a valid NCalc expression, that returns true or false or a number",
+            Example="[DataCorePlugin.Computed.Fuel_RemainingLaps] <= 2",
+            FetchShakeItProfilesCallback = FetchShakeItProfilesCallback
+        };
     }
 
     public abstract ImageSource? Icon { get; }
@@ -41,26 +36,23 @@ public abstract partial class ItemViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(DisplayName))]
     private string _name;
 
-    [ObservableProperty] private string _conditionString;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ConditionErrorVisibility))]
-    private string? _conditionErrorMessage;
-
-    public Visibility ConditionErrorVisibility => ConditionErrorMessage is not null ? Visibility.Visible : Visibility.Collapsed;
+    [ObservableProperty] private ExpressionControlViewModel _expressionControlConditionViewModel;
 
     partial void OnNameChanged(string value)
     {
         _model.Name = value;
     }
 
-    partial void OnConditionStringChanged(string value)
-    {
-        ConditionErrorMessage = _ncalcHandler.UpdateNCalcHolder(value, _model.NCalcConditionHolder);
-    }
-
     public Item GetModel()
     {
         return _model;
+    }
+
+    protected Func<string, Task<IList<Profile>>> FetchShakeItProfilesCallback => FetchShakeItProfiles;
+
+    private async Task<IList<Profile>> FetchShakeItProfiles(string type)
+    {
+        return type == "Bass" ? await ParentViewModel.FetchShakeItBassProfiles()
+                              : await ParentViewModel.FetchShakeItMotorsProfiles();
     }
 }

@@ -10,6 +10,8 @@ public class DisplayItemValueDto : DisplayItemDto
 {
     public required string Property { get; set; } = string.Empty;
 
+    public required Dictionary<string, string> PropertyShakeItDictionary { get; set; } = new();
+
     public required string DisplayFormat { get; set; } = string.Empty;
 
     public required string FontName { get; set; } = "Arial";

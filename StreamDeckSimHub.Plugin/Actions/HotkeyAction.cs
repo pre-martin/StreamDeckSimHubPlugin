@@ -50,8 +50,15 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
     [PropertyInspectorMethod("fetchShakeItBassStructure")]
     public async Task FetchShakeItBassStructure(FetchShakeItStructureArgs args)
     {
-        var profiles = await _shakeItStructureFetcher.FetchBassStructure();
-        await SendToPropertyInspectorAsync(new { message = "shakeItBassStructure", profiles, args.SourceId });
+        try
+        {
+            var profiles = await _shakeItStructureFetcher.FetchBassStructure();
+            await SendToPropertyInspectorAsync(new { message = "shakeItBassStructure", profiles, args.SourceId });
+        }
+        catch (Exception e)
+        {
+            Logger.LogError("Exception while fetching ShakeIt Bass structure: {exMessage}", e.Message);
+        }
     }
 
     /// <summary>
@@ -61,8 +68,15 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
     [PropertyInspectorMethod("fetchShakeItMotorsStructure")]
     public async Task FetchShakeItMotorsStructure(FetchShakeItStructureArgs args)
     {
-        var profiles = await _shakeItStructureFetcher.FetchMotorsStructure();
-        await SendToPropertyInspectorAsync(new { message = "shakeItMotorsStructure", profiles, args.SourceId });
+        try
+        {
+            var profiles = await _shakeItStructureFetcher.FetchMotorsStructure();
+            await SendToPropertyInspectorAsync(new { message = "shakeItMotorsStructure", profiles, args.SourceId });
+        }
+        catch (Exception e)
+        {
+            Logger.LogError("Exception while fetching ShakeIt Motors structure: {exMessage}", e.Message);
+        }
     }
 
     protected override async Task SetSettings(HotkeyActionSettings ac, bool forceSubscribe)

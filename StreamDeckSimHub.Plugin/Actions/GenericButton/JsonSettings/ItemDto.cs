@@ -8,4 +8,6 @@ public abstract class ItemDto
     public required string Name { get; set; } = string.Empty;
 
     public required string ConditionsString { get; set; } = string.Empty;
+
+    public required Dictionary<string, string> ConditionsShakeItDictionary { get; set; } = new();
 }

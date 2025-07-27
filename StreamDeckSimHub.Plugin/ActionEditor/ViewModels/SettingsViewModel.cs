@@ -5,22 +5,26 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using NLog;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.Actions.Model;
 using StreamDeckSimHub.Plugin.SimHub;
+using StreamDeckSimHub.Plugin.SimHub.ShakeIt;
 using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 
-public partial class SettingsViewModel : ObservableObject
+public partial class SettingsViewModel : ObservableObject, IViewModel
 {
-    private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
     private readonly Settings _settings;
     private readonly ImageManager _imageManager;
     private readonly ISimHubConnection _simHubConnection;
-    private readonly Window _parentWindow;
+    private readonly ShakeItStructureFetcher _shakeItStructureFetcher;
     private List<string> _availableSimHubRoles = [ISimHubConnection.DefaultEmptyRole]; // same default value as used by wotever
+    private IList<Profile> _shakeItBassProfiles = [];
+    private IList<Profile> _shakeItMotorsProfiles = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(NameForTitle))]
@@ -71,12 +75,13 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     public SettingsViewModel(Settings settings, ImageManager imageManager, ISimHubConnection simHubConnection,
-        Window parentWindow)
+        ShakeItStructureFetcher shakeItStructureFetcher, Window parentWindow)
     {
         _settings = settings;
         _imageManager = imageManager;
         _simHubConnection = simHubConnection;
-        _parentWindow = parentWindow;
+        _shakeItStructureFetcher = shakeItStructureFetcher;
+        ParentWindow = parentWindow;
         _name = settings.Name;
 
         DisplayItems = new ObservableCollection<DisplayItemViewModel>(settings.DisplayItems.Select(DisplayItemToViewModel));
@@ -91,30 +96,35 @@ public partial class SettingsViewModel : ObservableObject
         }
     }
 
-    public async Task FetchControlMapperRoles(bool showError = true)
-    {
-        try
-        {
-            _availableSimHubRoles = await _simHubConnection.FetchControlMapperRoles();
-            foreach (var commandItemViewModel in FlatCommandItems)
-            {
-                if (commandItemViewModel is CommandItemSimHubRoleViewModel roleVm)
-                {
-                    roleVm.SetAvailableRoles(_availableSimHubRoles);
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            if (showError)
-            {
-                MessageBox.Show($"Could not fetch Control Mapper roles from SimHub. Is SimHub running?",
-                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+    #region IViewModel
 
-            Logger.Warn($"Could not fetch Control Mapper roles from SimHub: {e.Message}");
+    public Window ParentWindow { get; }
+
+    public async Task FetchControlMapperRoles()
+    {
+        _availableSimHubRoles = await _simHubConnection.FetchControlMapperRoles();
+        foreach (var commandItemViewModel in FlatCommandItems)
+        {
+            if (commandItemViewModel is CommandItemSimHubRoleViewModel roleVm)
+            {
+                roleVm.SetAvailableRoles(_availableSimHubRoles);
+            }
         }
     }
+
+    public async Task<IList<Profile>> FetchShakeItBassProfiles()
+    {
+        _shakeItBassProfiles = await _shakeItStructureFetcher.FetchBassStructure();
+        return _shakeItBassProfiles;
+    }
+
+    public async Task<IList<Profile>> FetchShakeItMotorsProfiles()
+    {
+        _shakeItMotorsProfiles = await _shakeItStructureFetcher.FetchMotorsStructure();
+        return _shakeItMotorsProfiles;
+    }
+
+    #endregion
 
     #region AddDisplayItem
 
@@ -155,9 +165,9 @@ public partial class SettingsViewModel : ObservableObject
     {
         return displayItem switch
         {
-            DisplayItemImage img => new DisplayItemImageViewModel(img, _imageManager, _parentWindow),
-            DisplayItemText txt => new DisplayItemTextViewModel(txt, _parentWindow),
-            DisplayItemValue val => new DisplayItemValueViewModel(val, _parentWindow),
+            DisplayItemImage img => new DisplayItemImageViewModel(img, _imageManager, this),
+            DisplayItemText txt => new DisplayItemTextViewModel(txt, this),
+            DisplayItemValue val => new DisplayItemValueViewModel(val, this),
             _ => throw new InvalidOperationException("Unknown DisplayItem type.")
         };
     }
@@ -225,11 +235,11 @@ public partial class SettingsViewModel : ObservableObject
         switch (commandItem)
         {
             case CommandItemKeypress keypress:
-                return new CommandItemKeypressViewModel(keypress, _parentWindow, action);
+                return new CommandItemKeypressViewModel(keypress, this, action);
             case CommandItemSimHubControl control:
-                return new CommandItemSimHubControlViewModel(control, _parentWindow, action);
+                return new CommandItemSimHubControlViewModel(control, this, action);
             case CommandItemSimHubRole role:
-                var roleVm = new CommandItemSimHubRoleViewModel(role, _parentWindow, action, () => FetchControlMapperRoles());
+                var roleVm = new CommandItemSimHubRoleViewModel(role, this, action);
                 roleVm.SetAvailableRoles(_availableSimHubRoles);
                 return roleVm;
             default:

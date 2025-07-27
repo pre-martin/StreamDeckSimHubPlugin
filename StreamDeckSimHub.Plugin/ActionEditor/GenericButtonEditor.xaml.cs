@@ -17,23 +17,27 @@ public partial class GenericButtonEditor
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
     private readonly string _actionUuid;
 
-    public GenericButtonEditor(string actionUuid, Settings settings, ImageManager imageManager, ISimHubConnection simHubConnection)
+    public GenericButtonEditor(
+        string actionUuid, Settings settings, ImageManager imageManager,
+        ISimHubConnection simHubConnection, ShakeItStructureFetcher shakeItStructureFetcher)
     {
         _actionUuid = actionUuid;
         InitializeComponent();
-        DataContext = new SettingsViewModel(settings, imageManager, simHubConnection, this);
+        DataContext = new SettingsViewModel(settings, imageManager, simHubConnection, shakeItStructureFetcher, this);
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
         try
         {
-            // No MessageBox here, because we don't want to disturb the user when opening the editor.
-            await ((SettingsViewModel)DataContext).FetchControlMapperRoles(false);
+            await ((SettingsViewModel)DataContext).FetchControlMapperRoles();
+            await ((SettingsViewModel)DataContext).FetchShakeItBassProfiles();
+            await ((SettingsViewModel)DataContext).FetchShakeItMotorsProfiles();
         }
         catch (Exception ex)
         {
-            _logger.Error(ex, "Failed to fetch control mapper roles from SimHub");
+            // No MessageBox here, because we don't want to disturb the user when opening the editor.
+            _logger.Error(ex, "Failed to fetch Control Mapper Roles or ShakeIt Profiles from SimHub");
         }
     }
 

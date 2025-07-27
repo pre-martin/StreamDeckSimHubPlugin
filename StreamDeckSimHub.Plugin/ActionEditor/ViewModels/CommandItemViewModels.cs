@@ -31,8 +31,8 @@ public class StreamDeckActionViewModel(StreamDeckAction action) : ObservableObje
 /// </summary>
 public abstract class CommandItemViewModel(
     CommandItem model,
-    Window parentWindow,
-    StreamDeckAction parentAction) : ItemViewModel(model, parentWindow), IFlatCommandItemsViewModel
+    IViewModel parentViewModel,
+    StreamDeckAction parentAction) : ItemViewModel(model, parentViewModel), IFlatCommandItemsViewModel
 {
     public StreamDeckAction ParentAction { get; } = parentAction;
 
@@ -48,10 +48,10 @@ public abstract class CommandItemViewModel(
 /// </summary>
 public partial class CommandItemKeypressViewModel(
     CommandItemKeypress model,
-    Window parentWindow,
-    StreamDeckAction parentAction) : CommandItemViewModel(model, parentWindow, parentAction)
+    IViewModel parentViewModel,
+    StreamDeckAction parentAction) : CommandItemViewModel(model, parentViewModel, parentAction)
 {
-    public override ImageSource? Icon => ParentWindow.FindResource("DiKeyboardOutlinedGray") as ImageSource;
+    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource("DiKeyboardOutlinedGray") as ImageSource;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayName))]
@@ -104,10 +104,10 @@ public partial class CommandItemKeypressViewModel(
 /// </summary>
 public partial class CommandItemSimHubControlViewModel(
     CommandItemSimHubControl model,
-    Window parentWindow,
-    StreamDeckAction parentAction) : CommandItemViewModel(model, parentWindow, parentAction)
+    IViewModel parentViewModel,
+    StreamDeckAction parentAction) : CommandItemViewModel(model, parentViewModel, parentAction)
 {
-    public override ImageSource? Icon => ParentWindow.FindResource("DiSimHubControlGray") as ImageSource;
+    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource("DiSimHubControlGray") as ImageSource;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayName))] // see CommandItemSimHubControl.RawDisplayName which uses Control
@@ -133,12 +133,11 @@ public partial class CommandItemSimHubControlViewModel(
 /// </summary>
 public partial class CommandItemSimHubRoleViewModel(
     CommandItemSimHubRole model,
-    Window parentWindow,
-    StreamDeckAction parentAction,
-    Func<Task> reloadRolesAction)
-    : CommandItemViewModel(model, parentWindow, parentAction)
+    IViewModel parentViewModel,
+    StreamDeckAction parentAction)
+    : CommandItemViewModel(model, parentViewModel, parentAction)
 {
-    public override ImageSource? Icon => ParentWindow.FindResource("DiSimHubRoleGray") as ImageSource;
+    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource("DiSimHubRoleGray") as ImageSource;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayName))] // see CommandItemSimHubRole.RawDisplayName which uses Control
@@ -187,11 +186,19 @@ public partial class CommandItemSimHubRoleViewModel(
         }
     }
 
-    public ImageSource? ReloadRolesIcon => ParentWindow.FindResource("DiCached") as ImageSource;
+    public ImageSource? ReloadRolesIcon => ParentViewModel.ParentWindow.FindResource("DiCached") as ImageSource;
 
     [RelayCommand]
     private async Task ReloadRoles()
     {
-        await reloadRolesAction();
+        try
+        {
+            await ParentViewModel.FetchControlMapperRoles();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Could not fetch Control Mapper roles from SimHub. Is SimHub running?\n{ex.Message}",
+                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 }

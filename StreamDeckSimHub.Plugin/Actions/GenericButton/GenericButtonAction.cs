@@ -32,7 +32,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     private readonly NCalcHandler _ncalcHandler;
     private readonly IPropertyChangedReceiver _statePropertyChangedReceiver;
     private readonly IButtonRenderer _buttonRenderer;
-    private readonly CommandHandler _commandHandler;
+    private readonly CommandItemHandler _commandItemHandler;
 
     private StreamDeckKeyInfo? _sdKeyInfo;
     private Coordinates? _coordinates;
@@ -54,7 +54,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         _ncalcHandler = ncalcHandler;
         _statePropertyChangedReceiver = new PropertyChangedDelegate(PropertyChanged);
         _buttonRenderer = new ButtonRendererImageSharp(GetProperty);
-        _commandHandler = new CommandHandler(simHubConnection, new KeyboardUtils());
+        _commandItemHandler = new CommandItemHandler(simHubConnection, new KeyboardUtils());
     }
 
     private void SubscribeToSettingsChanges()
@@ -133,8 +133,8 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         _sdKeyInfo = StreamDeckKeyInfoBuilder.Build(StreamDeck.Info, args.Device, args.Payload.Controller);
         _settings = await ConvertSettings(args.Payload.GetSettings<SettingsDto>(), _sdKeyInfo);
         SubscribeToSettingsChanges();
-        _commandHandler.Context = Context;
-        _commandHandler.Start();
+        _commandItemHandler.Context = Context;
+        _commandItemHandler.Start();
         await SubscribeProperties();
         await Render();
 
@@ -145,7 +145,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     {
         Logger.LogInformation("({coords}) OnWillDisappear", args.Payload.Coordinates);
         _actionEditorManager.RemoveGenericButtonEditor(Context);
-        await _commandHandler.Stop();
+        await _commandItemHandler.Stop();
         await UnsubscribeProperties();
 
         await base.OnWillDisappear(args);
@@ -172,7 +172,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         if (_settings == null) return;
         Logger.LogInformation("({coords}) OnKeyDown", args.Payload.Coordinates);
 
-        await _commandHandler.KeyDown(_settings.CommandItems[StreamDeckAction.KeyDown], IsActive);
+        await _commandItemHandler.KeyDown(_settings.CommandItems[StreamDeckAction.KeyDown], IsActive);
     }
 
     protected override async Task OnKeyUp(ActionEventArgs<KeyPayload> args)
@@ -180,7 +180,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         if (_settings == null) return;
         Logger.LogInformation("({coords}) OnKeyUp", args.Payload.Coordinates);
 
-        await _commandHandler.KeyUp();
+        await _commandItemHandler.KeyUp();
     }
 
     protected override async Task OnDialRotate(ActionEventArgs<DialRotatePayload> args)
@@ -189,7 +189,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         Logger.LogInformation("({coords}) OnDialRotate (Ticks {ticks})", args.Payload.Coordinates, args.Payload.Ticks);
 
         var ticks = args.Payload.Ticks;
-        await _commandHandler.DialRotate(
+        await _commandItemHandler.DialRotate(
             ticks < 0 ? _settings.CommandItems[StreamDeckAction.DialLeft] : _settings.CommandItems[StreamDeckAction.DialRight],
             IsActive, ticks);
     }
@@ -199,7 +199,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         if (_settings == null) return;
         Logger.LogInformation("({coords}) OnDialDown", args.Payload.Coordinates);
 
-        await _commandHandler.DialDown(_settings.CommandItems[StreamDeckAction.DialDown], IsActive);
+        await _commandItemHandler.DialDown(_settings.CommandItems[StreamDeckAction.DialDown], IsActive);
     }
 
     protected override async Task OnDialUp(ActionEventArgs<DialPayload> args)
@@ -207,7 +207,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         if (_settings == null) return;
         Logger.LogInformation("({coords}) OnDialUp", args.Payload.Coordinates);
 
-        await _commandHandler.DialUp();
+        await _commandItemHandler.DialUp();
     }
 
     protected override async Task OnTouchTap(ActionEventArgs<TouchTapPayload> args)
@@ -215,7 +215,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         if (_settings == null) return;
         Logger.LogInformation("({coords}) OnTouchTap", args.Payload.Coordinates);
 
-        await _commandHandler.TouchTap(_settings.CommandItems[StreamDeckAction.TouchTap], IsActive);
+        await _commandItemHandler.TouchTap(_settings.CommandItems[StreamDeckAction.TouchTap], IsActive);
     }
 
     /// <summary>
@@ -236,14 +236,14 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     private async Task<Settings> ConvertSettings(SettingsDto dto, StreamDeckKeyInfo sdKeyInfo)
     {
         var settings = _settingsConverter.SettingsToModel(dto, sdKeyInfo);
+        var settingsModified = _settingsConverter.SettingsModified;
 
         if (settings.KeySize == Settings.NewActionKeySize)
         {
             // This is a completely new action, so we need to set the key size.
             settings.KeySize = sdKeyInfo.KeySize;
             // and persist these modified settings.
-            var settingsDto = _settingsConverter.SettingsToDto(settings);
-            await SetSettingsAsync(settingsDto);
+            settingsModified = true;
         }
         else if (settings.KeySize != sdKeyInfo.KeySize)
         {
@@ -251,6 +251,12 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
             // TODO Scale, update KeyInfo and save config with SetSettings()
             Logger.LogWarning("({coords}) Key size changed from {old} to {new}", _coordinates, settings.KeySize,
                 sdKeyInfo.KeySize);
+        }
+
+        if (settingsModified)
+        {
+            var settingsDto = _settingsConverter.SettingsToDto(settings);
+            await SetSettingsAsync(settingsDto);
         }
 
         return settings;

@@ -18,8 +18,14 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+    /// <summary>
+    /// Have the settings been modified during the conversion from DTO to model?
+    /// </summary>
+    public bool SettingsModified { get; private set; }
+
     public Settings SettingsToModel(SettingsDto dto, StreamDeckKeyInfo keyInfo)
     {
+        SettingsModified = false;
         try
         {
             dto.DeserializeItemsFromStrings();
@@ -92,7 +98,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
             },
             DisplayItemValueDto valueDto => new DisplayItemValue
             {
-                NCalcPropertyHolder = ExpressionStringToModel(valueDto.Property),
+                NCalcPropertyHolder = ExpressionToNCalcHolder(valueDto.Property, valueDto.PropertyShakeItDictionary),
                 DisplayFormat = valueDto.DisplayFormat,
                 Font = FontToModel(valueDto.FontName, valueDto.FontSize, valueDto.FontStyle),
                 Color = Color.TryParseHex(valueDto.Color, out var color) ? color : Color.White
@@ -104,7 +110,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
         {
             displayItem.Name = dto.Name;
             displayItem.DisplayParameters = DisplayParametersToModel(dto.DisplayParameters);
-            displayItem.NCalcConditionHolder = ExpressionStringToModel(dto.ConditionsString);
+            displayItem.NCalcConditionHolder = ExpressionToNCalcHolder(dto.ConditionsString, dto.ConditionsShakeItDictionary);
             return displayItem;
         }
 
@@ -121,6 +127,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
                 Name = model.Name,
                 DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
                 ConditionsString = model.NCalcConditionHolder.ExpressionString,
+                ConditionsShakeItDictionary = model.NCalcConditionHolder.ShakeItDictionary,
                 RelativePath = image.RelativePath,
             },
             DisplayItemText text => new DisplayItemTextDto
@@ -128,6 +135,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
                 Name = model.Name,
                 DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
                 ConditionsString = model.NCalcConditionHolder.ExpressionString,
+                ConditionsShakeItDictionary = model.NCalcConditionHolder.ShakeItDictionary,
                 Text = text.Text,
                 FontName = text.Font.Family.Name,
                 FontStyle = FontStyleToDto(text.Font),
@@ -139,7 +147,9 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
                 Name = model.Name,
                 DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
                 ConditionsString = model.NCalcConditionHolder.ExpressionString,
+                ConditionsShakeItDictionary = model.NCalcConditionHolder.ShakeItDictionary,
                 Property = value.NCalcPropertyHolder.ExpressionString,
+                PropertyShakeItDictionary = value.NCalcPropertyHolder.ShakeItDictionary,
                 DisplayFormat = value.DisplayFormat,
                 FontName = value.Font.Family.Name,
                 FontStyle = FontStyleToDto(value.Font),
@@ -240,7 +250,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
         if (commandItem != null)
         {
             commandItem.Name = dto.Name;
-            commandItem.NCalcConditionHolder = ExpressionStringToModel(dto.ConditionsString);
+            commandItem.NCalcConditionHolder = ExpressionToNCalcHolder(dto.ConditionsString, dto.ConditionsShakeItDictionary);
             return commandItem;
         }
 
@@ -256,6 +266,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
             {
                 Name = model.Name,
                 ConditionsString = model.NCalcConditionHolder.ExpressionString,
+                ConditionsShakeItDictionary = model.NCalcConditionHolder.ShakeItDictionary,
                 Key = keypress.Key,
                 ModifierCtrl = keypress.ModifierCtrl,
                 ModifierAlt = keypress.ModifierAlt,
@@ -266,6 +277,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
             {
                 Name = model.Name,
                 ConditionsString = model.NCalcConditionHolder.ExpressionString,
+                ConditionsShakeItDictionary = model.NCalcConditionHolder.ShakeItDictionary,
                 Control = control.Control,
                 LongEnabled = control.LongEnabled
             },
@@ -273,6 +285,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
             {
                 Name = model.Name,
                 ConditionsString = model.NCalcConditionHolder.ExpressionString,
+                ConditionsShakeItDictionary = model.NCalcConditionHolder.ShakeItDictionary,
                 Role = role.Role,
                 LongEnabled = role.LongEnabled
             },
@@ -290,15 +303,28 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
 
     #endregion
 
-    private NCalcHolder ExpressionStringToModel(string expressionString)
+    private NCalcHolder ExpressionToNCalcHolder(string expressionString, Dictionary<string, string> shakeItDictionary)
     {
         try
         {
             var usedProperties = ncalcHandler.Parse(expressionString, out var ncalcExpression);
+
+            // We remove unused ShakeIt properties from the dictionary here when loading.
+            var oldCount = shakeItDictionary.Count;
+            shakeItDictionary = shakeItDictionary
+                .Where(kvp => usedProperties.Contains(kvp.Value))
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            var newCount = shakeItDictionary.Count;
+            if (oldCount != newCount)
+            {
+                SettingsModified = true;
+            }
+
             return new NCalcHolder {
                 ExpressionString = expressionString,
-                NCalcExpression = ncalcExpression,
-                UsedProperties = usedProperties
+                UsedProperties = usedProperties,
+                ShakeItDictionary = shakeItDictionary,
+                NCalcExpression = ncalcExpression
             };
         }
         catch (Exception e)

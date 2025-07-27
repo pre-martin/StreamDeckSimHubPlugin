@@ -17,7 +17,7 @@ public class SettingsChangedTests
     {
         var settings = new Settings { KeySize = StreamDeckKeyInfoBuilder.DefaultKeyInfo.KeySize };
         PropertyChangedEventArgs? lastArgs = null;
-        settings.SettingsChanged += (sender, args) => lastArgs = args;
+        settings.SettingsChanged += (_, args) => lastArgs = args;
 
         // Add new DisplayItem
         settings.DisplayItems.Add(DisplayItemText.Create());
@@ -33,10 +33,10 @@ public class SettingsChangedTests
         settings.DisplayItems.Add(DisplayItemText.Create());
 
         PropertyChangedEventArgs? lastArgs = null;
-        settings.SettingsChanged += (sender, args) => lastArgs = args;
+        settings.SettingsChanged += (_, args) => lastArgs = args;
 
         // Add a condition just as the viewmodel would do (see ItemViewModel.cs#OnConditionStringChanged)
-        _ncalcHandler.UpdateNCalcHolder("1 > 0", settings.DisplayItems[0].NCalcConditionHolder);
+        _ncalcHandler.UpdateNCalcHolder("1 > 0", [], settings.DisplayItems[0].NCalcConditionHolder);
         Assert.That(lastArgs, Is.Not.Null);
     }
 
@@ -48,10 +48,10 @@ public class SettingsChangedTests
         settings.DisplayItems.Add(DisplayItemValue.Create());
 
         PropertyChangedEventArgs? lastArgs = null;
-        settings.SettingsChanged += (sender, args) => lastArgs = args;
+        settings.SettingsChanged += (_, args) => lastArgs = args;
 
         // Add a condition just as the viewmodel would do (see DisplayItemValeViewModel.cs#OnPropertyStringChanged)
-        _ncalcHandler.UpdateNCalcHolder("1", ((DisplayItemValue)settings.DisplayItems[0]).NCalcPropertyHolder);
+        _ncalcHandler.UpdateNCalcHolder("1", [], ((DisplayItemValue)settings.DisplayItems[0]).NCalcPropertyHolder);
         Assert.That(lastArgs, Is.Not.Null);
     }
 }

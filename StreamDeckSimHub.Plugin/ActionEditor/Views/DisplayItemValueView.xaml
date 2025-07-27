@@ -10,10 +10,6 @@
              d:DataContext="{d:DesignInstance Type=viewModels:DisplayItemValueViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="600" d:DesignWidth="550">
 
-    <UserControl.Resources>
-        <converters:InverseVisibilityConverter x:Key="InverseVisibilityConverter" />
-    </UserControl.Resources>
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -26,20 +22,8 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Label Grid.Row="0" Grid.Column="0" Margin="0,10,0,0">Expression:</Label>
-        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Vertical" Margin="0,10,0,0">
-            <TextBox Text="{Binding PropertyString, UpdateSourceTrigger=PropertyChanged}"
-                     AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" MinHeight="64" MaxHeight="200"
-                     ToolTip="Please enter a valid NCalc expression, that returns a value" />
-
-            <TextBlock FontWeight="DemiBold" Text="{Binding PropertyErrorMessage}" Foreground="Red"
-                       Visibility="{Binding PropertyErrorVisibility}" />
-            <TextBlock FontWeight="Light" TextWrapping="Wrap"
-                       Visibility="{Binding PropertyErrorVisibility, Converter={StaticResource InverseVisibilityConverter}}">
-                Property names have to be enclosed in square brackets, e.g.<LineBreak />
-                round( [DataCorePlugin.GameData.Fuel], 1)
-            </TextBlock>
-        </StackPanel>
+        <controls:ExpressionControl Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,10,0,0"
+                                    DataContext="{Binding ExpressionControlPropertyViewModel}" />
 
         <Label Grid.Row="1" Grid.Column="0" Margin="0,10,0,0">Display Format:</Label>
         <TextBox Grid.Row="1" Grid.Column="1" Margin="0,10,0,0"

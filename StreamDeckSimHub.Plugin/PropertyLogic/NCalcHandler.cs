@@ -42,7 +42,7 @@ public class NCalcHandler
     /// Updates a NCalcHolder with the expression. If the expression is valid, the NCalcExpression and UsedProperties are updated too.
     /// </summary>
     /// <returns><c>null</c> if the expression could be parsed successfully, otherwise an error message.</returns>
-    public string? UpdateNCalcHolder(string expression, NCalcHolder ncalcHolder)
+    public string? UpdateNCalcHolder(string expression, Dictionary<string, string> shakeItDictionary, NCalcHolder ncalcHolder)
     {
         string? errorMessage = null;
 
@@ -55,6 +55,7 @@ public class NCalcHandler
             // Update NCalcExpression and UsedProperties only if parsing was successful ...
             ncalcHolder.NCalcExpression = ncalcExpression;
             ncalcHolder.UsedProperties = usedProperties;
+            ncalcHolder.ShakeItDictionary = shakeItDictionary;
         }
         catch (Exception e)
         {

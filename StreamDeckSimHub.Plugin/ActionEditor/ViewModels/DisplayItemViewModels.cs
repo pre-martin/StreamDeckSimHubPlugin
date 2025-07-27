@@ -4,13 +4,14 @@
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
-using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SixLabors.Fonts;
+using StreamDeckSimHub.Plugin.ActionEditor.Dialogs;
 using StreamDeckSimHub.Plugin.ActionEditor.Tools;
+using StreamDeckSimHub.Plugin.ActionEditor.Views.Controls;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.Tools;
@@ -23,8 +24,8 @@ namespace StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 /// <summary>
 /// Base ViewModel for all DisplayItems
 /// </summary>
-public abstract partial class DisplayItemViewModel(DisplayItem model, Window parentWindow)
-    : ItemViewModel(model, parentWindow), IDataErrorInfo
+public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel parentViewModel)
+    : ItemViewModel(model, parentViewModel), IDataErrorInfo
 {
     [ObservableProperty] private float _transparency = model.DisplayParameters.Transparency;
 
@@ -118,10 +119,10 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, Window par
 /// <summary>
 /// ViewModel for DisplayItemImage
 /// </summary>
-public partial class DisplayItemImageViewModel(DisplayItemImage model, ImageManager imageManager, Window parentWindow)
-    : DisplayItemViewModel(model, parentWindow)
+public partial class DisplayItemImageViewModel(DisplayItemImage model, ImageManager imageManager, IViewModel parentViewModel)
+    : DisplayItemViewModel(model, parentViewModel)
 {
-    public override ImageSource? Icon => ParentWindow.FindResource("DiInsertPhotoOutlinedGray") as ImageSource;
+    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource("DiInsertPhotoOutlinedGray") as ImageSource;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayName))] // see DisplayItemImage.DisplayName which uses RelativePath
@@ -143,7 +144,7 @@ public partial class DisplayItemImageViewModel(DisplayItemImage model, ImageMana
     [RelayCommand]
     private void SelectImage()
     {
-        var imageSelector = new ImageSelector(imageManager, RelativePath, ParentWindow);
+        var imageSelector = new ImageSelector(imageManager, RelativePath, ParentViewModel.ParentWindow);
         if (imageSelector.ShowDialog() == true)
         {
             RelativePath = imageSelector.RelativePath;
@@ -154,10 +155,10 @@ public partial class DisplayItemImageViewModel(DisplayItemImage model, ImageMana
 /// <summary>
 /// ViewModel for DisplayItemText
 /// </summary>
-public partial class DisplayItemTextViewModel(DisplayItemText model, Window parentWindow)
-    : DisplayItemViewModel(model, parentWindow), IFontSelectable, IColorSelectable
+public partial class DisplayItemTextViewModel(DisplayItemText model, IViewModel parentViewModel)
+    : DisplayItemViewModel(model, parentViewModel), IFontSelectable, IColorSelectable
 {
-    public override ImageSource? Icon => ParentWindow.FindResource("DiTextFieldsGray") as ImageSource;
+    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource("DiTextFieldsGray") as ImageSource;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayName))] // see DisplayItemText.DisplayName which uses Text
@@ -202,39 +203,24 @@ public partial class DisplayItemValueViewModel : DisplayItemViewModel, IFontSele
     private readonly NCalcHandler _ncalcHandler = new();
     private readonly DisplayItemValue _model;
 
-    public DisplayItemValueViewModel(DisplayItemValue model, Window parentWindow) : base(model, parentWindow)
+    public DisplayItemValueViewModel(DisplayItemValue model, IViewModel parentViewModel) : base(model, parentViewModel)
     {
         _model = model;
-        _propertyString = model.NCalcPropertyHolder.ExpressionString;
+        _expressionControlPropertyViewModel = new ExpressionControlViewModel(model.NCalcPropertyHolder)
+        {
+            ExpressionLabel = "Expression:",
+            ExpressionToolTip = "Please enter a valid NCalc expression, that returns a value",
+            Example="round( [DataCorePlugin.GameData.Fuel], 1)",
+            FetchShakeItProfilesCallback = FetchShakeItProfilesCallback
+        };
         _displayFormat = model.DisplayFormat;
         _font = model.Font;
         _imageSharpColor = model.Color;
-
-        // Populate the error message if the condition string is invalid, so that we have it right when the view is displayed.
-        try
-        {
-            _ncalcHandler.Parse(_propertyString, out _);
-        }
-        catch (Exception e)
-        {
-            PropertyErrorMessage = _ncalcHandler.BuildNCalcErrorMessage(e);
-        }
     }
 
-    public override ImageSource? Icon => ParentWindow.FindResource("DiAttachMoneyGray") as ImageSource;
+    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource("DiAttachMoneyGray") as ImageSource;
 
-    [ObservableProperty] private string _propertyString;
-
-    partial void OnPropertyStringChanged(string value)
-    {
-        PropertyErrorMessage = _ncalcHandler.UpdateNCalcHolder(value, _model.NCalcPropertyHolder);
-    }
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(PropertyErrorVisibility))]
-    private string? _propertyErrorMessage;
-
-    public Visibility PropertyErrorVisibility => PropertyErrorMessage is not null ? Visibility.Visible : Visibility.Collapsed;
+    [ObservableProperty] private ExpressionControlViewModel _expressionControlPropertyViewModel;
 
     [ObservableProperty] private string _displayFormat;
 

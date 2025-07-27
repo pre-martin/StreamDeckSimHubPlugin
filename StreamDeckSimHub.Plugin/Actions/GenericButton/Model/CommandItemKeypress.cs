@@ -49,8 +49,8 @@ public partial class CommandItemKeypress : CommandItem, ICommandItemLong
         base.OnPropertyChanged(e);
     }
 
-    public override async Task Accept(ICommandVisitor visitor, StreamDeckAction action, IVisitorArgs? args = null)
+    public override async Task Accept(ICommandItemVisitor commandItemVisitor, StreamDeckAction action, IVisitorArgs? args = null)
     {
-        await visitor.Visit(this, action, args);
+        await commandItemVisitor.Visit(this, action, args);
     }
 }

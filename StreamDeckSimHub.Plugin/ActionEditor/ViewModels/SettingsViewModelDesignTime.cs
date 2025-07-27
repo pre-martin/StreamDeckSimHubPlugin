@@ -8,7 +8,7 @@ using Size = SixLabors.ImageSharp.Size;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 
-public class SettingsViewModelDesignTime() : SettingsViewModel(Settings, null!, null!, null!)
+public class SettingsViewModelDesignTime() : SettingsViewModel(Settings, null!, null!, null!, null!)
 {
     private static readonly Settings Settings = new()
     {

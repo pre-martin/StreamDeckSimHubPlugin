@@ -22,13 +22,6 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <!--
-        <TabControl VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Padding="5,10" Height="Auto">
-            <TabItem Header="Element" />
-            <TabItem Header="Modifiers" />
-        </TabControl>
-    -->
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" /> <!-- Name -->
@@ -54,6 +47,7 @@
             </d:ContentControl.Content>
         </ContentControl>
 
-        <controls:ConditionsControl Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,20,0,0" />
+        <controls:ExpressionControl Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,20,0,0"
+                                    DataContext="{Binding ExpressionControlConditionViewModel}" />
     </Grid>
 </UserControl>

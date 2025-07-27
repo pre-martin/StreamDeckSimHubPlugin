@@ -9,7 +9,7 @@ using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.PluginTests.Actions.GenericButton;
 
-public class CommandHandlerTests
+public class CommandItemHandlerTests
 {
     private readonly TimeSpan _timeSpanShorter = TimeSpan.FromMilliseconds(50);
     private readonly TimeSpan _timeSpanLonger = TimeSpan.FromMilliseconds(1000);
@@ -17,14 +17,14 @@ public class CommandHandlerTests
     private readonly Hotkey _keyL = KeyboardUtils.CreateHotkey(false, false, false, "L")!;
     private Mock<ISimHubConnection> _simHubConnectionMock;
     private Mock<IKeyboardUtils> _keyboardUtilsMock;
-    private CommandHandler _commandHandler;
+    private CommandItemHandler _commandItemHandler;
 
     [SetUp]
     public void Setup()
     {
         _simHubConnectionMock = new Mock<ISimHubConnection>();
         _keyboardUtilsMock = new Mock<IKeyboardUtils>();
-        _commandHandler = new CommandHandler(_simHubConnectionMock.Object, _keyboardUtilsMock.Object);
+        _commandItemHandler = new CommandItemHandler(_simHubConnectionMock.Object, _keyboardUtilsMock.Object);
     }
 
     [Test]
@@ -32,9 +32,9 @@ public class CommandHandlerTests
     {
         var settings = CreateSettings();
 
-        await _commandHandler.KeyDown(settings.CommandItems[StreamDeckAction.KeyDown], _ => true);
+        await _commandItemHandler.KeyDown(settings.CommandItems[StreamDeckAction.KeyDown], _ => true);
         await Task.Delay(_timeSpanShorter);
-        await _commandHandler.KeyUp();
+        await _commandItemHandler.KeyUp();
 
         _keyboardUtilsMock.Verify(x => x.KeyDown(_keyS), Times.Once);
         _simHubConnectionMock.Verify(x => x.SendTriggerInputPressed("S"), Times.Once);
@@ -49,9 +49,9 @@ public class CommandHandlerTests
     {
         var settings = CreateSettings();
 
-        await _commandHandler.KeyDown(settings.CommandItems[StreamDeckAction.KeyDown], _ => true);
+        await _commandItemHandler.KeyDown(settings.CommandItems[StreamDeckAction.KeyDown], _ => true);
         await Task.Delay(_timeSpanLonger);
-        await _commandHandler.KeyUp();
+        await _commandItemHandler.KeyUp();
 
         _keyboardUtilsMock.Verify(x => x.KeyDown(_keyS), Times.Never);
         _simHubConnectionMock.Verify(x => x.SendTriggerInputPressed("S"), Times.Never);
