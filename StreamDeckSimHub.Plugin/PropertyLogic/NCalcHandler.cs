@@ -72,7 +72,7 @@ public class NCalcHandler
     /// Constructs an error message from the NCalc exception. If the <c>InnerException</c> is set (which is usually the case),
     /// a second line with the inner exception message is added.
     /// </summary>
-    public string BuildNCalcErrorMessage(Exception e)
+    private string BuildNCalcErrorMessage(Exception e)
     {
         var msg = e.Message;
         if (e.InnerException != null)
@@ -122,7 +122,7 @@ public class NCalcHandler
         }
         catch (Exception e)
         {
-            _logger.Warn($"{loggingContext} Error evaluating expression: {e.Message}");
+            _logger.Warn($"{loggingContext}: Error evaluating expression: {e.Message}");
             return null;
         }
     }
@@ -145,6 +145,24 @@ public class NCalcHandler
 
     private Expression CreateExpression(string expression)
     {
-        return new Expression(expression, ExpressionOptions.IgnoreCaseAtBuiltInFunctions | ExpressionOptions.AllowNullParameter);
+        var ncalcExpression = new Expression(
+            expression,
+            ExpressionOptions.IgnoreCaseAtBuiltInFunctions | ExpressionOptions.AllowNullParameter)
+        {
+            Functions =
+            {
+                ["str"] = args =>
+                {
+                    if (args.Count() != 1)
+                    {
+                        throw new NCalcParserException("The 'str' function requires exactly one argument.");
+                    }
+
+                    return args[0].Evaluate()?.ToString() ?? string.Empty;
+                }
+            }
+        };
+
+        return ncalcExpression;
     }
 }

@@ -70,6 +70,23 @@ public class NCalcHandlerTests
     }
 
     [Test]
+    [Ignore("We also have to Evaluate the expression, not just parse it.")]
+    public void Parse_InvalidStrFunction_ThrowsException()
+    {
+        Expression? ncalcExpression = null;
+        try
+        {
+            _handler.Parse("str()", out ncalcExpression);
+            Assert.Fail("Expected NCalcParserException was not thrown.");
+        }
+        catch (NCalcParserException)
+        {
+            // The "out" variable must not have been set in case of an exception
+            Assert.That(ncalcExpression, Is.Null);
+        }
+    }
+
+    [Test]
     public void UpdateNCalcHolder_InvalidExpression()
     {
         var ncalcHolder = new NCalcHolder { UsedProperties = ["testProperty"] };
@@ -82,5 +99,16 @@ public class NCalcHandlerTests
         Assert.That(ncalcHolder.NCalcExpression, Is.Null);
         Assert.That(ncalcHolder.UsedProperties, Has.Count.EqualTo(1));
         Assert.That(ncalcHolder.UsedProperties, Is.EquivalentTo(new[] { "testProperty" }));
+    }
+
+    [Test]
+    public void Evaluate_StrFunction()
+    {
+        var ncalcHolder = new NCalcHolder();
+        var errorMsg = _handler.UpdateNCalcHolder("str(123) + 'x'", [], ncalcHolder);
+        Assert.That(errorMsg, Is.Null);
+
+        var result = _handler.EvaluateExpression(ncalcHolder, name => 1, "TestContext");
+        Assert.That(result, Is.EqualTo("123x"));
     }
 }
