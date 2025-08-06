@@ -33,9 +33,24 @@ public class NCalcHandler
 
         var localNcalcExpression = CreateExpression(expression);
         var parameters = localNcalcExpression.GetParameterNames().Where(p => p != "null");
+        var usedParameters = new HashSet<string>(parameters, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var parameter in usedParameters)
+        {
+            localNcalcExpression.Parameters[parameter] = 1;
+        }
+
+        try
+        {
+            localNcalcExpression.Evaluate();
+        }
+        finally
+        {
+            localNcalcExpression.Parameters.Clear();
+        }
 
         ncalcExpression = localNcalcExpression;
-        return new HashSet<string>(parameters, StringComparer.OrdinalIgnoreCase);
+        return usedParameters;
     }
 
     /// <summary>
@@ -155,7 +170,8 @@ public class NCalcHandler
                 {
                     if (args.Count() != 1)
                     {
-                        throw new NCalcParserException("The 'str' function requires exactly one argument.");
+                        throw new NCalcParserException("Error parsing the expression.",
+                            new NCalcParserException("The 'str' function requires exactly one argument."));
                     }
 
                     return args[0].Evaluate()?.ToString() ?? string.Empty;

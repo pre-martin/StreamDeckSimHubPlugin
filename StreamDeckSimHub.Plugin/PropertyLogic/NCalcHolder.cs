@@ -14,7 +14,7 @@ public partial class NCalcHolder : ObservableObject
 {
     [ObservableProperty] private string _expressionString = string.Empty;
 
-    public HashSet<string> UsedProperties { get; set; } = [];
+    public HashSet<string> UsedProperties { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     public Dictionary<string, string> ShakeItDictionary { get; set; } = new();
 

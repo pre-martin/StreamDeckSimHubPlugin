@@ -70,7 +70,6 @@ public class NCalcHandlerTests
     }
 
     [Test]
-    [Ignore("We also have to Evaluate the expression, not just parse it.")]
     public void Parse_InvalidStrFunction_ThrowsException()
     {
         Expression? ncalcExpression = null;
@@ -79,10 +78,13 @@ public class NCalcHandlerTests
             _handler.Parse("str()", out ncalcExpression);
             Assert.Fail("Expected NCalcParserException was not thrown.");
         }
-        catch (NCalcParserException)
+        catch (NCalcParserException ex)
         {
             // The "out" variable must not have been set in case of an exception
             Assert.That(ncalcExpression, Is.Null);
+            Assert.That(ex.Message, Does.Contain("parsing the expression"));
+            Assert.That(ex.InnerException, Is.Not.Null);
+            Assert.That(ex.InnerException.Message, Does.Contain("one argument"));
         }
     }
 
