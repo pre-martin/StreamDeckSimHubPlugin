@@ -6,7 +6,7 @@
              xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewModels:IFontSelectable, IsDesignTimeCreatable=False}"
-             d:DesignHeight="50" d:DesignWidth="550">
+             d:DesignHeight="50" d:DesignWidth="750">
 
     <Grid>
         <Grid.ColumnDefinitions>

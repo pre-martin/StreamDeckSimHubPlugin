@@ -6,7 +6,7 @@
              xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewModels:DisplayItemViewModel}"
-             d:DesignHeight="300" d:DesignWidth="550">
+             d:DesignHeight="300" d:DesignWidth="750">
 
     <Grid>
         <Grid.RowDefinitions>

@@ -7,7 +7,7 @@
              xmlns:controls="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Views.Controls"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewModels:CommandItemSimHubRoleViewModel, IsDesignTimeCreatable=False}"
-             d:DesignHeight="600" d:DesignWidth="550">
+             d:DesignHeight="600" d:DesignWidth="750">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -33,7 +33,8 @@
                       ItemsSource="{Binding AvailableRoles}"
                       SelectedItem="{Binding Role}" />
             <Button Grid.Column="1" Command="{Binding ReloadRolesCommand}"
-                    Margin="5,0,0,0">
+                    Margin="5,0,0,0"
+                    ToolTip="Reload SimHub roles">
                 <Image Source="{Binding ReloadRolesIcon}" />
             </Button>
         </Grid>

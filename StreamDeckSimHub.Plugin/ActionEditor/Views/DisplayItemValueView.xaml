@@ -8,7 +8,7 @@
              xmlns:converters="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Converters"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewModels:DisplayItemValueViewModel, IsDesignTimeCreatable=False}"
-             d:DesignHeight="600" d:DesignWidth="550">
+             d:DesignHeight="600" d:DesignWidth="750">
 
     <Grid>
         <Grid.RowDefinitions>

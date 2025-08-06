@@ -7,7 +7,7 @@
              xmlns:controls="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Views.Controls"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=controls:ExpressionControlViewModel, IsDesignTimeCreatable=False}"
-             d:DesignHeight="150" d:DesignWidth="550">
+             d:DesignHeight="150" d:DesignWidth="750">
 
     <UserControl.Resources>
         <converters:NullToCollapsedConverter x:Key="NullToCollapsedConverter" />
