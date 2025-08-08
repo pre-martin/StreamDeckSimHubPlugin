@@ -2,7 +2,6 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using StreamDeckSimHub.Plugin.ActionEditor.Tools;
-using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 

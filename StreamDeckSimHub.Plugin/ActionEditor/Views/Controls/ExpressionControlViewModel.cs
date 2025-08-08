@@ -1,13 +1,16 @@
 ﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
-using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.SimHub.ShakeIt;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor.Views.Controls;
 
+/// <summary>
+/// ViewModel that is wrapping an instance of NCalcHolder. It adds a layer of abstraction for the expression string
+/// (so that we can show ShakeIt properties more user-friendly), and it adds displaying the validation results.
+/// </summary>
 public partial class ExpressionControlViewModel : ObservableObject
 {
     private readonly NCalcHandler _ncalcHandler = new();
@@ -15,41 +18,36 @@ public partial class ExpressionControlViewModel : ObservableObject
     public required string ExpressionLabel { get; init; }
 
     [ObservableProperty] private NCalcHolder _nCalcHolder;
+    [ObservableProperty] private string _expressionStringDisplay = string.Empty;
     public required string ExpressionToolTip { get; init; }
     public required string Example { get; init; }
     public required Func<string, Task<IList<Profile>>> FetchShakeItProfilesCallback { get; init; }
 
     [ObservableProperty] private string? _expressionErrorMessage;
 
-    [ObservableProperty] private int _caretIndex;
-
     public ExpressionControlViewModel(NCalcHolder nCalcHolder)
     {
         NCalcHolder = nCalcHolder;
-        OnExpressionStringChanged(NCalcHolder.ExpressionString); // pre-populate error message
-        NCalcHolder.PropertyChanged += NCalcHolderOnPropertyChanged;
+        ExpressionStringDisplay = NCalcHolder.ExpressionString; // this also pre-populates the error message
     }
 
-    private void NCalcHolderOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    partial void OnExpressionStringDisplayChanged(string value)
     {
-        if (e.PropertyName == nameof(NCalcHolder.ExpressionString))
-        {
-            OnExpressionStringChanged(NCalcHolder.ExpressionString);
-        }
+        NCalcHolder.ExpressionString = value;
+        ExpressionErrorMessage = _ncalcHandler.UpdateNCalcHolder(value, NCalcHolder);
+        _ncalcHandler.CleanupShakeItDictionary(NCalcHolder);
     }
 
-    private void OnExpressionStringChanged(string value)
+    public int InsertShakeIt(string type, int caretIndex, EffectsContainerBase selectedEffect)
     {
-        ExpressionErrorMessage = _ncalcHandler.UpdateNCalcHolder(value, NCalcHolder.ShakeItDictionary, NCalcHolder);
-    }
+        var prefix = type == "Bass" ? "sib" : "sim";
+        NCalcHolder.ShakeItDictionary[$"{prefix}.{selectedEffect.Id}"] = selectedEffect.Name;
 
-    public int InsertShakeIt(string type, int caretIndex, EffectsContainerBase selectedProfile)
-    {
-        var prefix = type == "Bass" ? "sib." : "sim.";
-        NCalcHolder.ShakeItDictionary[prefix + selectedProfile.Id] = selectedProfile.Name;
-        var textToInsert = $"[{prefix}{selectedProfile.Id}.Gain]";
-        // Order is important: Update ExpressionString last, because this will trigger the PropertyChanged event
-        NCalcHolder.ExpressionString = NCalcHolder.ExpressionString.Insert(caretIndex, textToInsert);
+        var textToInsert = $"[{prefix}.{selectedEffect.Id}.Gain]";
+
+        // Order is important: Update ExpressionString (via ExpressionStringDisplay) last, because this will trigger the
+        // PropertyChanged event of NCalcHolder
+        ExpressionStringDisplay = NCalcHolder.ExpressionString.Insert(caretIndex, textToInsert);
         return textToInsert.Length;
     }
 }

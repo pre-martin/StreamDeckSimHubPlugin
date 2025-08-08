@@ -28,9 +28,24 @@
                d:Content="ExpressionLabel:" />
         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Vertical">
             <TextBox x:Name="ExpressionTextBox"
-                     Text="{Binding NCalcHolder.ExpressionString, UpdateSourceTrigger=PropertyChanged}"
+                     Text="{Binding ExpressionStringDisplay, UpdateSourceTrigger=PropertyChanged}"
                      AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" MinHeight="64" MaxHeight="200"
                      ToolTip="{Binding ExpressionToolTip}" />
+            <!--
+            <StackPanel Orientation="Vertical">
+                <ItemsControl ItemsSource="{Binding NCalcHolder.ShakeItDictionary}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Key}" />
+                                <TextBlock Margin="5,0,0,0">=</TextBlock>
+                                <TextBlock Margin="5,0,0,0" Text="{Binding Value}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+            -->
             <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                 <Button Content="ShakeIt Bass Browser" Width="140" Click="ShakeItBrowser_OnClick" CommandParameter="Bass" />
                 <Button Content="ShakeIt Motors Browser" Width="140" Click="ShakeItBrowser_OnClick" CommandParameter="Motors"

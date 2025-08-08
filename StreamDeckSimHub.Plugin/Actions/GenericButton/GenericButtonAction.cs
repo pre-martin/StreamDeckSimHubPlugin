@@ -235,6 +235,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
 
     private async Task<Settings> ConvertSettings(SettingsDto dto, StreamDeckKeyInfo sdKeyInfo)
     {
+        Logger.LogInformation("({coords}) Loading settings model", _coordinates);
         var settings = _settingsConverter.SettingsToModel(dto, sdKeyInfo);
         var settingsModified = _settingsConverter.SettingsModified;
 

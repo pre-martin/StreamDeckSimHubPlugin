@@ -57,7 +57,7 @@ public class NCalcHandler
     /// Updates a NCalcHolder with the expression. If the expression is valid, the NCalcExpression and UsedProperties are updated too.
     /// </summary>
     /// <returns><c>null</c> if the expression could be parsed successfully, otherwise an error message.</returns>
-    public string? UpdateNCalcHolder(string expression, Dictionary<string, string> shakeItDictionary, NCalcHolder ncalcHolder)
+    public string? UpdateNCalcHolder(string expression, NCalcHolder ncalcHolder)
     {
         string? errorMessage = null;
 
@@ -70,7 +70,6 @@ public class NCalcHandler
             // Update NCalcExpression and UsedProperties only if parsing was successful ...
             ncalcHolder.NCalcExpression = ncalcExpression;
             ncalcHolder.UsedProperties = usedProperties;
-            ncalcHolder.ShakeItDictionary = shakeItDictionary;
         }
         catch (Exception e)
         {
@@ -158,9 +157,13 @@ public class NCalcHandler
         return value is true or > 0 or > 0.0f or > 0.0d;
     }
 
+    /// <summary>
+    /// Centrally creates a NCalc expression from the given string.
+    /// </summary>
+    /// <remarks>Does not validate the expression and thus does not throw exceptions.</remarks>
     private Expression CreateExpression(string expression)
     {
-        var ncalcExpression = new Expression(
+        var nCalcExpression = new Expression(
             expression,
             ExpressionOptions.IgnoreCaseAtBuiltInFunctions | ExpressionOptions.AllowNullParameter)
         {
@@ -179,6 +182,31 @@ public class NCalcHandler
             }
         };
 
-        return ncalcExpression;
+        return nCalcExpression;
+    }
+
+    /// <summary>
+    /// Uses the list UsedProperties of the NCalcHolder to remove entries from the ShakeItDictionary that are not used anymore.
+    /// </summary>
+    /// <returns><c>true</c> if the ShakeItDictionary was modified, <c>false</c> otherwise</returns>
+    public bool CleanupShakeItDictionary(NCalcHolder nCalcHolder)
+    {
+        var oldCount = nCalcHolder.ShakeItDictionary.Count;
+
+        nCalcHolder.ShakeItDictionary = nCalcHolder.ShakeItDictionary
+            .Where(kvp =>
+            {
+                var parts = kvp.Key.Split('.');
+                if (parts.Length < 2) return false; // Invalid entry. Should not happen.
+
+                var prefix = parts[0]; // sib or sim
+                var guid = parts[1];   // the guid part
+
+                return nCalcHolder.UsedProperties.Any(usedProp =>
+                    usedProp.StartsWith($"{prefix}.{guid}.", StringComparison.OrdinalIgnoreCase));
+            })
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+        return oldCount != nCalcHolder.ShakeItDictionary.Count;
     }
 }

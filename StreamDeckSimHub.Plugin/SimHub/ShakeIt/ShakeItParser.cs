@@ -73,6 +73,7 @@ public class ShakeItParser
                 if (depth == 1)
                 {
                     Profiles[^1].EffectsContainers.Add(element);
+                    element.Parent = Profiles[^1];
                     _effectsStack.Push((depth, element));
                 }
                 else
@@ -85,6 +86,7 @@ public class ShakeItParser
                     }
 
                     parent.EffectsContainers.Add(element);
+                    element.Parent = parent;
                     _effectsStack.Push((depth, element));
                 }
 

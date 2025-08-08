@@ -25,9 +25,9 @@ public partial class ExpressionControl : UserControl
             var shakeItBrowser = new ShakeItBrowser(profiles) { Owner = Window.GetWindow(this) };
             if (shakeItBrowser.ShowDialog() == true && shakeItBrowser.SelectedItem != null)
             {
-                var selectedProfile = shakeItBrowser.SelectedItem;
+                var selectedEffect = shakeItBrowser.SelectedItem;
                 var caretIndex = ExpressionTextBox.CaretIndex;
-                var insertedLength = viewModel.InsertShakeIt(type, caretIndex, selectedProfile);
+                var insertedLength = viewModel.InsertShakeIt(type, caretIndex, selectedEffect);
                 ExpressionTextBox.Focus();
                 ExpressionTextBox.CaretIndex = caretIndex + insertedLength;
             }

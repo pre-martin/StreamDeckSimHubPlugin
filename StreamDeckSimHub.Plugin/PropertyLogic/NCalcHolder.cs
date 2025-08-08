@@ -16,6 +16,9 @@ public partial class NCalcHolder : ObservableObject
 
     public HashSet<string> UsedProperties { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>
+    /// From <c>sib.guid | sim.guid</c> to <c>name</c>.
+    /// </summary>
     public Dictionary<string, string> ShakeItDictionary { get; set; } = new();
 
     public Expression? NCalcExpression { get; set; }

@@ -93,7 +93,7 @@ public class NCalcHandlerTests
     {
         var ncalcHolder = new NCalcHolder { UsedProperties = ["testProperty"] };
 
-        var errorMessage = _handler.UpdateNCalcHolder("invalid expression", [], ncalcHolder);
+        var errorMessage = _handler.UpdateNCalcHolder("invalid expression", ncalcHolder);
 
         // We want an error message, an updated expressions string, but no changes to NCalcExpression or UsedProperties.
         Assert.That(errorMessage, Is.Not.Null);
@@ -107,10 +107,27 @@ public class NCalcHandlerTests
     public void Evaluate_StrFunction()
     {
         var ncalcHolder = new NCalcHolder();
-        var errorMsg = _handler.UpdateNCalcHolder("str(123) + 'x'", [], ncalcHolder);
+        var errorMsg = _handler.UpdateNCalcHolder("str(123) + 'x'", ncalcHolder);
         Assert.That(errorMsg, Is.Null);
 
-        var result = _handler.EvaluateExpression(ncalcHolder, name => 1, "TestContext");
+        var result = _handler.EvaluateExpression(ncalcHolder, _ => 1, "TestContext");
         Assert.That(result, Is.EqualTo("123x"));
+    }
+
+    [Test]
+    public void CleanupShakeItDictionary_RemovesUnusedEntries()
+    {
+        var ncalcHolder = new NCalcHolder();
+        ncalcHolder.ShakeItDictionary["sib.guid1"] = "ABS";
+        _handler.UpdateNCalcHolder("[sib.guid1.IsMuted]", ncalcHolder);
+
+        var result1 = _handler.CleanupShakeItDictionary(ncalcHolder);
+        Assert.That(result1, Is.False);
+        Assert.That(ncalcHolder.ShakeItDictionary.Count, Is.EqualTo(1));
+
+        _handler.UpdateNCalcHolder("1 + 2", ncalcHolder);
+        var result2 = _handler.CleanupShakeItDictionary(ncalcHolder);
+        Assert.That(result2, Is.True);
+        Assert.That(ncalcHolder.ShakeItDictionary.Count, Is.EqualTo(0));
     }
 }
