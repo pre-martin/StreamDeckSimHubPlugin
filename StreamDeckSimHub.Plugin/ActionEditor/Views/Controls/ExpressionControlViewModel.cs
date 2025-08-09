@@ -35,7 +35,6 @@ public partial class ExpressionControlViewModel : ObservableObject
     {
         NCalcHolder.ExpressionString = value;
         ExpressionErrorMessage = _ncalcHandler.UpdateNCalcHolder(value, NCalcHolder);
-        _ncalcHandler.CleanupShakeItDictionary(NCalcHolder);
     }
 
     public int InsertShakeIt(string type, int caretIndex, EffectsContainerBase selectedEffect)
