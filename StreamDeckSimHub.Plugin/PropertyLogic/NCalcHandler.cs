@@ -169,16 +169,9 @@ public class NCalcHandler
         {
             Functions =
             {
-                ["str"] = args =>
-                {
-                    if (args.Count() != 1)
-                    {
-                        throw new NCalcParserException("Error parsing the expression.",
-                            new NCalcParserException("The 'str' function requires exactly one argument."));
-                    }
-
-                    return args[0].Evaluate()?.ToString() ?? string.Empty;
-                }
+                ["str"] = NCalcFunctions.StrFunction,
+                ["int"] = NCalcFunctions.IntFunction,
+                ["format"] = NCalcFunctions.FormatFunction
             }
         };
 

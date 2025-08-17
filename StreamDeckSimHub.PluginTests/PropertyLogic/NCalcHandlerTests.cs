@@ -1,6 +1,7 @@
 ﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using System.Globalization;
 using NCalc;
 using NCalc.Exceptions;
 using StreamDeckSimHub.Plugin.PropertyLogic;
@@ -24,10 +25,10 @@ public class NCalcHandlerTests
     public void Parse_MultipleProperties_ReturnsAllPropertyNames()
     {
         var result = _handler.Parse("""
-            [DataCorePlugin.Computed.Fuel_RemainingLaps] <= 2 and 
-            [DataCorePlugin.GameData.RemainingLaps] > 1 and 
-            ceiling(sin(3.1415/2)) == 0
-            """,
+                                    [DataCorePlugin.Computed.Fuel_RemainingLaps] <= 2 and 
+                                    [DataCorePlugin.GameData.RemainingLaps] > 1 and 
+                                    ceiling(sin(3.1415/2)) == 0
+                                    """,
             out var ncalcExpression);
         Assert.That(ncalcExpression, Is.Not.Null);
         Assert.That(result, Has.Count.EqualTo(2));
@@ -112,6 +113,29 @@ public class NCalcHandlerTests
 
         var result = _handler.EvaluateExpression(ncalcHolder, _ => 1, "TestContext");
         Assert.That(result, Is.EqualTo("123x"));
+    }
+
+    [Test]
+    public void Evaluate_IntFunction()
+    {
+        var ncalcHolder = new NCalcHolder();
+        var errorMsg = _handler.UpdateNCalcHolder("int(5.2) + 3", ncalcHolder);
+        Assert.That(errorMsg, Is.Null);
+
+        var result = _handler.EvaluateExpression(ncalcHolder, _ => 1, "TestContext");
+        Assert.That(result, Is.EqualTo(8)); // int(5.2) evaluates to 5, so 5 + 3 = 8
+    }
+
+    [Test]
+    public void Evaluate_FormatFunction()
+    {
+        var ncalcHolder = new NCalcHolder();
+        var errorMsg = _handler.UpdateNCalcHolder("format('start {0:D2} mid {1:F2} end', 3, 3.3333)", ncalcHolder);
+        Assert.That(errorMsg, Is.Null);
+
+        var decimalSep = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+        var result = _handler.EvaluateExpression(ncalcHolder, _ => 1, "TestContext");
+        Assert.That(result, Is.EqualTo($"start 03 mid 3{decimalSep}33 end"));
     }
 
     [Test]
