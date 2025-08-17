@@ -92,7 +92,8 @@ public class NCalcHandlerTests
     [Test]
     public void UpdateNCalcHolder_InvalidExpression()
     {
-        var ncalcHolder = new NCalcHolder { UsedProperties = ["testProperty"] };
+        var ncalcHolder = new NCalcHolder();
+        ncalcHolder.UsedProperties.Add("testProperty");
 
         var errorMessage = _handler.UpdateNCalcHolder("invalid expression", ncalcHolder);
 

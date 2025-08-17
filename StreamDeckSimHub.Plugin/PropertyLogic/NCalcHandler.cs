@@ -69,7 +69,8 @@ public class NCalcHandler
             var usedProperties = Parse(expression, out var ncalcExpression);
             // Update NCalcExpression and UsedProperties only if parsing was successful ...
             ncalcHolder.NCalcExpression = ncalcExpression;
-            ncalcHolder.UsedProperties = usedProperties;
+            ncalcHolder.UsedProperties.Clear();
+            ncalcHolder.UsedProperties.UnionWith(usedProperties);
         }
         catch (Exception e)
         {
