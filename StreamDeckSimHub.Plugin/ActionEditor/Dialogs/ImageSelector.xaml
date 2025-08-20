@@ -3,9 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
+        xmlns:dialogs="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Dialogs"
         mc:Ignorable="d"
-        d:DataContext="{d:DesignInstance viewModels:ImageSelectorViewModel, IsDesignTimeCreatable=False}"
+        d:DataContext="{d:DesignInstance dialogs:ImageSelectorViewModel, IsDesignTimeCreatable=False}"
         Activated="Window_Activated" Loaded="Window_Loaded"
         Icon="/ActionEditor/GenericButtonEditor.ico"
         Title="Select Image" Height="450" Width="800">

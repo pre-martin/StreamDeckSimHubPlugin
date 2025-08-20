@@ -7,7 +7,7 @@ using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using StreamDeckSimHub.Plugin.Tools;
 
-namespace StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
+namespace StreamDeckSimHub.Plugin.ActionEditor.Dialogs;
 
 public partial class ImageSelectorViewModel(ImageManager imageManager) : ObservableObject
 {
