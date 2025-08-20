@@ -305,7 +305,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
 
     #region Common Converters
 
-    private NCalcHolder ExpressionToNCalcHolder(string expressionString, Dictionary<string, string> shakeItDictionaryDto)
+    private NCalcHolder ExpressionToNCalcHolder(string expressionString, Dictionary<string, List<ShakeItEntry>> shakeItDictionaryDto)
     {
         try
         {
@@ -313,10 +313,10 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
             var ncalcHolder = new NCalcHolder
             {
                 ExpressionString = expressionString,
-                UsedProperties = usedProperties,
                 ShakeItDictionary = shakeItDictionaryDto,
                 NCalcExpression = ncalcExpression
             };
+            ncalcHolder.UsedProperties.UnionWith(usedProperties);
             // We remove unused ShakeIt properties from the dictionary here when loading.
             if (ncalcHandler.CleanupShakeItDictionary(ncalcHolder))
             {

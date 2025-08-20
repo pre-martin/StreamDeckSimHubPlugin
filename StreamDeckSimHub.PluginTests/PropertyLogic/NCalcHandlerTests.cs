@@ -143,7 +143,7 @@ public class NCalcHandlerTests
     public void CleanupShakeItDictionary_RemovesUnusedEntries()
     {
         var ncalcHolder = new NCalcHolder();
-        ncalcHolder.ShakeItDictionary["sib.guid1"] = "ABS";
+        ncalcHolder.ShakeItDictionary["sib.guid1"] = [new ShakeItEntry { Id = "id", Name = "ABS" }];
         _handler.UpdateNCalcHolder("[sib.guid1.IsMuted]", ncalcHolder);
 
         var result1 = _handler.CleanupShakeItDictionary(ncalcHolder);

@@ -21,9 +21,15 @@ public partial class NCalcHolder : ObservableObject
     public HashSet<string> UsedProperties { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
-    /// From <c>sib.guid | sim.guid</c> to <c>name</c>.
+    /// From <c>sib.guid | sim.guid</c> to the list of effect elements from root to the leaf element.
     /// </summary>
-    public Dictionary<string, string> ShakeItDictionary { get; set; } = new();
+    public Dictionary<string, List<ShakeItEntry>> ShakeItDictionary { get; set; } = new();
 
     public Expression? NCalcExpression { get; set; }
+}
+
+public class ShakeItEntry
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 }

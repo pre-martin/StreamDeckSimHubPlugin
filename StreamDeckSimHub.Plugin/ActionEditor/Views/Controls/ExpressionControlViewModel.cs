@@ -1,6 +1,7 @@
 ﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.SimHub.ShakeIt;
@@ -8,8 +9,7 @@ using StreamDeckSimHub.Plugin.SimHub.ShakeIt;
 namespace StreamDeckSimHub.Plugin.ActionEditor.Views.Controls;
 
 /// <summary>
-/// ViewModel that is wrapping an instance of NCalcHolder. It adds a layer of abstraction for the expression string
-/// (so that we can show ShakeIt properties more user-friendly), and it adds displaying the validation results.
+/// ViewModel that is wrapping an instance of NCalcHolder.
 /// </summary>
 public partial class ExpressionControlViewModel : ObservableObject
 {
@@ -24,6 +24,7 @@ public partial class ExpressionControlViewModel : ObservableObject
     public required Func<string, Task<IList<Profile>>> FetchShakeItProfilesCallback { get; init; }
 
     [ObservableProperty] private string? _expressionErrorMessage;
+    public ObservableCollection<string> ShakeItLegend { get; } = [];
 
     public ExpressionControlViewModel(NCalcHolder nCalcHolder)
     {
@@ -33,14 +34,27 @@ public partial class ExpressionControlViewModel : ObservableObject
 
     partial void OnExpressionStringDisplayChanged(string value)
     {
-        NCalcHolder.ExpressionString = value;
         ExpressionErrorMessage = _ncalcHandler.UpdateNCalcHolder(value, NCalcHolder);
+        BuildShakeItLegend();
     }
 
     public int InsertShakeIt(string type, int caretIndex, EffectsContainerBase selectedEffect)
     {
         var prefix = type == "Bass" ? "sib" : "sim";
-        NCalcHolder.ShakeItDictionary[$"{prefix}.{selectedEffect.Id}"] = selectedEffect.Name;
+
+        // Build the effect tree from the selected effect up to the root
+        var effectsPath = new List<ShakeItEntry>();
+        IEffectElement? currentEffect = selectedEffect;
+        while (currentEffect != null)
+        {
+            effectsPath.Add(new ShakeItEntry { Id = currentEffect.Id, Name = currentEffect.Name });
+            currentEffect = currentEffect.Parent;
+        }
+
+        // then reverse the list to have the root effect first
+        effectsPath.Reverse();
+
+        NCalcHolder.ShakeItDictionary[$"{prefix}.{selectedEffect.Id}"] = effectsPath;
 
         var textToInsert = $"[{prefix}.{selectedEffect.Id}.Gain]";
 
@@ -48,5 +62,29 @@ public partial class ExpressionControlViewModel : ObservableObject
         // PropertyChanged event of NCalcHolder
         ExpressionStringDisplay = NCalcHolder.ExpressionString.Insert(caretIndex, textToInsert);
         return textToInsert.Length;
+    }
+
+    private void BuildShakeItLegend()
+    {
+        ShakeItLegend.Clear();
+        foreach (var usedProperty in NCalcHolder.UsedProperties)
+        {
+            if (!usedProperty.StartsWith("sib.") && !usedProperty.StartsWith("sim."))
+            {
+                continue; // only interested in ShakeIt properties
+            }
+
+            var parts = usedProperty.Split('.');
+            if (parts.Length < 2) continue; // Invalid entry. Should not happen.
+
+            var prefix = parts[0]; // sib or sim
+            var guid = parts[1];   // the guid part
+
+            if (NCalcHolder.ShakeItDictionary.TryGetValue($"{prefix}.{guid}", out var shakeItEntries))
+            {
+                var name = shakeItEntries.Aggregate(string.Empty, (current, entry) => current + " / " + entry.Name);
+                ShakeItLegend.Add($"{prefix}.{guid} = {name[3..]}");
+            }
+        }
     }
 }
