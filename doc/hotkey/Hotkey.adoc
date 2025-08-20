@@ -199,25 +199,25 @@ So the following expressions are all valid:
 
 If this field is empty, the value of the SimHub property for the title will be displayed with the default formatter of that type. If this is not desired, a more extensive format can be specified here.
 
-Two options are available: A "*simple format*" and a "*full format*". The main difference is, that the "simple format" only allows an alignment and a format string, whereas the "full format" allows a combination of static text plus the features of the "simple format".
+Two options are available: A "*simple format*" and a "*full format*". The main difference is, that the "simple format" only allows a width and a format string, whereas the "full format" allows a combination of static text plus the features of the "simple format".
 
 === Simple Format
 
-The display format has this syntax:
+The simple format has this syntax:
 
 ----
-[alignment][:formatString]
+[width][:formatString]
 ----
 
 If the format is invalid, the default formatter of the type is used as a fallback.
 
-`alignment` is optional. It is a signed integer that indicates the total length of the title and whether it is right-aligned (a positive integer) or left-aligned (a negative integer)
+`width` is optional. It is a signed integer that indicates the total length of the title and whether it is right-aligned (a positive integer) or left-aligned (a negative integer)
 
 `:formatString` is optional. It has to start with `:` (colon) and it has to be a valid C# format string.
 
 Technically, the above syntax is the inner part of a C# format string. For details see:
 
-* https://learn.microsoft.com/en-us/dotnet/api/system.string.format?view=net-6.0#the-format-item
+* https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-string-format#the-format-item
 * https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-numeric-format-strings
 * https://learn.microsoft.com/en-us/dotnet/standard/base-types/custom-numeric-format-strings
 * https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-timespan-format-strings
@@ -225,7 +225,7 @@ Technically, the above syntax is the inner part of a C# format string. For detai
 
 Here are a few examples for the "Display Format" that should already cover a large number of cases. `_` is used in these examples to indicate a space in the generated output:
 
-Only alignment::
+Only width::
 
 * Display format `-3` will display the value left-aligned with a length of 3 digits:
 ** Property value `1` is displayed as `1__`
@@ -254,14 +254,26 @@ Both::
 ** `3.55` will be displayed as `_3.6`
 ** `31.55` will be displayed as `31.6`
 
-All characters are counted for the alignment - including decimal separator and decimal digits.
+All characters are counted for the width - including decimal separator and decimal digits.
 
 === Full Format
 
-The full format allows the same formatting features as the simple format, but the format can be combined with static text. The alignment and the format string have to be put into curly braces in order to be recognized. So a format in the full format may look like
+The full format has this syntax:
+
+----
+[prefix text] {[width][:formatString]} [suffix text]
+----
+
+The full format allows the same formatting features as the simple format, but the format can be combined with static text before and after the format. The width and the format string have to be put into curly braces in order to be recognized. So a format in the full format may look like
 
 ----
 Bias: {:F1}
+----
+
+or
+
+----
+FPS: {5:F1}
 ----
 
 Line breaks are also allowed, therefore a line break could be inserted in this example between `Bias:` and `{:F1}`, so that the entire content fits better on a button. In the same time, the colon can be omitted:
