@@ -29,17 +29,17 @@ public class FormatHelper
         if (!match.Success)
         {
             // Simple format
-            if (incompleteFormatString.StartsWith(':')) return "{0" + incompleteFormatString + "}";
-            return "{0," + incompleteFormatString + "}";
+            if (incompleteFormatString.StartsWith(':')) return "{0" + incompleteFormatString + "}"; // ":F0" -> "{0:F0}"
+            return "{0," + incompleteFormatString + "}"; // "-8:F2" -> "{0,-8:F2}"
         }
 
-        // Full format
+        // Full format: "bla {format} bla"
         var fullFormatString = "";
         if (match.Groups["prefix"].Success) fullFormatString += match.Groups["prefix"].Value;
 
         fullFormatString += "{0";
-        if (match.Groups["format"].Value.StartsWith(':')) fullFormatString += match.Groups["format"].Value;
-        else fullFormatString += "," + match.Groups["format"].Value;
+        if (match.Groups["format"].Value.StartsWith(':')) fullFormatString += match.Groups["format"].Value; // ":F0" -> "{0:F0}"
+        else fullFormatString += "," + match.Groups["format"].Value; // "-8:F2" -> "{0,-8:F2}"
         fullFormatString += "}";
         if (match.Groups["suffix"].Success) fullFormatString += match.Groups["suffix"].Value;
 
