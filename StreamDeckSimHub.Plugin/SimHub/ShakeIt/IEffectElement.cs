@@ -9,5 +9,8 @@ public interface IEffectElement
 {
     public string Id { get; }
     public string Name { get; }
-    [JsonIgnore] public IEffectElement? Parent { get; }
+
+    [JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    public IEffectElement? Parent { get; }
 }
