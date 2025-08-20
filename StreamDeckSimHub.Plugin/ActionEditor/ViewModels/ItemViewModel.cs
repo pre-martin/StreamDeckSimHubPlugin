@@ -21,7 +21,7 @@ public abstract partial class ItemViewModel : ObservableObject
         _name = model.Name;
         _expressionControlConditionViewModel = new ExpressionControlViewModel(model.NCalcConditionHolder)
         {
-            ExpressionLabel = "Conditions:",
+            ExpressionLabel = "Condition:",
             ExpressionToolTip = "Please enter a valid NCalc expression, that returns true or false or a number",
             Example="[DataCorePlugin.Computed.Fuel_RemainingLaps] <= 2",
             FetchShakeItProfilesCallback = FetchShakeItProfilesCallback
