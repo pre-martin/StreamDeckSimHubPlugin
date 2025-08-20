@@ -56,9 +56,10 @@ public class ImageUtils
     /// reason why we convert vector to bitmap data.
     /// </summary>
     /// <param name="svgFileName">The path to the image</param>
-    /// <param name="sdKeyInfo">The vector data is scaled for the given <c>StreamDeckKeyInfo</c></param>
+    /// <param name="sdKeyInfo">Stream Deck Key, on which the image shall be displayed.</param>
+    /// <param name="scaleToKey">Scale the image to the given <c>StreamDeckKeyInfo</c>?</param>
     /// <returns>A bitmap image. If the SVG cannot be loaded, a static error image is returned.</returns>
-    public virtual Image FromSvgFile(string svgFileName, StreamDeckKeyInfo sdKeyInfo)
+    public virtual Image FromSvgFile(string svgFileName, StreamDeckKeyInfo sdKeyInfo, bool scaleToKey = true)
     {
         try
         {
@@ -79,8 +80,8 @@ public class ImageUtils
             }
 
 
-            var scaleX = keyWidth / svg.Model.CullRect.Width;
-            var scaleY = keyHeight / svg.Model.CullRect.Height;
+            var scaleX = scaleToKey ? keyWidth / svg.Model.CullRect.Width : 1.0f;
+            var scaleY = scaleToKey ? keyHeight / svg.Model.CullRect.Height : 1.0f;
 
             // Stream Deck always scales to a square. So no need to keep the aspect ratio here - just scale to square.
             //var scale = scaleX > scaleY ? scaleY : scaleX;

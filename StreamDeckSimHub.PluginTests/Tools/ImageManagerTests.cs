@@ -73,8 +73,8 @@ public class ImageManagerTests
     {
         var imageUtils = new Mock<ImageUtils>();
         imageUtils
-            .Setup(iu => iu.FromSvgFile(It.IsAny<string>(), It.IsAny<StreamDeckKeyInfo>()))
-            .Returns((string _, StreamDeckKeyInfo sdki) => new Image<Rgba32>(sdki.KeySize.Width, sdki.KeySize.Height));
+            .Setup(iu => iu.FromSvgFile(It.IsAny<string>(), It.IsAny<StreamDeckKeyInfo>(), It.IsAny<bool>()))
+            .Returns((string _, StreamDeckKeyInfo sdki, bool _) => new Image<Rgba32>(sdki.KeySize.Width, sdki.KeySize.Height));
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
         {
             { @"images\custom\sub\test@2x.svg", new MockFileData(string.Empty) },
@@ -87,7 +87,7 @@ public class ImageManagerTests
 
         // ImageUtils must have been called - especially not with "@2x" even for the Hires XL, because SVGs have no suffix.
         var customImages = fileSystem.DirectoryInfo.New(Path.Combine("images", "custom")).FullName;
-        imageUtils.Verify(iu => iu.FromSvgFile(Path.Combine(customImages, "sub", "test.svg"), sdXl));
+        imageUtils.Verify(iu => iu.FromSvgFile(Path.Combine(customImages, "sub", "test.svg"), sdXl, false));
         Assert.That(image, Is.Not.Null);
     }
 

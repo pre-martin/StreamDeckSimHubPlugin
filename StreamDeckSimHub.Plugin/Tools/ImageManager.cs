@@ -123,7 +123,7 @@ public partial class ImageManager(IFileSystem fileSystem, ImageUtils imageUtils)
         {
             // No quality suffix for SVG files.
             var fn = Path.Combine(_customImagesDirectory.FullName, relativePath);
-            return imageUtils.FromSvgFile(fn, sdKeyInfo);
+            return imageUtils.FromSvgFile(fn, sdKeyInfo, false);
         }
 
         var newName = FindResolutionForKeyInfo(_customImagesDirectory.FullName, relativePath, sdKeyInfo);
