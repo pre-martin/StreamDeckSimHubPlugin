@@ -36,7 +36,8 @@ public class PropertyParser
             "timespan" => PropertyType.TimeSpan,
             "string" => PropertyType.String,
             "object" => PropertyType.Object,
-            _ => PropertyType.Double // Should not happen. But best guess should always be "double".
+            "(unknown)" => PropertyType.Object, // Unknown type, but we can parse it as object.
+            _ => PropertyType.Object // Should not happen. But best guess should be object.
         };
         var value = type.Parse(valueAsString);
 
