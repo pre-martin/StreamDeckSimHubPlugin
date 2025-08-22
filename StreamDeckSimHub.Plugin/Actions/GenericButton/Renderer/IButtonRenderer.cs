@@ -3,6 +3,8 @@
 
 using System.Collections.ObjectModel;
 using SharpDeck.Events.Received;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.Tools;
 
@@ -18,6 +20,6 @@ public interface IButtonRenderer
     /// <summary>
     /// Renders all display items onto an image.
     /// </summary>
-    /// <returns>The base64 encoded image.</returns>
-    string Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems);
+    /// <returns>The image.</returns>
+    Image<Rgba32> Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems);
 }

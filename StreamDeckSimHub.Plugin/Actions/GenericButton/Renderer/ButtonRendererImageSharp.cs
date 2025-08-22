@@ -33,7 +33,7 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
         _coords = coordinates;
     }
 
-    public string Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems)
+    public Image<Rgba32> Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems)
     {
         _logger.Debug($"({_coords}) Rendering...");
         var image = new Image<Rgba32>(targetKeyInfo.KeySize.Width, targetKeyInfo.KeySize.Height);
@@ -65,7 +65,7 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
             //image.SaveAsPng($@"\image_{_coords}_{DateTime.Now:yyyy-MM-dd-HH-mm-ss-fff}_{displayItem.DisplayName}.png");
         }
 
-        return image.ToBase64String(PngFormat.Instance);
+        return image;
     }
 
     /// <summary>

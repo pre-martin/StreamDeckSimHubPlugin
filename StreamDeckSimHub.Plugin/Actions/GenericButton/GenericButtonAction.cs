@@ -8,6 +8,9 @@ using SharpDeck;
 using SharpDeck.Events.Received;
 using SharpDeck.Layouts;
 using SharpDeck.PropertyInspectors;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Processing;
 using StreamDeckSimHub.Plugin.ActionEditor;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
@@ -356,11 +359,27 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         var image = _buttonRenderer.Render(_sdKeyInfo, _settings.DisplayItems);
         if (_sdKeyInfo.IsDial)
         {
-            await SetFeedbackAsync(new DialLayout { Content = new Pixmap { Value = image } });
+            await SetFeedbackAsync(new DialLayout { Content = new Pixmap { Value = image.ToBase64String(PngFormat.Instance) } });
+
+            if (_settings.DisplayItems.Count > 0)
+            {
+                // Dial image for the Stream Deck app.
+                const int cropWidth = 100;
+                const int cropHeight = 100;
+                var x1 = image.Width / 2 - cropWidth / 2;
+                var y1 = image.Height / 2 - cropHeight / 2;
+                image.Mutate(x => x.Crop(new Rectangle(x1, y1, cropWidth, cropHeight)));
+                await SetImageAsync(image.ToBase64String(PngFormat.Instance));
+            }
+            else
+            {
+                // Stream Deck app shall display the manifest icon.
+                await SetImageAsync(string.Empty);
+            }
         }
         else
         {
-            await SetImageAsync(image);
+            await SetImageAsync(image.ToBase64String(PngFormat.Instance));
         }
     }
 
