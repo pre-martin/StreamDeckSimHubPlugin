@@ -71,9 +71,13 @@ The detail area allows to configure the selected display or command item.
 
 ==== Button Name
 
-Each button can have a name, which is displayed in the top of the detail area, and also in the Stream Deck Property Inspector.
+Each button can have a name, which is displayed in
 
-Since the display items of a given button may only be visible when certain SimHub properties have certain values, it can be hard to identify the button in the Property Inspector when SimHub is not running, or the values returned by SimHub are not what you expect. By giving the button a name, you can easily identify it in the Property Inspector without having to open the editor.
+* the title of the Generic Button Editor
+* the top line in the detail area
+* in the Stream Deck Property Inspector
+
+Since the display items of a given button may only be visible when certain SimHub properties have certain values, it can be hard to identify the button in the Property Inspector when SimHub is not running or a different game is selected in SimHub. By giving the button a name, you can easily identify it in the Property Inspector without having to open the editor.
 
 ==== Item Name
 
@@ -89,13 +93,21 @@ If no condition is given, the display item will always be shown or the command w
 
 === Display Items
 
-==== Image
+The following sections describe the available display items.
+
+All items have the field "Size". If this is empty, the size of the Stream Deck key will be used as a bounding box. If values are given, these given values specify the bounding box of the item. The item will be scaled to fit into this bounding box.
+
+If a rotation is given, the item will be rotated around the center of the bounding box.
+
+==== Display Item "Image"
 
 Displays an image on the button.
 
-===== Field Image
+image:Display-Item-Image.png[Display Item Image]
 
-When clicking on the button "Change", the editor lists all images which are in the following directory and its subdirectories:
+===== Field "Image"
+
+When clicking on the button "Change", the editor lists all images which are located in the following directory and its subdirectories:
 
 ----
 %appdata%\Elgato\StreamDeck\Plugins\net.planetrenner.simhub.sdPlugin\images\custom
@@ -128,7 +140,7 @@ The plugin only ever lists the base name of the image, and it will choose the co
 
 Unfortunately, the Stream Deck SDK does not support animated GIF images - only static GIF images.
 
-===== Field Condition
+===== Field "Condition"
 
 See section <<#ncalcExpressions>> below for more information about NCalc expressions.
 
@@ -136,15 +148,17 @@ See section <<#ncalcExpressions>> below for more information about NCalc express
 
 Their usage should be self-explanatory.
 
-==== Text
+==== Display Item "Text"
 
 Displays some static text on the button.
 
-===== Field Text
+===== Field "Text"
 
 The text to display on the button. For multiline text, simply press Enter to create a new line.
 
-===== Field Condition
+image:Display-Item-Text.png[Display Item Text]
+
+===== Field "Condition"
 
 See section <<#ncalcExpressions>> below for more information about NCalc expressions.
 
@@ -152,25 +166,27 @@ See section <<#ncalcExpressions>> below for more information about NCalc express
 
 Their usage should be self-explanatory.
 
-==== Value
+==== Display Item "Value"
 
 Displays a value on the button, that usually comes from one or more SimHub properties.
 
-This is the most powerful display item, as it allows complex expressions to be evaluated and displayed on the button. Bascially, everything from the SimHub tab "Available properties" can be used in the expression, and you can also use mathematical operations, string operations, and more. In addition, `Gain` and `IsMuted` are available for all SimHub ShakeIt Bass and ShakeIt Motors effects.
+image:Display-Item-Value.png[Display Item Value]
 
-===== Fields Expression and Condition
+This is the most powerful display item, as it allows complex expressions to be evaluated and displayed on the button.
+
+Basically, everything from the SimHub tab "Available properties" can be used in the expression, and you can also use mathematical operations, string operations, and more. In addition, `Gain` and `IsMuted` are available for all SimHub ShakeIt Bass and ShakeIt Motors effects (see section <<#shakeit>> below).
+
+===== Fields "Expression" and "Condition"
 
 See section <<#ncalcExpressions>> below for more information about NCalc expressions.
 
-===== Field Display Format
+===== Field "Display Format"
 
 This field allows you to format the value that is displayed on the button. See section <<#formatting>> below for more information about formatting.
 
 This field supports the simple format and the full format.
 
-===== Field Condition
-
-See section <<#ncalcExpressions>> below for more information about NCalc expressions.
+Note that the expression itself also has a function "format()" (see <<#ncalcExpressions>> below).
 
 ===== Other Fields
 
@@ -179,11 +195,15 @@ Their usage should be self-explanatory.
 
 === Command Items
 
-==== Keypress
+The following sections describe the available command items.
+
+==== Command Item "Keypress"
 
 Allows you to send a keypress event to the currently focused application.
 
-===== Field Keypress
+image:Command-Item-Keypress.png[Command Item Keypress]
+
+===== Field "Keypress"
 
 Enter the key that should be sent to the focused application. Please see the structure link:/StreamDeckSimHub.Plugin/Tools/Keyboard.cs[VirtualKeyShort] for supported key names. For alphanumeric keys (0-1, A-Z) the prefix `KEY_` can be omitted, so either `KEY_P` and `P` will have the same result.
 
@@ -196,7 +216,7 @@ Some examples of valid values for the field "Keypress" are:
 Please note, that not all entries in "VirtualKeyShort" make sense in the field "Hotkey".
 
 [#fieldLongKeypress]
-===== Field Long Keypress
+===== Field "Long Keypress"
 
 This field is only available on "KeyDown" and "DialDown" events. For the other dial and touch events, it does not make sense.
 
@@ -204,7 +224,7 @@ If this field is enabled for at least one command item in the list (regardless o
 
 ====== Disabled
 
-With the field disabled for all command items, the plugin sends a "KeyDown" event for each active Keypress item to Windows, as soon as the Stream Deck key is pressed. When the Stream Deck key is released, a "KeyUp" event is sent for the same list of Keypress items to Windows. This means that the behavior is exactly the same as when you press a key on your keyboard and, perhaps, hold it down for some longer time. For example, if the active window is an editor, the pressed key is repeated until it is released.
+With the field disabled for all command items, the plugin sends a "KeyDown" event for each active Keypress item to Windows, as soon as the Stream Deck key is pressed. When the Stream Deck key is released, a "KeyUp" event is sent for the same list of Keypress items to Windows. This means that the behavior is exactly the same as when you press a key on your keyboard and perhaps hold it down for some longer time. For example, if the active window is an editor, the pressed key is repeated until it is released.
 
 ====== Enabled
 
@@ -214,32 +234,34 @@ Therefore, the behavior is now as follows:
 
 When the Stream Deck key is pressed, nothing happens at first.
 
-If the key is released before 500 milliseconds have elapsed, this is interpreted as a "short keystroke". The plugin sends "KeyDown" events for each active Keypress item, then waits 20 milliseconds, and finally sends "KeyUp" events for the same list of Keypress items. For the application it looks like the keys have beend pressed and held for 20 milliseconds.
+If the key is released before 500 milliseconds have elapsed, this is interpreted as a "short keystroke". The plugin sends "KeyDown" events for each active Keypress item, then waits 20 milliseconds, and finally sends "KeyUp" events for the same list of Keypress items. For the application it looks like the keys have been pressed and held for 20 milliseconds.
 
 If 500 milliseconds have elapsed and the key is still held down, this is interpreted as a "long keystroke". The plugin sends "KeyDown" events to Windows, and "KeyUp" events as soon as the key is released.
 
-*Important:* The "KeyDown" events are only sent, when either the Stream Deck key is *released* before 500 milliseconds, or if 500 milliseconds have elapsed. Thus the target application will not react immediately, when the key is pressed.
+*Important:* The "KeyDown" events are only sent, when either the Stream Deck key is *released* before 500 milliseconds, or if 500 milliseconds have elapsed. Thus, the target application will not react immediately, when the key is pressed.
 
-===== Field Condition
+===== Field "Condition"
 
 See section <<#ncalcExpressions>> below for more information about NCalc expressions.
 
-==== SimHub Control / SimHub Role
+==== Command Item "SimHub Control" and "SimHub Role"
 
 Both command items are similar, but they are used for different purposes:
 
-* A *SimHub Control* is used to trigger some action in SimHub. The unique control name has to be entered into the field "SimHub Control". See link:../inputtrigger/InputTrigger.adoc[InputTrigger.adoc] for details about input triggers and how they can be used in SimHub.
+* A *SimHub Control* is used to trigger some action in SimHub. The unique control name has to be entered into the field "SimHub Control". See link:../inputtrigger/InputTrigger.adoc[InputTrigger.adoc] for details about input triggers and how they can be used in SimHub. +
+ image:Command-Item-SimHub-Control.png[Command Item SimHub Control]
 * A *SimHub Role* is used to trigger a predefined Control Mapper Role in SimHub. SimHub allows the abstraction of input devices with its Control Mapper plugin. The role has to be selected in the dropdown field, which shows all available roles that have been defined in SimHub. +
  Important: SimHub has to be running because the available roles are fetched online from SimHub. +
- If you modify the roles in SimHub while the Generic Button Editor is open, you can reload the available roles with the "Reload" button.
+ If you modify the roles in SimHub while the Generic Button Editor is open, you can reload the available roles with the "Reload" button. +
+ image:Command-Item-SimHub-Role.png[Command Item SimHub Role]
 
-===== Field Long Keypress
+===== Field "Long Keypress"
 
 See section <<#fieldLongKeypress>> of the "Keypress" command above for details about the behavior of this field. The only difference is, that "Control Pressed" / "Control Released" events are sent for SimHub Controls, and "Start Role" / "Stop Role" events for SimHub Roles.
 
 Note: SimHub has its own detection logic of short and long presses for SimHub Controls (not SimHub Roles). Activating this field for SimHub Controls could be confusing.
 
-===== Field Condition
+===== Field "Condition"
 
 See section <<#ncalcExpressions>> below for more information about NCalc expressions.
 
@@ -247,10 +269,10 @@ See section <<#ncalcExpressions>> below for more information about NCalc express
 [#ncalcExpressions]
 == NCalc Expressions
 
-The usage of NCalc expression is another key feature of the Generic Button action. NCalc expressions are used in two places:
+The usage of NCalc expressions is another key feature of the Generic Button action. NCalc expressions are used in two places:
 
-* In the "Condition" field of display items and command items, to determine whether the item is shown or the command is executed. The condition expression is evaluated at runtime, and if it evaluates to `true` or a number `> 0`, the item will be shown or the command will be executed.
-* In the "Expression" field of the "Value" display item, to determine which value is displayed on the button.
+* In the "Condition" field of display items and command items to determine whether the item is shown or the command is executed. The condition expression is evaluated at runtime, and if it evaluates to `true` or a number `> 0`, the item will be shown or the command will be executed.
+* In the "Expression" field of the display item "Value" to determine which value is displayed on the button.
 
 === Syntax
 
@@ -266,9 +288,13 @@ SimHub properties can be used by putting their name into square brackets, e.g.
 * `[DataCorePlugin.Computed.Fuel_RemainingLaps]`
 * `[DataCorePlugin.GameRawData.TruckValues.CurrentValues.DashboardValues.FuelValue.Range]` (ETS2).
 
-So you could display the property value `[DataCorePlugin.Computed.Fuel_RemainingLaps]` in white font with the condition `[DataCorePlugin.Computed.Fuel_RemainingLaps] > 3` and in red font with the condition `[DataCorePlugin.Computed.Fuel_RemainingLaps] <= 3`.
+As a practical example, one could display the property value `[DataCorePlugin.Computed.Fuel_RemainingLaps]` in white font with the condition `[DataCorePlugin.Computed.Fuel_RemainingLaps] > 3` and in red font with the condition `[DataCorePlugin.Computed.Fuel_RemainingLaps] <= 3`:
+
+image:Example-Fuel-Low.png[Example Fuel Low]
 
 === Custom Functions
+
+In addition to the built-in functions (see links above), the following functions are also available:
 
 ==== int()
 
@@ -279,7 +305,7 @@ int(value: object)
 
 Converts the given value into an integer.
 
-This is useful for formatting purposes. For example, the expression `60 / 10` returns a floating point number. If you want to use a formatting string like `{:D2}`, you will get the error message "_Format specifier was invalid_", because `D` is a standard numeric format string for integer types. Even using the NCalc built-in functions `floor()`, `truncate()` or `round()` does not fix this, as these functions do not modify the data type. `int(60 / 10)` resolves this, so that you can use `{:D2}` as a format string.
+This is useful for formatting purposes. For example, the expression `60 / 10` returns a *floating point* number. If you want to use a formatting string like `{:D2}`, you will get the error message "_Format specifier was invalid_", because `D` is a standard numeric format string for *integer* types. Even using the NCalc built-in functions `floor()`, `truncate()` or `round()` does not fix this, as these functions do not modify the data type. `int(60 / 10)` solves this problem, so that you can use `{:D2}` as a format string.
 
 ==== str()
 
@@ -290,7 +316,7 @@ str(value: object)
 
 Converts the given value into a string.
 
-This is useful if you want to use string concatentation in the expression. By default, NCalc tries to interpret everything as a number. So the expression `'Fuel: ' + [DataCorePlugin.Computed.Fuel_RemainingLaps]` will yield an error, because NCalc tries an arithmetic addition of the two operands. To get a string concatenation, you have to write `'Fuel: ' + str([DataCorePlugin.Computed.Fuel_RemainingLaps])` instead.
+This is useful if you want to use string concatenation in the expression. By default, NCalc tries to interpret everything as a number. So the expression `'Fuel: ' + [DataCorePlugin.Computed.Fuel_RemainingLaps]` will yield an error, because NCalc tries an arithmetic addition of the two operands. To get a string concatenation, you have to write `'Fuel: ' + str([DataCorePlugin.Computed.Fuel_RemainingLaps])` instead.
 
 ==== format()
 
@@ -301,7 +327,7 @@ format(format: string, parameters: object[])
 
 This is a very powerful function that allows formatting of individual values inside (!) of the expression.
 
-The parameters are passed directly to the C# `string.Format()` method. So the format is the "full format" (see section <<#formatting>> below), but positional parameters have to be supplied additionally. The snytax is:
+The parameters are passed directly to the C# `string.Format()` method. So the format is the "full format" (see section <<#formatting>> below), but position parameters must also be specified. The syntax is:
 ----
 {index[,width][:formatString]}
 ----
@@ -323,12 +349,36 @@ int(abs([DataCorePlugin.GameRawData.CommonValues.NextRestStop.Minutes] % 60))
 )
 ----
 
-This will output the time left (in hours and minutes) until the next rest stop. As the time can have a negative value, we want to preserve the sign for the hours, but not for the minutes (which explains the usage of `abs()`). As both values are floating point numbers, we have to convert them to integers with `int()` in order to use the `D` format string. If you have 91 minutes left, the output will be `1:31`, if you are 9 minutes overdue, the output will be `-0:09` (with the text "Rest" on the first line).
+This will output the time left (in hours and minutes) until the next rest stop. As the property can have negative values, we want to preserve the sign for the hours, but not for the minutes (which explains the usage of `abs()`). As both values are floating point numbers, we have to convert them to integers with `int()` in order to use the `D` format string. If you have 91 minutes left, the output will be `1:31`, if you are 9 minutes overdue, the output will be `-0:09` (with the text "Rest" on the first line).
 
+[#shakeit]
 === ShakeIt Bass & ShakeIt Motors Effects
 
-_TODO_
+In addition to accessing the normal SimHub properties (SimHub, tab "Available properties"), the plugin also allows access to `Gain` and `IsMuted` of the ShakeIt Bass and ShakeIt Motors effects.
 
+These properties must be addressed via a GUID, as SimHub manages effect groups and effects internally via GUIDs.
+
+The syntax to access ShakeIt Bass properties is
+----
+[sib.guid.Gain]
+[sib.guid.IsMuted]
+----
+for ShakeIt Motors, the syntax is
+----
+[sim.guid.Gain]
+[sim.guid.IsMuted]
+----
+where `sib` and `sim` are the predefined prefixes for ShakeIt Bass and ShakeIt Motors, and `guid` is the GUID of the effect group or effect.
+
+Unfortunately, SimHub does not display these GUIDs in the UI and there is no possibility to access them somehow in SimHub. This is where the two buttons "ShakeIt Bass Browser" and "ShakeIt Motors Browser" and the expander directly below the input field come into play: The buttons open a dialog box where the SimHub effects can be selected, and the expander displays a legend for the GUIDs.
+
+image:ShakeIt-Browser.png[ShakeIt Browser]
+
+After opening one of the ShakeIt Browsers, you get a tree view of all available effect profiles and their nested effect groups and effects. When you select an effect group or an effect and press the "Select" button, the whole property name is inserted into the input field at the current cursor position. Currently, the "Gain" property is always inserted. For "IsMuted" the property must be edited manually and `Gain` must be replaced with `IsMuted`. Care must be taken to ensure that the GUID is not accidentally changed.
+
+When the expander right below the input field is expanded (like in the screenshot above), it shows a legend for the GUIDs and their full names. This is a little help to somehow identify the meaningless property names with their GUIDs. Unfortunately, this process is not yet optimal.
+
+The screenshot above shows the selected effect group "Audi" in the browser. If "Select" is pressed, it will insert the property name into the "Expression" field. The expander below the "Expression" field shows, that this lengthy GUID actually belongs to the effect group "Audi".
 
 [#formatting]
 == Formatting
@@ -345,9 +395,9 @@ The simple format has this syntax:
 
 If the format is invalid, the default formatter of the type is used as a fallback.
 
-`width` is optional. It is a signed integer that indicates the total length of the title and whether it is right-aligned (a positive integer) or left-aligned (a negative integer)
+`width` is optional. It is a signed integer that indicates the total length of the text and whether it is right-aligned (a positive integer) or left-aligned (a negative integer)
 
-`:formatString` is optional. It has to start with `:` (colon) and it has to be a valid C# format string.
+`:formatString` is optional. It has to start with `:` (colon), and it has to be a valid C# format string.
 
 Technically, the above syntax is the inner part of a C# format string. For details see:
 
@@ -411,8 +461,3 @@ FPS: {5:F1}
 ----
 
 Line breaks are also allowed, therefore a line break could be inserted in this example between `Bias:` and `{:F1}`, so that the entire content fits better on a button.
-
-
-== Expression Examples
-
-_TODO_

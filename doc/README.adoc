@@ -11,7 +11,7 @@ After the installation of the Plugin, a new category named "SimHub" will be avai
 
 See link:generic-button/GenericButton.adoc[GenericButton.adoc]
 
-Note: This is a new button that exists since version 2.0 of the plugin. If unsure, use this button — the "old" ones below won't receive any updates anymore.
+Note: This is a new button that exists since version 2.0 of the plugin. If unsure, use this button — the "old" ones below won't receive any updates anymore. This new button combines (almost) all features of the old buttons, works with Stream Deck keys and Stream Deck dials, and adds a bunch of new features.
 
 
 == Hotkey
