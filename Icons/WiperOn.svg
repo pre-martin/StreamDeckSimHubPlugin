@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 24 24">
+    <g fill="none" stroke="#20a820" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+
+        <!-- helper lines for arcs and connections
+        <line stroke="black" stroke-width="0.5" x1="1" y1="7" x2="12" y2="24"/>
+        <line stroke="black" stroke-width="0.5" x1="23" y1="7" x2="12" y2="24"/>
+        -->
+
+        <!-- top arc -->
+        <path d="M1 7 A15 8 0 0 1 23 7"/>
+        <!-- lower arc -->
+        <path d="M6.5 15 A11 8 0 0 1 17.5 15"/>
+        <!-- connection left -->
+        <line x1="1" y1="7" x2="6.5" y2="15"/>
+        <!-- connection right -->
+        <line x1="23" y1="7" x2="17.5" y2="15"/>
+
+        <!-- wiper arm -->
+        <line x1="11.3" y1="16.6" x2="5" y2="4"/>
+        <!-- small circle -->
+        <circle cx="12" cy="18" r="1"/>
+    </g>
+</svg>

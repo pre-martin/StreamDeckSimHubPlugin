@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 24 24">
+    <circle fill="white" cx="12" cy="12" r="11.1"/>
+    <circle stroke="black" stroke-width="0.5" fill="white" cx="12" cy="12" r="10.2"/>
+    <line stroke="black" stroke-width="0.7" x1="3.7" y1="18.3" x2="18.3" y2="3.7"/>
+    <line stroke="black" stroke-width="0.7" x1="4.6" y1="19.4" x2="19.4" y2="4.6"/>
+    <line stroke="black" stroke-width="0.7" x1="5.7" y1="20.3" x2="20.3" y2="5.7"/>
+</svg>

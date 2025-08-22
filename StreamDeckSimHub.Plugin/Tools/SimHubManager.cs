@@ -1,38 +1,43 @@
-﻿// Copyright (C) 2023 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using System.Collections.Concurrent;
 using NLog;
 using StreamDeckSimHub.Plugin.SimHub;
 
 namespace StreamDeckSimHub.Plugin.Tools;
 
 /// <summary>
-/// Manages the state of SimHub input triggers and control mapper roles.
+/// Manages the state of SimHub input triggers and control mapper roles. By using the method <see cref="Deactivate"/> the class
+/// ensures that all active triggers and roles are released.
 /// </summary>
-public class SimHubManager
+public class SimHubManager(ISimHubConnection simHubConnection)
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-    private readonly ISimHubConnection _simHubConnection;
     private const string Placeholder = "----";
-    private string? _activeTrigger;
-    private (string owner, string role)? _activeRole;
-
-    public SimHubManager(ISimHubConnection simHubConnection)
-    {
-        _simHubConnection = simHubConnection;
-    }
+    private readonly ConcurrentDictionary<string, byte> _activeTriggers = new();
+    private readonly ConcurrentDictionary<(string owner, string role), byte> _activeRoles = new();
 
     public async Task Deactivate()
     {
-        if (_activeTrigger != null)
+        var activeTriggers = new List<string>(_activeTriggers.Keys);
+        _activeTriggers.Clear();
+
+        var activeRoles = new List<(string owner, string role)>(_activeRoles.Keys);
+        _activeRoles.Clear();
+
+        // Send "release" for all active triggers.
+        foreach (var trigger in activeTriggers)
         {
-            Logger.Warn($"SimHub trigger \"{_activeTrigger}\" still active. Sending \"released\" command");
-            await TriggerInputReleased(_activeTrigger);
+            Logger.Warn($"SimHub trigger \"{trigger}\" still active. Sending \"released\" command");
+            await TriggerInputReleased(trigger);
         }
-        if (_activeRole != null)
+
+        // Send "release" for all active roles.
+        foreach (var activeRole in activeRoles)
         {
-            Logger.Warn($"SimHub role \"{_activeRole.Value.role}\" still active. Sending \"released\" command");
-            await RoleReleased(_activeRole.Value.owner, _activeRole.Value.role);
+            Logger.Warn($"SimHub role \"{activeRole.role}\" still active. Sending \"released\" command");
+            await RoleReleased(activeRole.owner, activeRole.role);
         }
     }
 
@@ -40,8 +45,8 @@ public class SimHubManager
     {
         if (!string.IsNullOrWhiteSpace(simHubControl))
         {
-            _activeTrigger = simHubControl;
-            await _simHubConnection.SendTriggerInputPressed(simHubControl);
+            _activeTriggers[simHubControl] = 1;
+            await simHubConnection.SendTriggerInputPressed(simHubControl);
         }
     }
 
@@ -49,8 +54,8 @@ public class SimHubManager
     {
         if (!string.IsNullOrWhiteSpace(simHubControl))
         {
-            _activeTrigger = null;
-            await _simHubConnection.SendTriggerInputReleased(simHubControl);
+            _activeTriggers.Remove(simHubControl, out _);
+            await simHubConnection.SendTriggerInputReleased(simHubControl);
         }
     }
 
@@ -58,8 +63,8 @@ public class SimHubManager
     {
         if (!string.IsNullOrWhiteSpace(roleName) && roleName != Placeholder)
         {
-            _activeRole = (ownerUuid, roleName);
-            await _simHubConnection.SendControlMapperRole(ownerUuid, roleName, true);
+            _activeRoles[(ownerUuid, roleName)] = 1;
+            await simHubConnection.SendControlMapperRole(ownerUuid, roleName, true);
         }
     }
 
@@ -67,8 +72,8 @@ public class SimHubManager
     {
         if (!string.IsNullOrWhiteSpace(roleName) && roleName != Placeholder)
         {
-            _activeRole = null;
-            await _simHubConnection.SendControlMapperRole(ownerUuid, roleName, false);
+            _activeRoles.Remove((ownerUuid, roleName), out _);
+            await simHubConnection.SendControlMapperRole(ownerUuid, roleName, false);
         }
     }
 }

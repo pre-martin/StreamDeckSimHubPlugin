@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2023 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using Microsoft.Extensions.Logging;
@@ -11,7 +11,7 @@ using StreamDeckSimHub.Plugin.Tools;
 namespace StreamDeckSimHub.Plugin.Actions;
 
 /// <summary>
-/// Base functionality to send a key stroke to the active window, send an input trigger, and to update the state from a SimHub property.
+/// Base functionality to send a keystroke to the active window, send an input trigger, and to update the state from a SimHub property.
 /// </summary>
 /// <remarks>
 /// Concrete implementations have to handle the conversion from SimHub property values into Stream Deck action states.
@@ -19,14 +19,15 @@ namespace StreamDeckSimHub.Plugin.Actions;
 public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> where TSettings : HotkeyBaseActionSettings, new()
 {
     private TSettings _hotkeySettings;
-    private KeyboardUtils.Hotkey? _hotkey;
-    private KeyboardUtils.Hotkey? _longKeypressHotkey;
+    private Hotkey? _hotkey;
+    private Hotkey? _longKeypressHotkey;
+    private readonly KeyboardUtils _keyboardUtils = new();
     private readonly StateManager _stateManager;
     private readonly SimHubManager _simHubManager;
     private readonly ShortAndLongPressHandler _salHandler;
     protected Coordinates? Coordinates;
 
-    protected HotkeyBaseAction(SimHubConnection simHubConnection, PropertyComparer propertyComparer, bool useCondition)
+    protected HotkeyBaseAction(ISimHubConnection simHubConnection, PropertyComparer propertyComparer, bool useCondition)
     {
         _hotkeySettings = new TSettings();
         _stateManager = new StateManager(propertyComparer, simHubConnection, StateChangedFunc, useCondition);
@@ -73,7 +74,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
         }
         else
         {
-            await _salHandler.KeyDown(args);
+            await _salHandler.KeyDown();
         }
     }
 
@@ -89,19 +90,19 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
         }
     }
 
-    private async Task OnShortPress(ActionEventArgs<KeyPayload> args)
+    private async Task OnShortPress(IHandlerArgs? args)
     {
         await DownNormal();
         await Task.Delay(TimeSpan.FromMilliseconds(_hotkeySettings.LongKeypressShortHoldTime));
         await UpNormal();
     }
 
-    private async Task OnLongPress(ActionEventArgs<KeyPayload> args)
+    private async Task OnLongPress(IHandlerArgs? args)
     {
         await DownLong();
     }
 
-    private async Task OnLongReleased()
+    private async Task OnLongReleased(IHandlerArgs? args)
     {
         await UpLong();
     }
@@ -109,7 +110,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
     private async Task DownNormal()
     {
         // Hotkey
-        KeyboardUtils.KeyDown(_hotkey);
+        _keyboardUtils.KeyDown(_hotkey);
         // SimHubControl
         await _simHubManager.TriggerInputPressed(_hotkeySettings.SimHubControl);
         // SimHubRole
@@ -119,7 +120,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
     private async Task UpNormal()
     {
         // Hotkey
-        KeyboardUtils.KeyUp(_hotkey);
+        _keyboardUtils.KeyUp(_hotkey);
         // SimHubControl
         await _simHubManager.TriggerInputReleased(_hotkeySettings.SimHubControl);
         // SimHubRole
@@ -132,7 +133,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
     private async Task DownLong()
     {
         // Hotkey
-        KeyboardUtils.KeyDown(_longKeypressHotkey);
+        _keyboardUtils.KeyDown(_longKeypressHotkey);
         // SimHubControl
         await _simHubManager.TriggerInputPressed(_hotkeySettings.SimHubControl);
         // SimHubRole
@@ -142,7 +143,7 @@ public abstract class HotkeyBaseAction<TSettings> : StreamDeckAction<TSettings> 
     private async Task UpLong()
     {
         // Hotkey
-        KeyboardUtils.KeyUp(_longKeypressHotkey);
+        _keyboardUtils.KeyUp(_longKeypressHotkey);
         // SimHubControl
         await _simHubManager.TriggerInputReleased(_hotkeySettings.SimHubControl);
         // SimHubRole

@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2022 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using Microsoft.Extensions.Logging;
@@ -69,6 +69,14 @@ public class PropertyComparer
         }
 
         return new ConditionExpression(parts[0], matchedCondition.op, parts[1]);
+    }
+
+    /// <summary>
+    /// Turns a condition expression into a parsable string.
+    /// </summary>
+    public string ToParsableString(ConditionExpression expression)
+    {
+        return $"{expression.Property} {expression.Operator} {expression.CompareValue}";
     }
 
     /// <summary>
