@@ -305,7 +305,9 @@ int(value: object)
 
 Converts the given value into an integer.
 
-This is useful for formatting purposes. For example, the expression `60 / 10` returns a *floating point* number. If you want to use a formatting string like `{:D2}`, you will get the error message "_Format specifier was invalid_", because `D` is a standard numeric format string for *integer* types. Even using the NCalc built-in functions `floor()`, `truncate()` or `round()` does not fix this, as these functions do not modify the data type. `int(60 / 10)` solves this problem, so that you can use `{:D2}` as a format string.
+This is useful for formatting purposes. For example, the expression `60 / 10` returns a *floating point* number. If you want to use a standard formatting string like `{:D2}` to prepend leading zeros, you will get the error message "_Format specifier was invalid_", because `D` is a standard numeric format string for *integer* types. Even using the NCalc built-in functions like `floor()`, `ceiling()`, `truncate()` or `round()` does not fix this, as these functions do not modify the data type.
+
+`int(60 / 10)` solves this problem, so that you can use `{:D2}` as a format string. For exactly this example (leading zeros), a custom numeric format string can also be used as an alternative: `{:00}` instead of `int()`.
 
 ==== str()
 
@@ -343,13 +345,13 @@ which will output the text `05 / 3.3 / 012` on the button.
 If you are using Euro Truck Simulator 2 (ETS2), an example with real SimHub properties could be:
 ----
 format(
-'Rest\n{0:D}:{1:D2}',
-int(truncate([DataCorePlugin.GameRawData.CommonValues.NextRestStop.Minutes] / 60)),
-int(abs([DataCorePlugin.GameRawData.CommonValues.NextRestStop.Minutes] % 60))
+'Rest\n{0:F0}:{1:00}',
+truncate([DataCorePlugin.GameRawData.CommonValues.NextRestStop.Minutes] / 60),
+abs([DataCorePlugin.GameRawData.CommonValues.NextRestStop.Minutes] % 60)
 )
 ----
 
-This will output the time left (in hours and minutes) until the next rest stop. As the property can have negative values, we want to preserve the sign for the hours, but not for the minutes (which explains the usage of `abs()`). As both values are floating point numbers, we have to convert them to integers with `int()` in order to use the `D` format string. If you have 91 minutes left, the output will be `1:31`, if you are 9 minutes overdue, the output will be `-0:09` (with the text "Rest" on the first line).
+This will output the time left (in hours and minutes) until the next rest stop. As the property can have negative values, we want to preserve the sign for the hours, but not for the minutes (which explains the usage of `abs()` for the minutes). As both values are floating point numbers, we can use the standard numeric format string `:F0` for the hours, and the custom numeric format string `:00` for the minutes to always display two digits with leading zeros if necessary. If you have 91 minutes left, the output will be `1:31`, if you are 9 minutes overdue, the output will be `-0:09` (with the text "Rest" on the first line).
 
 [#shakeit]
 === ShakeIt Bass & ShakeIt Motors Effects
@@ -384,6 +386,8 @@ The screenshot above shows the selected effect group "Audi" in the browser. If "
 == Formatting
 
 Two options are available: A "*simple format*" and a "*full format*". The main difference is, that the "simple format" only allows a width and a format string, whereas the "full format" allows a combination of static text plus the features of the "simple format".
+
+**Note**: If you use an invalid format string in the expression field with the function `format()`, you will usually receive an error message directly below the expression field because the expression is evaluated as you type. If you use an invalid format string in the field "Display Format", you need to check the log file `StreamDeckSimHub.log`, because the entry in "Display Format" is only evaluated during rendering.
 
 === Simple Format
 
