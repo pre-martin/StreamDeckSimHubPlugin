@@ -38,7 +38,7 @@ This video shows the *Generic Button* in action, which was added in version 2.0:
 
 ifdef::env-github[]
 [.text-center]
-image:images/teaser/video-2-thumbnail.png[link=https://youtu.be/nfyrl-_jMVo] +
+image:images/teaser/video-2-thumbnail.jpg[link=https://youtu.be/nfyrl-_jMVo] +
 https://youtu.be/nfyrl-_jMVo[Watch on YouTube]
 endif::[]
 
