@@ -23,13 +23,28 @@ namespace StreamDeckSimHub.Installer
         public string Version => ThisAssembly.AssemblyFileVersion;
 
         private ObservableCollection<IInstallerAction> _installerSteps = new ObservableCollection<IInstallerAction>();
-        public ObservableCollection<IInstallerAction> InstallerSteps { get => _installerSteps; set => SetProperty(ref _installerSteps, value); }
+
+        public ObservableCollection<IInstallerAction> InstallerSteps
+        {
+            get => _installerSteps;
+            set => SetProperty(ref _installerSteps, value);
+        }
 
         private string _result = string.Empty;
-        public string Result { get => _result; set => SetProperty(ref _result, value); }
+
+        public string Result
+        {
+            get => _result;
+            set => SetProperty(ref _result, value);
+        }
 
         private Brush _resultBrush = SuccessBrush;
-        public Brush ResultBrush { get => _resultBrush; set => SetProperty(ref _resultBrush, value); }
+
+        public Brush ResultBrush
+        {
+            get => _resultBrush;
+            set => SetProperty(ref _resultBrush, value);
+        }
 
         private AsyncRelayCommand _installCommand;
         public IAsyncRelayCommand InstallCommand => _installCommand ?? (_installCommand = new AsyncRelayCommand(Install));
@@ -50,7 +65,8 @@ namespace StreamDeckSimHub.Installer
             Application.Current.Dispatcher.Invoke(() => InstallerSteps.Add(checkDotnet));
             if (await checkDotnet.Execute() == ActionResult.Error)
             {
-                SetErrorResultText();
+                SetErrorResultText(
+                    $"Error while checking/installing .NET Desktop Runtime. Please install v{checkDotnet.DotnetRequired} or newer manually and try again.");
                 return;
             }
 
@@ -120,6 +136,12 @@ namespace StreamDeckSimHub.Installer
         private void SetErrorResultText()
         {
             Result = "The installation was NOT successful. Please stop the Stream Deck software manually and try again.";
+            ResultBrush = ErrorBrush;
+        }
+
+        private void SetErrorResultText(string message)
+        {
+            Result = message;
             ResultBrush = ErrorBrush;
         }
     }
