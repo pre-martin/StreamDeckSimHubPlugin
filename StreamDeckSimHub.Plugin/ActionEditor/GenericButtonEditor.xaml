@@ -1,0 +1,199 @@
+﻿<Window x:Class="StreamDeckSimHub.Plugin.ActionEditor.GenericButtonEditor"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
+        xmlns:converters="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Converters"
+        xmlns:views="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Views"
+        xmlns:behaviors="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Behaviors"
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=viewModels:SettingsViewModelDesignTime, IsDesignTimeCreatable=True}"
+        Loaded="OnLoaded"
+        Closed="OnClosed"
+        Icon="/ActionEditor/GenericButtonEditor.ico"
+        Title="{Binding NameForTitle}"
+        Height="800" Width="1000" MinHeight="750" MinWidth="800">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="IconResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <!--<Grid Background="{DynamicResource PiBackground}">-->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250" /> <!-- Sidebar with display items and command items -->
+            <ColumnDefinition Width="*" />   <!-- Detail area -->
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" MinHeight="80" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="*" MinHeight="80" />
+        </Grid.RowDefinitions>
+
+        <!-- display items -->
+        <Grid Grid.Row="0" Grid.Column="0" Margin="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" /> <!-- Header with label and buttons -->
+                <RowDefinition Height="*" />    <!-- list view -->
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Display" FontWeight="Bold" Margin="0,0,0,4" VerticalAlignment="Center" />
+                <ComboBox Grid.Column="1" Width="110" Margin="0,0,4,0" ItemsSource="{Binding DisplayItemTypes}"
+                          SelectedItem="{Binding SelectedAddDisplayItemType}" />
+                <Button Grid.Column="2" Content="Add" Command="{Binding AddSelectedDisplayItemCommand}" Padding="8,0" />
+            </Grid>
+
+            <ListBox Grid.Row="1"
+                     ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     ItemsSource="{Binding DisplayItems}"
+                     SelectedItem="{Binding SelectedDisplayItem, Mode=TwoWay}"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     HorizontalContentAlignment="Stretch">
+                <b:Interaction.Behaviors>
+                    <behaviors:ListBoxDragDropBehavior />
+                </b:Interaction.Behaviors>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListBoxItem}">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid HorizontalAlignment="Stretch">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Image Grid.Column="0" Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,5,0" />
+                            <TextBlock Grid.Column="1" Text="{Binding DisplayName}" VerticalAlignment="Center" />
+                            <Button Grid.Column="2" Background="Transparent" BorderBrush="Transparent" Focusable="False"
+                                    Click="DisplayItemDelete_OnClick">
+                                <Image Source="{StaticResource DiDeleteRounded}" Height="16" />
+                            </Button>
+                            <TextBlock Grid.Column="3" Text="☰" FontSize="16" Cursor="SizeAll" HorizontalAlignment="Right"
+                                       behaviors:ListBoxDragDropBehavior.IsDragHandle="True" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+
+        <GridSplitter Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" />
+
+        <!-- command items -->
+        <Grid Grid.Row="2" Grid.Column="0" Margin="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" /> <!-- Header with label and buttons -->
+                <RowDefinition Height="*" />    <!-- list view -->
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Commands" FontWeight="Bold" Margin="0,0,0,4" VerticalAlignment="Center" />
+                <ComboBox Grid.Column="1" Width="110" Margin="0,0,4,0" ItemsSource="{Binding CommandItemTypes}"
+                          SelectedItem="{Binding SelectedAddCommandItemType}" />
+                <Button Grid.Column="2" Content="Add" Command="{Binding AddSelectedCommandItemCommand}" Padding="8,0" />
+            </Grid>
+
+            <ListBox Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Visible"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     ItemsSource="{Binding FlatCommandItems}"
+                     SelectedItem="{Binding SelectedFlatCommandItem, Mode=TwoWay}"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     HorizontalContentAlignment="Stretch">
+                <b:Interaction.Behaviors>
+                    <behaviors:ListBoxDragDropBehavior DraggableType="{x:Type viewModels:CommandItemViewModel}" />
+                </b:Interaction.Behaviors>
+                <ListBox.Resources>
+                    <DataTemplate DataType="{x:Type viewModels:StreamDeckActionViewModel}">
+                        <Border Background="#EEE" Padding="4" Margin="0,2,0,2" CornerRadius="3">
+                            <TextBlock Text="{Binding Action}" FontWeight="Bold" />
+                        </Border>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type viewModels:CommandItemViewModel}">
+                        <Grid HorizontalAlignment="Stretch" Margin="8,0,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Image Grid.Column="0" Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,5,0" />
+                            <TextBlock Grid.Column="1" Text="{Binding DisplayName}" VerticalAlignment="Center" />
+                            <Button Grid.Column="2" Background="Transparent" BorderBrush="Transparent" Focusable="False"
+                                    Click="CommandItemDelete_OnClick">
+                                <Image Source="{StaticResource DiDeleteRounded}" Height="16" />
+                            </Button>
+                            <TextBlock Grid.Column="3" Text="☰" FontSize="16" Cursor="SizeAll" HorizontalAlignment="Right"
+                                       behaviors:ListBoxDragDropBehavior.IsDragHandle="True" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.Resources>
+            </ListBox>
+        </Grid>
+
+        <!-- The main content for details -->
+        <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="3" Margin="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />    <!-- Name -->
+                <RowDefinition Height="Auto" />    <!-- Separator -->
+                <RowDefinition Height="Auto" />    <!-- Editor (DataTemplate) -->
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" MinWidth="120" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" Content="Button Name:" VerticalAlignment="Center" />
+                <TextBox Grid.Column="1" MinWidth="150"
+                         VerticalContentAlignment="Center"
+                         Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="Is only used for visualization" />
+            </Grid>
+
+            <!-- Separator line -->
+            <Separator Grid.Row="1" Margin="0,0,0,10" />
+
+            <!-- If nothing is selected -->
+            <TextBlock Grid.Row="2" Text="Please select a display item or a command item." Foreground="#888"
+                       Visibility="{Binding IsAnyItemSelected, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+
+            <!-- Detail editor for the specific item -->
+            <ContentControl Grid.Row="2" Content="{Binding SelectedItem}"
+                            Visibility="{Binding IsAnyItemSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                <ContentControl.Resources>
+                    <DataTemplate DataType="{x:Type viewModels:DisplayItemViewModel}">
+                        <views:DisplayItemView />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type viewModels:CommandItemViewModel}">
+                        <views:CommandItemView />
+                    </DataTemplate>
+                </ContentControl.Resources>
+            </ContentControl>
+        </Grid>
+    </Grid>
+</Window>

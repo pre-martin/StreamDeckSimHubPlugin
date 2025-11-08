@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.IO;
@@ -18,7 +18,13 @@ namespace StreamDeckSimHub.Installer.Actions
         protected override Task<ActionResult> ExecuteInternal()
         {
             var installFolder = GetStreamDeckInstallFolder();
-            ProcessTools.StartProcess(Path.Combine(installFolder, "StreamDeck.exe"), installFolder);
+            var streamDeckExePath = Path.Combine(installFolder, "StreamDeck.exe");
+            if (!File.Exists(streamDeckExePath))
+            {
+                SetAndLogError($"File not found: {streamDeckExePath}. Cannot start Stream Deck software.");
+                return Task.FromResult(ActionResult.Warning);
+            }
+            ProcessTools.StartProcess(streamDeckExePath, installFolder);
 
             SetAndLogInfo("Stream Deck software started");
             return Task.FromResult(ActionResult.Success);
@@ -33,7 +39,7 @@ namespace StreamDeckSimHub.Installer.Actions
                 return installPath;
             }
 
-            SetAndLogInfo($"Could not find Stream Deck directory in registry. Using default.");
+            SetAndLogInfo($"Could not find Stream Deck directory in registry. Using default: {Configuration.SimHubDefaultInstallFolder}");
             return Configuration.StreamDeckDefaultInstallFolder;
         }
     }

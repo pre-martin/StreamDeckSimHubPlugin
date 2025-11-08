@@ -1,0 +1,55 @@
+﻿<Window x:Class="StreamDeckSimHub.Plugin.ActionEditor.Dialogs.ShakeItBrowser"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:shakeIt="clr-namespace:StreamDeckSimHub.Plugin.SimHub.ShakeIt"
+        xmlns:dialogs="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Dialogs"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance dialogs:ShakeItBrowserViewModel, IsDesignTimeCreatable=False}"
+        WindowStartupLocation="CenterOwner"
+        Title="ShakeIt Browser" Height="450" Width="800">
+
+    <Window.Resources>
+        <HierarchicalDataTemplate DataType="{x:Type shakeIt:Profile}" ItemsSource="{Binding EffectsContainers}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Grid.Column="0" FontWeight="Bold"
+                           Foreground="DarkSlateGray" />
+            </Grid>
+        </HierarchicalDataTemplate>
+        <HierarchicalDataTemplate DataType="{x:Type shakeIt:EffectsContainerBase}" ItemsSource="{Binding EffectsContainers}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Grid.Column="0" />
+                <!--
+                <ComboBox Width="80" MaxHeight="22" Margin="30,0,0,0" VerticalAlignment="Center" Grid.Column="1">
+                    <ComboBoxItem Content="" />
+                    <ComboBoxItem Content="Gain" />
+                    <ComboBoxItem Content="IsMuted" />
+                </ComboBox>
+                -->
+            </Grid>
+        </HierarchicalDataTemplate>
+    </Window.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TreeView Grid.Row="0" ItemsSource="{Binding ShakeItProfiles}"
+                  SelectedItemChanged="TreeView_SelectedItemChanged" />
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Width="80" Margin="16,0,0,0" IsDefault="True" Click="SelectButton_OnClick" x:Name="SelectButton">Select</Button>
+            <Button Width="80" Margin="16,0,0,0" IsCancel="True">Cancel</Button>
+        </StackPanel>
+    </Grid>
+</Window>

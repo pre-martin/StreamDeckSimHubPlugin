@@ -1,6 +1,7 @@
-﻿// Copyright (C) 2023 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using Microsoft.Extensions.Logging;
 using SharpDeck;
 using SharpDeck.PropertyInspectors;
 using StreamDeckSimHub.Plugin.PropertyLogic;
@@ -29,7 +30,7 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
     private readonly DisplayManager _displayManager;
 
     public HotkeyAction(
-        SimHubConnection simHubConnection, PropertyComparer propertyComparer, ShakeItStructureFetcher shakeItStructureFetcher
+        ISimHubConnection simHubConnection, PropertyComparer propertyComparer, ShakeItStructureFetcher shakeItStructureFetcher
     ) : base(simHubConnection, propertyComparer, true)
     {
         _shakeItStructureFetcher = shakeItStructureFetcher;
@@ -38,6 +39,7 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
 
     private async Task DisplayChangedFunc(IComparable? value, string format)
     {
+        Logger.LogDebug("DisplayChangedFunc ({coords}): value {value} with format {format}", Coordinates, value, format);
         await SetTitle(value, format);
     }
 
@@ -48,8 +50,15 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
     [PropertyInspectorMethod("fetchShakeItBassStructure")]
     public async Task FetchShakeItBassStructure(FetchShakeItStructureArgs args)
     {
-        var profiles = await _shakeItStructureFetcher.FetchBassStructure();
-        await SendToPropertyInspectorAsync(new { message = "shakeItBassStructure", profiles, args.SourceId });
+        try
+        {
+            var profiles = await _shakeItStructureFetcher.FetchBassStructure();
+            await SendToPropertyInspectorAsync(new { message = "shakeItBassStructure", profiles, args.SourceId });
+        }
+        catch (Exception e)
+        {
+            Logger.LogError("Exception while fetching ShakeIt Bass structure: {exMessage}", e.Message);
+        }
     }
 
     /// <summary>
@@ -59,8 +68,15 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
     [PropertyInspectorMethod("fetchShakeItMotorsStructure")]
     public async Task FetchShakeItMotorsStructure(FetchShakeItStructureArgs args)
     {
-        var profiles = await _shakeItStructureFetcher.FetchMotorsStructure();
-        await SendToPropertyInspectorAsync(new { message = "shakeItMotorsStructure", profiles, args.SourceId });
+        try
+        {
+            var profiles = await _shakeItStructureFetcher.FetchMotorsStructure();
+            await SendToPropertyInspectorAsync(new { message = "shakeItMotorsStructure", profiles, args.SourceId });
+        }
+        catch (Exception e)
+        {
+            Logger.LogError("Exception while fetching ShakeIt Motors structure: {exMessage}", e.Message);
+        }
     }
 
     protected override async Task SetSettings(HotkeyActionSettings ac, bool forceSubscribe)
@@ -82,10 +98,12 @@ public class HotkeyAction : HotkeyBaseAction<HotkeyActionSettings>
         try
         {
             await SetTitleAsync(string.Format(format, displayValue));
+            Logger.LogDebug("SetTitle ({coors}): displayValue {displayValue} with format {format}", Coordinates, displayValue, format);
         }
         catch (FormatException)
         {
             await SetTitleAsync(displayValue.ToString());
+            Logger.LogDebug("SetTitle ({coords}): displayValue {displayValue}", Coordinates, displayValue);
         }
     }
 }

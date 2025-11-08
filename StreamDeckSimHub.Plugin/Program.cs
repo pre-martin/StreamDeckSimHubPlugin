@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.IO.Abstractions;
@@ -7,36 +7,52 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using SharpDeck.Extensions.Hosting;
+using StreamDeckSimHub.Plugin.ActionEditor;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.SimHub;
 using StreamDeckSimHub.Plugin.Tools;
 
-// Main entry. Started by Stream Deck with appropriate arguments.
+namespace StreamDeckSimHub.Plugin;
 
-var host = Host.CreateDefaultBuilder()
-    .ConfigureLogging((context, loggingBuilder) =>
-    {
-        loggingBuilder
-            .ClearProviders()
-            .AddNLog();
-    })
-    .UseStreamDeck()
-    .ConfigureServices(ConfigureServices)
-    .Build();
-
-host.Services.GetRequiredService<SimHubConnection>().Run();
-
-host.Run();
-
-
-void ConfigureServices(IServiceCollection serviceCollection)
+/// <summary>
+/// Before the inclusion of WPF, this was the entry point into the plugin. Now it is just a static helper class
+/// to initialize the Hosting environment.
+/// </summary>
+public abstract class Program
 {
-    serviceCollection.AddSingleton<PropertyParser>();
-    serviceCollection.AddSingleton<SimHubConnection>();
-    serviceCollection.AddSingleton<ShakeItStructureFetcher>();
-    serviceCollection.AddSingleton<PropertyComparer>();
-    serviceCollection.AddSingleton<ImageUtils>();
-    serviceCollection.AddSingleton<ImageManager>();
-    serviceCollection.AddSingleton<IFileSystem>(new FileSystem());
-    serviceCollection.AddHostedService<PeriodicBackgroundService>();
+    public static IHost CreateHost(bool devMode = false)
+    {
+        var hostBuilder = Host.CreateDefaultBuilder()
+            .ConfigureLogging((context, loggingBuilder) =>
+            {
+                loggingBuilder
+                    .ClearProviders()
+                    .AddNLog();
+            })
+            .ConfigureServices(ConfigureServices);
+        if (!devMode)
+        {
+            hostBuilder.UseStreamDeck();
+        }
+
+        var host = hostBuilder.Build();
+        return host;
+    }
+
+    static void ConfigureServices(HostBuilderContext context, IServiceCollection serviceCollection)
+    {
+        serviceCollection.Configure<ConnectionSettings>(context.Configuration.GetSection("SimHubConnection"));
+        serviceCollection.AddSingleton<PropertyParser>();
+        serviceCollection.AddSingleton<ISimHubConnection, SimHubConnection>();
+        serviceCollection.AddSingleton<ShakeItStructureFetcher>();
+        serviceCollection.AddSingleton<PropertyComparer>();
+        serviceCollection.AddSingleton<ImageUtils>();
+        serviceCollection.AddSingleton<ImageManager>();
+        serviceCollection.AddSingleton<IFileSystem>(new FileSystem());
+        serviceCollection.AddHostedService<PeriodicBackgroundService>();
+        serviceCollection.AddSingleton<ActionEditorManager>();
+        serviceCollection.AddSingleton<NCalcHandler>();
+        serviceCollection.AddSingleton<SettingsConverter>();
+    }
 }

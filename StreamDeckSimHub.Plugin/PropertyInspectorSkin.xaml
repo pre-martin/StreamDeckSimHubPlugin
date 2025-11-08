@@ -1,0 +1,14 @@
+﻿<ResourceDictionary
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <SolidColorBrush x:Key="PiBackground" Color="#2d2d2d" />
+    <!--
+    <SolidColorBrush x:Key="PiLabelForeground" Color="White" />
+
+    <Style TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource PiLabelForeground}" />
+    </Style>
+    -->
+</ResourceDictionary>
+

@@ -1,0 +1,4 @@
+- Always write code and documentation in English.
+- The project uses CommunityToolkit.Mvvm. Keep this in mind when generating code for view models.
+- The test project uses NUnit and Moq. Use these libraries when generating test code.
+- Add the copyright header with the current year to all new files.

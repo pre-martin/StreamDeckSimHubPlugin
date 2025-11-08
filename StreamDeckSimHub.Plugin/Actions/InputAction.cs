@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2022 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using Microsoft.Extensions.Logging;
@@ -12,17 +12,10 @@ namespace StreamDeckSimHub.Plugin.Actions;
 /// This action sends an input trigger to SimHub.
 /// </summary>
 [StreamDeckAction("net.planetrenner.simhub.input")]
-public class InputAction : StreamDeckAction<InputSettings>
+public class InputAction(ISimHubConnection simHubConnection) : StreamDeckAction<InputSettings>
 {
-    private readonly SimHubConnection _simHubConnection;
-    private InputSettings _inputSettings;
+    private InputSettings _inputSettings = new();
     private bool _simHubTriggerActive;
-
-    public InputAction(SimHubConnection simHubConnection)
-    {
-        _simHubConnection = simHubConnection;
-        _inputSettings = new InputSettings();
-    }
 
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
     {
@@ -41,7 +34,7 @@ public class InputAction : StreamDeckAction<InputSettings>
         {
             Logger.LogWarning("SimHub trigger still active. Sending \"released\" command");
             _simHubTriggerActive = false;
-            await _simHubConnection.SendTriggerInputReleased(_inputSettings.SimHubControl);
+            await simHubConnection.SendTriggerInputReleased(_inputSettings.SimHubControl);
         }
 
         await base.OnWillDisappear(args);
@@ -61,7 +54,7 @@ public class InputAction : StreamDeckAction<InputSettings>
         if (!string.IsNullOrWhiteSpace(_inputSettings.SimHubControl))
         {
             _simHubTriggerActive = true;
-            await _simHubConnection.SendTriggerInputPressed(_inputSettings.SimHubControl);
+            await simHubConnection.SendTriggerInputPressed(_inputSettings.SimHubControl);
         }
 
         await base.OnKeyDown(args);
@@ -72,7 +65,7 @@ public class InputAction : StreamDeckAction<InputSettings>
         if (!string.IsNullOrWhiteSpace(_inputSettings.SimHubControl))
         {
             _simHubTriggerActive = false;
-            await _simHubConnection.SendTriggerInputReleased(_inputSettings.SimHubControl);
+            await simHubConnection.SendTriggerInputReleased(_inputSettings.SimHubControl);
         }
 
         await base.OnKeyUp(args);

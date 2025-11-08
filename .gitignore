@@ -1,5 +1,5 @@
-/.idea
-/*.DotSettings.user
+.idea
+*.DotSettings.user
 .vs/
 
 bin/

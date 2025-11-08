@@ -12,10 +12,14 @@ try {
     Remove-Item "..\build\*" -Recurse
 
     Copy-Item "$PublishDir" -Destination "..\build" -Recurse
+    Copy-Item -Path ..\Icons -Destination ..\build\publish\images\custom\@core -Recurse -Force
     Pushd ..\build
     Rename-Item -Path "publish" -NewName "net.planetrenner.simhub.sdPlugin" -ErrorAction Stop
 
-    ..\..\DistributionTool.exe -b -i net.planetrenner.simhub.sdPlugin -o .
+    streamdeck bundle net.planetrenner.simhub.sdPlugin
+    if ($? -eq $False) {
+        Exit 1
+    }
 
     Popd
 }

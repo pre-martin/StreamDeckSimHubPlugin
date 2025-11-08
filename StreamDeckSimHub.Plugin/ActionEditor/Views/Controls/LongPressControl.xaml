@@ -1,0 +1,27 @@
+﻿<UserControl x:Class="StreamDeckSimHub.Plugin.ActionEditor.Views.Controls.LongPressControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=viewModels:CommandItemViewModel}"
+             d:DesignHeight="30" d:DesignWidth="750">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" MinWidth="120" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0">Long Keypress:</Label>
+        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
+            <CheckBox IsChecked="{Binding LongEnabled}" VerticalContentAlignment="Center">
+                Enabled
+            </CheckBox>
+        </StackPanel>
+    </Grid>
+</UserControl>

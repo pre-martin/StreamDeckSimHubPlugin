@@ -1,8 +1,10 @@
 @echo off
 setlocal
 
-rem Script to deploy locally.
+rem Script to build deploy locally.
 rem Also allows to deploy with the same "version" in manifest.json as already installed.
+rem
+rem Requires Node with StreamDeck CLI installed. See "doc/Release.adoc"
 
 set CONFIG=Release
 if "%1%" == "debug" set CONFIG=Debug

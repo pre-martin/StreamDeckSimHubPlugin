@@ -18,15 +18,16 @@ namespace StreamDeckSimHub.Installer.Actions
         {
             if (Directory.Exists(Path.Combine(Configuration.StreamDeckPluginDir, Configuration.PluginDirName)))
             {
-                SetAndLogInfo("Deleting existing Stream Deck SimHub Plugin");
-                var result = DeleteExistingInstallation(Path.Combine(Configuration.StreamDeckPluginDir, Configuration.PluginDirName));
+                var pluginDir = Path.Combine(Configuration.StreamDeckPluginDir, Configuration.PluginDirName);
+                SetAndLogInfo($"Deleting existing Stream Deck SimHub Plugin from {pluginDir}");
+                var result = DeleteExistingInstallation(pluginDir);
                 if (!result)
                 {
                     return Task.FromResult(ActionResult.Error);
                 }
             }
 
-            SetAndLogInfo("Installing Stream Deck SimHub Plugin");
+            SetAndLogInfo($"Installing Stream Deck SimHub Plugin to {Configuration.StreamDeckPluginDir}");
             if (!ExtractPlugin(Configuration.StreamDeckPluginDir))
             {
                 return Task.FromResult(ActionResult.Error);

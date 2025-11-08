@@ -1,17 +1,54 @@
 = Release Process
 
-. If there is no release branch yet for the current version: +
+[#requirements]
+== Requirements
+
+. Node (`nvm install --lts`, `nvm use --lts`)
+. StreamDeck CLI (`npm install -g @elgato/cli`)
+
+== Git
+
+. Switch to the `develop` branch: +
+   `git switch develop`
+. Create a release branch based on `version.json`: +
    `nbgv prepare-release`
+. Push the `develop` branch as nbgv updated the version number: +
+   `git push`
 . Switch to the release branch: +
    `git switch release/v1.2`
-. Push the release branch
+. Push the release branch: +
+   `git push origin release/v1.2`
+
+The release branch can be used to further stabilize the release. If there are any changes made to the release branch, they should be merged back into the `develop` branch as well.
+
+When the release is ready, the following steps are taken:
+
+. Merge the release branch into the `main` branch: +
+  - `git switch main`
+  - `git merge --no-ff release/v1.2`
+  - `git push`
 . Create a tag and push it afterward:
-    - `nbgv tag`
-    - `git push origin v1.2`
+  - `nbgv tag`
+  - `git push origin v1.2`
 . Build the plugin:
-    - `dotnet build StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c Release`
-    - `dotnet publish StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c Release`
+  - see below
+. Create a release in GitHub from the tag and attach
+  - the file `StreamDeckSimHub.Installer-vX.Y.z.exe`
+  - the file `net.planetrenner.simhub.streamDeckPlugin`
+. Merge the main branch back into the `develop` branch: +
+  `git switch develop` +
+  `git merge --no-ff main` +
+  `git push`
+
+== Build
+
+[IMPORTANT]
+See <<requirements>> above, if the PowerShell script is failing!
+
+. Build the plugin:
+  - `dotnet build StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c Release`
+  - `dotnet publish StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c Release`
 . Build the installer:
-    - `dotnet publish StreamDeckSimHub.Installer\StreamDeckSimHub.Installer.csproj -c Release`
-. Create a release in GitHub from the tag and attach the file `StreamDeckSimHub.Installer-vX.Y.z.exe`
-. Push the main branch.
+  - `MSBuild.exe" /p:Configuration=Release /p:Platform="Any CPU"`
+
+All three commands are combined in `deployInstaller.bat`

@@ -25,13 +25,26 @@ This *video* shows some of the features:
 
 ifdef::env-github[]
 [.text-center]
-image:images/teaser/video-1-thumpnail.png[link=https://youtu.be/st_pZHmmHxY,800] +
+image:images/teaser/video-1-thumbnail.png[link=https://youtu.be/st_pZHmmHxY,800] +
 https://youtu.be/st_pZHmmHxY[Watch on YouTube]
 endif::[]
 
 ifndef::env-github[]
 [.text-center]
 video::st_pZHmmHxY[youtube,800,450]
+endif::[]
+
+This video shows the *Generic Button* in action, which was added in version 2.0:
+
+ifdef::env-github[]
+[.text-center]
+image:images/teaser/video-2-thumbnail.jpg[link=https://youtu.be/nfyrl-_jMVo] +
+https://youtu.be/nfyrl-_jMVo[Watch on YouTube]
+endif::[]
+
+ifndef::env-github[]
+[.text-center]
+video::nfyrl-_jMVo[youtube,800,450]
 endif::[]
 
 In the screenshot below, icons are green because they are "on" in the simulation or in SimHub.
