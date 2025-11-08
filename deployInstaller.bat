@@ -14,6 +14,10 @@ echo.
 
 dotnet build StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c %CONFIG%
 dotnet publish StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c %CONFIG%
+if %errorlevel% neq 0 (
+    echo Failed to build/publish StreamDeckSimHub.Plugin
+    exit /b %errorlevel%
+)
 
 cd StreamDeckSimHub.Installer
 "C:\Program Files\Microsoft Visual Studio\2022\Community\Msbuild\Current\Bin\amd64\MSBuild.exe" /p:Configuration=%CONFIG% /p:Platform="Any CPU"
