@@ -1,5 +1,6 @@
 = Release Process
 
+[#requirements]
 == Requirements
 
 . Node (`nvm install --lts`, `nvm use --lts`)
@@ -41,9 +42,13 @@ When the release is ready, the following steps are taken:
 
 == Build
 
+[IMPORTANT]
+See <<requirements>> above, if the PowerShell script is failing!
+
 . Build the plugin:
-    - `dotnet build StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c Release`
-    - `dotnet publish StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c Release`
+  - `dotnet build StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c Release`
+  - `dotnet publish StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c Release`
 . Build the installer:
-    - `MSBuild.exe" /p:Configuration=Release /p:Platform="Any CPU"`
-. All 3 of the above are combined in `deployInstaller.bat`
+  - `MSBuild.exe" /p:Configuration=Release /p:Platform="Any CPU"`
+
+All three commands are combined in `deployInstaller.bat`
