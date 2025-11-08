@@ -32,7 +32,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
         }
         catch (Exception e)
         {
-            Logger.Error(e, "Failed to deserialize items from strings in SettingsDto.");
+            Logger.Error(e, "Failed to deserialize items from strings in SettingsDto (Name=\"{0}\")", dto.Name);
         }
 
         var settings = new Settings
