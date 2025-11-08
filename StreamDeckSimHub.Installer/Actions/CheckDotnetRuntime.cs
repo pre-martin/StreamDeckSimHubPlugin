@@ -14,10 +14,10 @@ namespace StreamDeckSimHub.Installer.Actions
     public class CheckDotnetRuntime : AbstractInstallerAction
     {
         private readonly Regex _dotnetDesktop = new Regex(@"Microsoft.WindowsDesktop.App (\d+\.\d+\.\d+).*", RegexOptions.IgnoreCase);
-        private readonly Version _dotnetRequired = new Version(8, 0, 10);
-        private const string BaseUrl = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/8.0.15/";
-        private const string InstallerName = "windowsdesktop-runtime-8.0.15-win-x64.exe";
-        private const string InstallerHash = "c5f12718adcd48cf8689f080de7799071cbe8f35b0fc9ce7a80f13812137c868004ccd5ea035d8e443216e70e15fdfcf013556c7cb3b1b02636acb0323b3574e";
+        public readonly Version DotnetRequired = new Version(8, 0, 21);
+        private const string BaseUrl = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/8.0.21/";
+        private const string InstallerName = "windowsdesktop-runtime-8.0.21-win-x64.exe";
+        private const string InstallerHash = "10b837434f08ea2bae299fda5665e4e0539116d52b4101202a1e4255ad40474329d41a82bb3129ce44d61aaa49c92d0b6ae9cdfa04fee88e6239d26beff65775";
         private readonly string _installerFile = Path.Combine(Path.GetTempPath(), InstallerName);
 
         public override string Name => "Checking .NET Desktop Runtime version";
@@ -44,7 +44,7 @@ namespace StreamDeckSimHub.Installer.Actions
                     if (match.Groups.Count >= 2)
                     {
                         var candidate = new Version(match.Groups[1].Value);
-                        if (candidate.Major == _dotnetRequired.Major && candidate >= _dotnetRequired)
+                        if (candidate.Major == DotnetRequired.Major && candidate >= DotnetRequired)
                         {
                             SetAndLogInfo($"Found .NET Desktop Runtime version {candidate}");
                             result = true;
@@ -69,7 +69,7 @@ namespace StreamDeckSimHub.Installer.Actions
         {
             try
             {
-                SetAndLogInfo($"Downloading .NET Desktop Runtime {_dotnetRequired}");
+                SetAndLogInfo($"Downloading .NET Desktop Runtime {DotnetRequired}");
 
                 var webClient = new WebClient();
                 await webClient.DownloadFileTaskAsync(BaseUrl + InstallerName, _installerFile);
@@ -98,18 +98,18 @@ namespace StreamDeckSimHub.Installer.Actions
 
         private bool Install()
         {
-            SetAndLogInfo($"Installing .NET Desktop Runtime {_dotnetRequired}");
+            SetAndLogInfo($"Installing .NET Desktop Runtime {DotnetRequired}");
             // see https://learn.microsoft.com/en-us/dotnet/core/install/windows#command-line-options
             var exitCode = ProcessTools.RunCommand($"{_installerFile} /install /quiet /norestart", out var output);
             LogInfo($"Installer exited with code {exitCode}");
             File.Delete(_installerFile);
             if (exitCode == 0 || exitCode == 3010)
             {
-                SetAndLogInfo($"Installed .NET Desktop Runtime {_dotnetRequired}");
+                SetAndLogInfo($"Installed .NET Desktop Runtime {DotnetRequired}");
                 return true;
             }
 
-            SetAndLogInfo($"Possible probleme while installing .NET Desktop Runtime {_dotnetRequired}: Exit code {exitCode}");
+            SetAndLogInfo($"Possible probleme while installing .NET Desktop Runtime {DotnetRequired}: Exit code {exitCode}");
             return false;
         }
    }
