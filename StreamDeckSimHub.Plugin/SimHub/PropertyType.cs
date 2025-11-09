@@ -74,6 +74,13 @@ public static class PropertyTypeEx
             }
             case PropertyType.String:
             {
+                if (propertyValue.StartsWith("{base64}"))
+                {
+                    // Decode base64 string.
+                    var base64String = propertyValue[8..];
+                    var bytes = Convert.FromBase64String(base64String);
+                    return System.Text.Encoding.UTF8.GetString(bytes);
+                }
                 return propertyValue;
             }
             case PropertyType.Object:
