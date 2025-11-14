@@ -46,7 +46,7 @@ namespace StreamDeckSimHub.Installer.Actions
             }
             else
             {
-                SetAndLogInfo("Plugin is not running.");
+                SetAndLogInfo("Plugin is not running, stopping not required.");
             }
 
             SetAndLogInfo("The Stream Deck software stopped.");
