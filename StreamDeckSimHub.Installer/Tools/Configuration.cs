@@ -26,6 +26,6 @@ namespace StreamDeckSimHub.Installer.Tools
         public static readonly string SimHubDefaultInstallFolder = Path.Combine("C:", "Program Files (x86)", "SimHub");
 
         public const string SimHubPluginUrl = "https://github.com/pre-martin/SimHubPropertyServer";
-        public static readonly Version RequiredSimHubPluginVersion = new Version(1, 9, 6);
+        public static readonly Version RequiredSimHubPluginVersion = new Version(1, 12, 0);
     }
 }
