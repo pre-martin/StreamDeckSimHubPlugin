@@ -18,6 +18,24 @@ namespace StreamDeckSimHub.Installer.Actions
         protected override Task<ActionResult> ExecuteInternal()
         {
             var installFolder = GetStreamDeckInstallFolder();
+            if (!string.IsNullOrEmpty(installFolder))
+            {
+                if (File.Exists(Path.Combine(installFolder, "StreamDeck.exe")))
+                {
+                    SetAndLogInfo($"Found Stream Deck directory in registry and verified executable: \"{installFolder}\"");
+                }
+                else
+                {
+                    SetAndLogInfo($"Found Stream Deck directory in registry \"{installFolder}\", but executable not found. Using default: {Configuration.StreamDeckDefaultInstallFolder}");
+                    installFolder = Configuration.StreamDeckDefaultInstallFolder;
+                }
+            }
+            else
+            {
+                SetAndLogInfo($"Could not find Stream Deck directory in registry. Using default: {Configuration.SimHubDefaultInstallFolder}");
+                installFolder = Configuration.StreamDeckDefaultInstallFolder;
+            }
+
             var streamDeckExePath = Path.Combine(installFolder, "StreamDeck.exe");
             if (!File.Exists(streamDeckExePath))
             {
@@ -33,14 +51,7 @@ namespace StreamDeckSimHub.Installer.Actions
         private string GetStreamDeckInstallFolder()
         {
             var installPath = (string)Registry.GetValue(Configuration.StreamDeckRegistryFolder, Configuration.StreamDeckRegistryInstallFolder, null);
-            if (!string.IsNullOrEmpty(installPath))
-            {
-                SetAndLogInfo($"Found Stream Deck directory in registry: {installPath}");
-                return installPath;
-            }
-
-            SetAndLogInfo($"Could not find Stream Deck directory in registry. Using default: {Configuration.SimHubDefaultInstallFolder}");
-            return Configuration.StreamDeckDefaultInstallFolder;
+            return installPath;
         }
     }
 }
