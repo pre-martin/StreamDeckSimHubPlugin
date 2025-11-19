@@ -32,7 +32,7 @@ namespace StreamDeckSimHub.Installer.Actions
             }
             else
             {
-                SetAndLogInfo($"Could not find Stream Deck directory in registry. Using default: {Configuration.SimHubDefaultInstallFolder}");
+                SetAndLogInfo($"Could not find Stream Deck directory in registry. Using default: {Configuration.StreamDeckDefaultInstallFolder}");
                 installFolder = Configuration.StreamDeckDefaultInstallFolder;
             }
 
