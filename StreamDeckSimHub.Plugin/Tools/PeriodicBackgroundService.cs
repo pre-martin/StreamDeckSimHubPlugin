@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using Microsoft.Extensions.Hosting;
@@ -6,6 +6,9 @@ using NLog;
 
 namespace StreamDeckSimHub.Plugin.Tools;
 
+/// <summary>
+/// This background service triggers a 'Tick' event every 100 milliseconds.
+/// </summary>
 public class PeriodicBackgroundService : BackgroundService
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();

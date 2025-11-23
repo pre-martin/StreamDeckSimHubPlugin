@@ -2,7 +2,6 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Windows;
-using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NLog;
@@ -10,6 +9,7 @@ using StreamDeckSimHub.Plugin.ActionEditor;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.SimHub;
 using StreamDeckSimHub.Plugin.Tools;
+using StreamDeckSimHub.Plugin.Tools.AutoUpdate;
 
 namespace StreamDeckSimHub.Plugin;
 
@@ -25,7 +25,38 @@ public partial class App
         var localDevMode = Environment.GetCommandLineArgs().Length == 2 && Environment.GetCommandLineArgs()[1] == "dev";
         _host = Program.CreateHost(localDevMode);
         LogManager.GetCurrentClassLogger().Info("Starting StreamDeckSimHub plugin {version}", ThisAssembly.AssemblyFileVersion);
+    }
 
+    private async void Application_Startup(object sender, StartupEventArgs e)
+    {
+        try
+        {
+            var simHubConnection = _host.Services.GetRequiredService<ISimHubConnection>();
+            if (simHubConnection is SimHubConnection shc)
+            {
+                shc.Run();
+            }
+            await _host.StartAsync();
+        }
+        catch (Exception ex)
+        {
+            LogManager.GetCurrentClassLogger().Error(ex, "Error during application startup");
+        }
+
+
+        var localDevMode = Environment.GetCommandLineArgs().Length == 2 && Environment.GetCommandLineArgs()[1] == "dev";
+
+        if (localDevMode)
+        {
+            UpdateStatus.LatestVersion = new Version("99.99.1");
+        }
+        else
+        {
+            // Run version check in the background. We use it only in the GenericButtonEditor, which is not yet opened.
+            _ = GetLatestVersionAsync();
+        }
+
+        // Developer mode: Open a Generic Button Editor directly for testing
         if (localDevMode)
         {
             var settings = new Settings
@@ -47,29 +78,28 @@ public partial class App
         }
     }
 
-    private async void Application_Startup(object sender, StartupEventArgs e)
-    {
-        try
-        {
-            var simHubConnection = _host.Services.GetRequiredService<ISimHubConnection>();
-            if (simHubConnection is SimHubConnection shc)
-            {
-                shc.Run();
-            }
-            WeakReferenceMessenger.Default.RegisterAll(this);
-            await _host.StartAsync();
-        }
-        catch (Exception ex)
-        {
-            LogManager.GetCurrentClassLogger().Error(ex, "Error during application startup");
-        }
-    }
-
     private async void Application_Exit(object sender, ExitEventArgs e)
     {
         using (_host)
         {
             await _host.StopAsync();
+        }
+    }
+
+    private async Task GetLatestVersionAsync()
+    {
+        try
+        {
+            var updater = _host.Services.GetRequiredService<AutoUpdater>();
+            var versionInfo = await updater.GetLatestVersion();
+            UpdateStatus.LatestVersion = new Version(versionInfo.TagName);
+            UpdateStatus.LatestVersionException = null;
+        }
+        catch (Exception ex)
+        {
+            LogManager.GetCurrentClassLogger().Error($"Error checking for new version: {ex.Message}");
+            UpdateStatus.LatestVersion = null;
+            UpdateStatus.LatestVersionException = ex;
         }
     }
 }
