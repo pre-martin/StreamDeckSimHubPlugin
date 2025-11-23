@@ -50,7 +50,9 @@ namespace StreamDeckSimHub.Installer.Actions
 
         private string GetStreamDeckInstallFolder()
         {
-            var installPath = (string)Registry.GetValue(Configuration.StreamDeckRegistryFolder, Configuration.StreamDeckRegistryInstallFolder, null);
+            // Try the new registry location first, then the old one.
+            var installPath = (string)Registry.GetValue(Configuration.StreamDeckSetupRegistryFolder, Configuration.StreamDeckRegistryInstallFolder, null) ??
+                              (string)Registry.GetValue(Configuration.StreamDeckRegistryFolder, Configuration.StreamDeckRegistryInstallFolder, null);
             return installPath;
         }
     }
