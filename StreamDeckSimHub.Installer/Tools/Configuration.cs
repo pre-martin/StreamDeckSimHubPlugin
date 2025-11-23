@@ -12,8 +12,9 @@ namespace StreamDeckSimHub.Installer.Tools
         public const string PluginProcessName = "StreamDeckSimHub";
 
         public const string StreamDeckRegistryFolder = @"HKEY_CURRENT_USER\SOFTWARE\Elgato Systems GmbH\StreamDeck";
+        public const string StreamDeckSetupRegistryFolder = @"HKEY_CURRENT_USER\SOFTWARE\Elgato Systems GmbH\StreamDeck (Setup)";
         public const string StreamDeckRegistryInstallFolder = "InstallDir";
-        public static readonly string StreamDeckDefaultInstallFolder = Path.Combine("C:", "Program Files", "Elgato", "StreamDeck");
+        public static readonly string StreamDeckDefaultInstallFolder = Path.Combine(@"C:\", "Program Files", "Elgato", "StreamDeck");
 
         public static readonly string AppDataRoaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         public static readonly string StreamDeckPluginDir = Path.Combine(AppDataRoaming, "Elgato", "StreamDeck", "Plugins");
