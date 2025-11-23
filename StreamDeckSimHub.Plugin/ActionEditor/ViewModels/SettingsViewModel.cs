@@ -3,21 +3,20 @@
 
 using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using NLog;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.Actions.Model;
 using StreamDeckSimHub.Plugin.SimHub;
 using StreamDeckSimHub.Plugin.SimHub.ShakeIt;
 using StreamDeckSimHub.Plugin.Tools;
+using StreamDeckSimHub.Plugin.Tools.AutoUpdate;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject, IViewModel
 {
-    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
     private readonly Settings _settings;
     private readonly ImageManager _imageManager;
     private readonly ISimHubConnection _simHubConnection;
@@ -36,6 +35,10 @@ public partial class SettingsViewModel : ObservableObject, IViewModel
     }
 
     public string NameForTitle => string.IsNullOrWhiteSpace(Name) ? "Generic Button Editor" : "Generic Button Editor: " + Name;
+
+    [ObservableProperty] private string _version = "Version " + ThisAssembly.AssemblyFileVersion;
+    [ObservableProperty] private string _newVersion = string.Empty;
+    [ObservableProperty] private Brush _newVersionBrush = Brushes.Transparent;
 
     /// List of DisplayItems (as ViewModels).
     public ObservableCollection<DisplayItemViewModel> DisplayItems { get; }
@@ -93,6 +96,22 @@ public partial class SettingsViewModel : ObservableObject, IViewModel
             {
                 FlatCommandItems.Add(CommandItemToViewModel(commandItem, kvp.Key));
             }
+        }
+
+        var currentVersion = new Version(ThisAssembly.AssemblyFileVersion);
+        if (UpdateStatus.LatestVersionException != null)
+        {
+            NewVersion = $"Error checking for new version: {UpdateStatus.LatestVersionException.Message}";
+        }
+        else if (UpdateStatus.LatestVersion != null && UpdateStatus.LatestVersion > currentVersion)
+        {
+            NewVersion = $"New version available: {UpdateStatus.LatestVersion}";
+            NewVersionBrush = new SolidColorBrush(Color.FromRgb(170, 80, 80));
+        }
+        else
+        {
+            NewVersion = "You are using the latest version.";
+            NewVersionBrush = new SolidColorBrush(Color.FromRgb(30, 120, 30));
         }
     }
 

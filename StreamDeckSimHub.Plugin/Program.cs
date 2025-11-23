@@ -12,6 +12,7 @@ using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.SimHub;
 using StreamDeckSimHub.Plugin.Tools;
+using StreamDeckSimHub.Plugin.Tools.AutoUpdate;
 
 namespace StreamDeckSimHub.Plugin;
 
@@ -54,5 +55,6 @@ public abstract class Program
         serviceCollection.AddSingleton<ActionEditorManager>();
         serviceCollection.AddSingleton<NCalcHandler>();
         serviceCollection.AddSingleton<SettingsConverter>();
+        serviceCollection.AddSingleton<AutoUpdater>();
     }
 }
