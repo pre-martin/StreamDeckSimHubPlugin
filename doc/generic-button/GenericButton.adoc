@@ -408,6 +408,8 @@ Technically, the above syntax is the inner part of a C# format string. For detai
 * https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-string-format#the-format-item
 * https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-numeric-format-strings
 * https://learn.microsoft.com/en-us/dotnet/standard/base-types/custom-numeric-format-strings
+* https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings
+* https://learn.microsoft.com/en-us/dotnet/standard/base-types/custom-date-and-time-format-strings
 * https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-timespan-format-strings
 * https://learn.microsoft.com/en-us/dotnet/standard/base-types/custom-timespan-format-strings
 

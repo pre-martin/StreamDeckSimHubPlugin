@@ -34,6 +34,7 @@ public class PropertyParser
             "long" => PropertyType.Long,
             "double" => PropertyType.Double,
             "timespan" => PropertyType.TimeSpan,
+            "datetime" => PropertyType.DateTime,
             "string" => PropertyType.String,
             "object" => PropertyType.Object,
             "(unknown)" => PropertyType.Object, // Unknown type, but we can parse it as object.
