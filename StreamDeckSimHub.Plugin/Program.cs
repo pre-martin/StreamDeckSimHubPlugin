@@ -55,6 +55,7 @@ public abstract class Program
         serviceCollection.AddSingleton<ActionEditorManager>();
         serviceCollection.AddSingleton<NCalcHandler>();
         serviceCollection.AddSingleton<SettingsConverter>();
+        serviceCollection.AddSingleton<ItemScaler>();
         serviceCollection.AddSingleton<AutoUpdater>();
     }
 }

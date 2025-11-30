@@ -39,5 +39,10 @@ public partial class DisplayItemValue : DisplayItem
     {
         return new DisplayItemValue();
     }
+
+    public override async Task Accept(IDisplayItemVisitor displayItemVisitor, IVisitorArgs? args = null)
+    {
+        await displayItemVisitor.Visit(this, args);
+    }
 }
 

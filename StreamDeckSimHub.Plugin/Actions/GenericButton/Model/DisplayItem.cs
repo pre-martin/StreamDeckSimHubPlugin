@@ -8,4 +8,6 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 public abstract partial class DisplayItem : Item
 {
     [ObservableProperty] private DisplayParameters _displayParameters = new();
+
+    public abstract Task Accept(IDisplayItemVisitor displayItemVisitor, IVisitorArgs? args = null);
 }
