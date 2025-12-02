@@ -467,3 +467,12 @@ FPS: {5:F1}
 ----
 
 Line breaks are also allowed, therefore a line break could be inserted in this example between `Bias:` and `{:F1}`, so that the entire content fits better on a button.
+
+
+== Export and Import
+
+Profiles containing Generic Button actions can be exported and imported like any other Stream Deck profile, via Settings -> Profiles -> Export or by double-clicking the "streamDeckProfile" file (import).
+
+However, there is one special aspect to note: *The images used are not exported or imported* (because the Generic Button manages the images itself instead of using the limited functionality of the Stream Deck software). Therefore, the images themselves must be copied manually from or to `%APPDATA%\Elgato\StreamDeck\Plugins\net.planetrenner.simhub.sdPlugin\images\custom`.
+
+When importing into a Stream Deck device with a different resolution (e.g. importing from a standard-res Stream Deck to a high-res Stream Deck), the plugin automatically scales the display elements to the size of the target device.
