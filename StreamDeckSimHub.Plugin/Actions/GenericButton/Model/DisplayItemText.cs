@@ -22,4 +22,9 @@ public partial class DisplayItemText : DisplayItem
     {
         return new DisplayItemText();
     }
+
+    public override async Task Accept(IDisplayItemVisitor displayItemVisitor, IVisitorArgs? args = null)
+    {
+        await displayItemVisitor.Visit(this, args);
+    }
 }

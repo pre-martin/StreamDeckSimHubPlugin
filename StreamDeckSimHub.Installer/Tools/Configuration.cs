@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Martin Renner
+﻿// Copyright (C) 2025 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System;
@@ -24,9 +24,9 @@ namespace StreamDeckSimHub.Installer.Tools
 
         public const string SimHubRegistryFolder = @"HKEY_CURRENT_USER\Software\SimHub";
         public const string SimHubRegistryInstallFolder = "InstallDirectory";
-        public static readonly string SimHubDefaultInstallFolder = Path.Combine("C:", "Program Files (x86)", "SimHub");
+        public static readonly string SimHubDefaultInstallFolder = Path.Combine(@"C:\", "Program Files (x86)", "SimHub");
 
         public const string SimHubPluginUrl = "https://github.com/pre-martin/SimHubPropertyServer";
-        public static readonly Version RequiredSimHubPluginVersion = new Version(1, 12, 0);
+        public static readonly Version RequiredSimHubPluginVersion = new Version(1, 13, 0);
     }
 }

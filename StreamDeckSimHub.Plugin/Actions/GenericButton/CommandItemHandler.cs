@@ -269,12 +269,6 @@ public class CommandItemHandler(ISimHubConnection simHubConnection, IKeyboardUti
     #endregion
 }
 
-internal class SalHandlerArgs(StreamDeckAction action) : IHandlerArgs
-{
-    public StreamDeckAction Action { get; } = action;
-}
+internal record SalHandlerArgs(StreamDeckAction Action) : IHandlerArgs;
 
-internal class DialVisitorArgs(int ticks) : IVisitorArgs
-{
-    public int Ticks { get; } = ticks;
-}
+internal record DialVisitorArgs(int Ticks) : IVisitorArgs;

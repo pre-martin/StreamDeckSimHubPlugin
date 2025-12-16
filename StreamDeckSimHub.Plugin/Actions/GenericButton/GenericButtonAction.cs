@@ -29,6 +29,7 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton;
 public class GenericButtonAction : StreamDeckAction<SettingsDto>
 {
     private readonly SettingsConverter _settingsConverter;
+    private readonly ItemScaler _itemScaler;
     private readonly ImageManager _imageManager;
     private readonly ActionEditorManager _actionEditorManager;
     private readonly ISimHubConnection _simHubConnection;
@@ -45,12 +46,14 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
 
     public GenericButtonAction(
         SettingsConverter settingsConverter,
+        ItemScaler itemScaler,
         ImageManager imageManager,
         ActionEditorManager actionEditorManager,
         ISimHubConnection simHubConnection,
         NCalcHandler ncalcHandler)
     {
         _settingsConverter = settingsConverter;
+        _itemScaler = itemScaler;
         _imageManager = imageManager;
         _actionEditorManager = actionEditorManager;
         _simHubConnection = simHubConnection;
@@ -251,10 +254,17 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         }
         else if (settings.KeySize != sdKeyInfo.KeySize)
         {
-            // GenericButton is used on a different StreamDeck key. Scale it.
-            // TODO Scale, update KeyInfo and save config with SetSettings()
-            Logger.LogWarning("({coords}) Key size changed from {old} to {new}", _coordinates, settings.KeySize,
-                sdKeyInfo.KeySize);
+            // GenericButton is used on a StreamDeck key/dial with different size. Scale it.
+            Logger.LogWarning("({coords}) Action is being used on a key/dial with different size ({old} to {new})",
+                _coordinates, settings.KeySize, sdKeyInfo.KeySize);
+
+            var scaleFactorX = (float)sdKeyInfo.KeySize.Width / settings.KeySize.Width;
+            var scaleFactorY = (float)sdKeyInfo.KeySize.Height / settings.KeySize.Height;
+            await _itemScaler.ScaleDisplayItems(settings.DisplayItems, scaleFactorX, scaleFactorY);
+            settings.KeySize = sdKeyInfo.KeySize;
+            settingsModified = true;
+            Logger.LogInformation("({coords}) Scaled action by factors x={fx:F2}, y={fy:F2}",
+                _coordinates, scaleFactorX, scaleFactorY);
         }
 
         if (settingsModified)

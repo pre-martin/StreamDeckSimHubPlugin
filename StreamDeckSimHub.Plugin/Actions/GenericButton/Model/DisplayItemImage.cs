@@ -23,4 +23,9 @@ public partial class DisplayItemImage : DisplayItem
     {
         return new DisplayItemImage();
     }
+
+    public override async Task Accept(IDisplayItemVisitor displayItemVisitor, IVisitorArgs? args = null)
+    {
+        await displayItemVisitor.Visit(this, args);
+    }
 }
