@@ -60,7 +60,7 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Update="manifest.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Update="pi\js\common.js">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

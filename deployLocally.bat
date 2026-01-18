@@ -15,7 +15,7 @@ echo.
 
 
 dotnet build StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c %CONFIG%
-dotnet publish StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c %CONFIG%
+dotnet publish StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c %CONFIG% -v:diag
 if %errorlevel% neq 0 exit /b 1
 
 
@@ -23,8 +23,13 @@ if %errorlevel% neq 0 exit /b 1
 taskkill /im StreamDeck.exe /t /f
 timeout 1 > nul
 
+taskkill /im StreamDock.exe /t /f
+timeout 1 > nul
+
 cd build
 xcopy net.planetrenner.simhub.sdPlugin "%AppData%\Elgato\StreamDeck\Plugins\net.planetrenner.simhub.sdPlugin\" /e /y /q
+xcopy net.planetrenner.simhub.sdPlugin "%AppData%\HotSpot\StreamDock\Plugins\net.planetrenner.simhub.sdPlugin\" /e /y /q
 cd ..
 
 start /d "%ProgramFiles%\Elgato\StreamDeck" StreamDeck.exe
+start /d "%ProgramFiles(x86)%\StreamDock" StreamDock.exe

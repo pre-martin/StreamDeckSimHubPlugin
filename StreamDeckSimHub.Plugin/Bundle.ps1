@@ -8,6 +8,8 @@ if ($Args.Count -lt 1) {
 
 $PublishDir = $Args[0]
 
+Write-Host "`nBundling plugin with streamdeck cli"
+
 try {
     Remove-Item "..\build\*" -Recurse
 
@@ -17,14 +19,16 @@ try {
     Rename-Item -Path "publish" -NewName "net.planetrenner.simhub.sdPlugin" -ErrorAction Stop
 
     streamdeck bundle net.planetrenner.simhub.sdPlugin
+    #streamdeck bundle --ignore-validation net.planetrenner.simhub.sdPlugin
     if ($? -eq $False) {
+        Write-Host "`nBundling with streamdeck cli failed`n"
         Exit 1
     }
 
     Popd
 }
 catch {
-    Write-Host "An error occured:"
+    Write-Host "`nAn error occured while bundling plugin:"
     Write-Host $_
     Exit 1
 }
