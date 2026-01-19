@@ -18,12 +18,18 @@ try {
     Pushd ..\build
     Rename-Item -Path "publish" -NewName "net.planetrenner.simhub.sdPlugin" -ErrorAction Stop
 
+    # Prepare for Stream Deck with Stream Deck CLI
+    Copy-Item "net.planetrenner.simhub.sdPlugin\manifest-streamdeck.json" -Destination "net.planetrenner.simhub.sdPlugin\manifest.json"
+
     streamdeck bundle net.planetrenner.simhub.sdPlugin
-    #streamdeck bundle --ignore-validation net.planetrenner.simhub.sdPlugin
     if ($? -eq $False) {
-        Write-Host "`nBundling with streamdeck cli failed`n"
+        Write-Host "`nBundling with Stream Deck CLI failed`n"
         Exit 1
     }
+
+    # Prepare for Stream Dock
+    Copy-Item "net.planetrenner.simhub.sdPlugin\manifest-streamdock.json" -Destination "net.planetrenner.simhub.sdPlugin\manifest.json"
+    Compress-Archive -Path "net.planetrenner.simhub.sdPlugin\*" -DestinationPath "net.planetrenner.simhub-streamdock.zip" -Force
 
     Popd
 }

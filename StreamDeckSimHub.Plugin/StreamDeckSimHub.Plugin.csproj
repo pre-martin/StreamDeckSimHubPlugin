@@ -50,7 +50,8 @@
 
     <Target Name="SetManifestVersionAndBundle" AfterTargets="Publish">
         <!-- Replace version in manifest.json with the version from nbgv -->
-        <Exec Command="pwsh -ExecutionPolicy Bypass -File .\ReplaceVersion.ps1 $(PublishDir)manifest.json $(AssemblyFileVersion)" />
+        <Exec Command="pwsh -ExecutionPolicy Bypass -File .\ReplaceVersion.ps1 $(PublishDir)manifest-streamdeck.json $(AssemblyFileVersion)" />
+        <Exec Command="pwsh -ExecutionPolicy Bypass -File .\ReplaceVersion.ps1 $(PublishDir)manifest-streamdock.json $(AssemblyFileVersion)" />
         <!-- Bundle as Stream Deck plugin -->
         <Exec Command="pwsh -ExecutionPolicy Bypass -File .\Bundle.ps1 $(PublishDir)" />
     </Target>
@@ -59,7 +60,10 @@
       <None Update="appsettings.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="manifest.json">
+      <None Update="manifest-streamdeck.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="manifest-streamdock.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Update="pi\js\common.js">
