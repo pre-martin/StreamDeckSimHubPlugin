@@ -51,7 +51,7 @@ public partial class CommandItemKeypressViewModel(
     IViewModel parentViewModel,
     StreamDeckAction parentAction) : CommandItemViewModel(model, parentViewModel, parentAction)
 {
-    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource("DiKeyboardOutlinedGray") as ImageSource;
+    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource(CommandItemKeypress.UiIcon) as ImageSource;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayName))]
@@ -107,7 +107,8 @@ public partial class CommandItemSimHubControlViewModel(
     IViewModel parentViewModel,
     StreamDeckAction parentAction) : CommandItemViewModel(model, parentViewModel, parentAction)
 {
-    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource("DiSimHubControlGray") as ImageSource;
+    public override ImageSource? Icon =>
+        ParentViewModel.ParentWindow.FindResource(CommandItemSimHubControl.UiIcon) as ImageSource;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayName))] // see CommandItemSimHubControl.RawDisplayName which uses Control
@@ -137,7 +138,7 @@ public partial class CommandItemSimHubRoleViewModel(
     StreamDeckAction parentAction)
     : CommandItemViewModel(model, parentViewModel, parentAction)
 {
-    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource("DiSimHubRoleGray") as ImageSource;
+    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource(CommandItemSimHubRole.UiIcon) as ImageSource;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayName))] // see CommandItemSimHubRole.RawDisplayName which uses Control

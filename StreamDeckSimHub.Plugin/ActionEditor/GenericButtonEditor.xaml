@@ -57,14 +57,16 @@
 
                 <Grid Grid.Row="0" Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="80" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Display" FontWeight="Bold" Margin="0,0,0,4" VerticalAlignment="Center" />
-                    <ComboBox Grid.Column="1" Width="110" Margin="0,0,4,0" ItemsSource="{Binding DisplayItemTypes}"
-                              SelectedItem="{Binding SelectedAddDisplayItemType}" />
-                    <Button Grid.Column="2" Content="Add" Command="{Binding AddSelectedDisplayItemCommand}" Padding="8,0" />
+                    <TextBlock Grid.Column="0" Text="Display" FontWeight="Bold" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Content="Add Display Item" Padding="8,2"
+                            behaviors:OpenContextMenuOnClickBehavior.Apply="True" HorizontalAlignment="Right">
+                        <Button.ContextMenu>
+                            <ContextMenu ItemsSource="{Binding DisplayItemTypes}" />
+                        </Button.ContextMenu>
+                    </Button>
                 </Grid>
 
                 <ListBox Grid.Row="1"
@@ -116,14 +118,17 @@
 
                 <Grid Grid.Row="0" Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="80" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Commands" FontWeight="Bold" Margin="0,0,0,4" VerticalAlignment="Center" />
-                    <ComboBox Grid.Column="1" Width="110" Margin="0,0,4,0" ItemsSource="{Binding CommandItemTypes}"
-                              SelectedItem="{Binding SelectedAddCommandItemType}" />
-                    <Button Grid.Column="2" Content="Add" Command="{Binding AddSelectedCommandItemCommand}" Padding="8,0" />
+                    <TextBlock Grid.Column="0" Text="Commands" FontWeight="Bold" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Content="Add Command Item" Padding="8,2"
+                            behaviors:OpenContextMenuOnClickBehavior.Apply="True"
+                            IsEnabled="{Binding CanAddCommandItem}">
+                        <Button.ContextMenu>
+                            <ContextMenu ItemsSource="{Binding CommandItemTypes}" />
+                        </Button.ContextMenu>
+                    </Button>
                 </Grid>
 
                 <ListBox Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Visible"

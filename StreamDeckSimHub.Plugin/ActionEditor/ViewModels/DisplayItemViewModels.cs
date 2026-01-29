@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Martin Renner
+// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.ComponentModel;
@@ -13,7 +13,6 @@ using StreamDeckSimHub.Plugin.ActionEditor.Dialogs;
 using StreamDeckSimHub.Plugin.ActionEditor.Tools;
 using StreamDeckSimHub.Plugin.ActionEditor.Views.Controls;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
-using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.Tools;
 using Color = SixLabors.ImageSharp.Color;
 using Point = SixLabors.ImageSharp.Point;
@@ -24,9 +23,15 @@ namespace StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 /// <summary>
 /// Base ViewModel for all DisplayItems
 /// </summary>
-public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel parentViewModel)
+public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel parentViewModel, byte? _)
     : ItemViewModel(model, parentViewModel), IDataErrorInfo
 {
+    protected DisplayItemViewModel(DisplayItem model, IViewModel parentViewModel) : this(model, parentViewModel, null)
+    {
+    }
+
+    #region Element Data
+
     [ObservableProperty] private float _transparency = model.DisplayParameters.Transparency;
 
     [ObservableProperty]
@@ -94,6 +99,8 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
         model.DisplayParameters.Rotation = value;
     }
 
+    #endregion
+
     public string Error => string.Empty;
 
     public string this[string columnName]
@@ -122,7 +129,7 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
 public partial class DisplayItemImageViewModel(DisplayItemImage model, ImageManager imageManager, IViewModel parentViewModel)
     : DisplayItemViewModel(model, parentViewModel)
 {
-    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource("DiInsertPhotoOutlinedGray") as ImageSource;
+    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource(DisplayItemImage.UiIcon) as ImageSource;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayName))] // see DisplayItemImage.DisplayName which uses RelativePath
@@ -158,7 +165,7 @@ public partial class DisplayItemImageViewModel(DisplayItemImage model, ImageMana
 public partial class DisplayItemTextViewModel(DisplayItemText model, IViewModel parentViewModel)
     : DisplayItemViewModel(model, parentViewModel), IFontSelectable, IColorSelectable
 {
-    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource("DiTextFieldsGray") as ImageSource;
+    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource(DisplayItemText.UiIcon) as ImageSource;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayName))] // see DisplayItemText.DisplayName which uses Text
@@ -200,7 +207,6 @@ public partial class DisplayItemTextViewModel(DisplayItemText model, IViewModel 
 /// </summary>
 public partial class DisplayItemValueViewModel : DisplayItemViewModel, IFontSelectable, IColorSelectable
 {
-    private readonly NCalcHandler _ncalcHandler = new();
     private readonly DisplayItemValue _model;
 
     public DisplayItemValueViewModel(DisplayItemValue model, IViewModel parentViewModel) : base(model, parentViewModel)
@@ -210,7 +216,7 @@ public partial class DisplayItemValueViewModel : DisplayItemViewModel, IFontSele
         {
             ExpressionLabel = "Expression:",
             ExpressionToolTip = "Please enter a valid NCalc expression, that returns a value",
-            Example="round( [DataCorePlugin.GameData.Fuel], 1)",
+            Example = "round( [DataCorePlugin.GameData.Fuel], 1)",
             FetchShakeItProfilesCallback = FetchShakeItProfilesCallback
         };
         _displayFormat = model.DisplayFormat;
@@ -218,7 +224,7 @@ public partial class DisplayItemValueViewModel : DisplayItemViewModel, IFontSele
         _imageSharpColor = model.Color;
     }
 
-    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource("DiAttachMoneyGray") as ImageSource;
+    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource(DisplayItemValue.UiIcon) as ImageSource;
 
     [ObservableProperty] private ExpressionControlViewModel _expressionControlPropertyViewModel;
 

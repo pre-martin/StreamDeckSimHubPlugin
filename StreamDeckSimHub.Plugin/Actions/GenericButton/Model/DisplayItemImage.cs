@@ -11,6 +11,7 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 public partial class DisplayItemImage : DisplayItem
 {
     public const string UiName = "Image";
+    public const string UiIcon = "DiInsertPhotoOutlinedGray";
 
     // Image is being updated centrally by GenericButtonAction from the value of RelativePath.
     public Image Image { get; set; } = ImageUtils.EmptyImage;

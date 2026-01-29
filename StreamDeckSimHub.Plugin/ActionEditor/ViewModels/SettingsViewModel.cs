@@ -3,6 +3,7 @@
 
 using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -52,10 +53,14 @@ public partial class SettingsViewModel : ObservableObject, IViewModel
     public ObservableCollection<IFlatCommandItemsViewModel> FlatCommandItems { get; } = [];
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AddSelectedCommandItemCommand))]
     [NotifyPropertyChangedFor(nameof(SelectedItem))]
     [NotifyPropertyChangedFor(nameof(IsAnyItemSelected))]
     private IFlatCommandItemsViewModel? _selectedFlatCommandItem;
+
+    partial void OnSelectedFlatCommandItemChanged(IFlatCommandItemsViewModel? oldValue, IFlatCommandItemsViewModel? newValue)
+    {
+        CanAddCommandItem = newValue != null;
+    }
 
     /// <summary>
     /// Returns the currently selected DisplayItem or CommandItem, or null if none is selected.
@@ -113,6 +118,23 @@ public partial class SettingsViewModel : ObservableObject, IViewModel
             NewVersion = "You are using the latest version.";
             NewVersionBrush = new SolidColorBrush(Color.FromRgb(30, 120, 30));
         }
+
+        DisplayItemTypes =
+        [
+            // @formatter:off
+            new MenuItem { Header = DisplayItemImage.UiName, Icon = new Image { Source = ParentWindow.FindResource(DisplayItemImage.UiIcon) as ImageSource }, Command = AddDisplayItemCommand, CommandParameter = DisplayItemImage.UiName},
+            new MenuItem { Header = DisplayItemText.UiName, Icon = new Image { Source = ParentWindow.FindResource(DisplayItemText.UiIcon) as ImageSource }, Command = AddDisplayItemCommand, CommandParameter = DisplayItemText.UiName},
+            new MenuItem { Header = DisplayItemValue.UiName, Icon = new Image { Source = ParentWindow.FindResource(DisplayItemValue.UiIcon) as ImageSource }, Command = AddDisplayItemCommand, CommandParameter = DisplayItemValue.UiName}
+            // @formatter:on
+        ];
+        CommandItemTypes =
+        [
+            // @formatter:off
+            new MenuItem { Header = CommandItemKeypress.UiName, Icon = new Image { Source = ParentWindow.FindResource(CommandItemKeypress.UiIcon) as ImageSource }, Command = AddCommandItemCommand, CommandParameter = CommandItemKeypress.UiName},
+            new MenuItem { Header = CommandItemSimHubControl.UiName, Icon = new Image { Source = ParentWindow.FindResource(CommandItemSimHubControl.UiIcon) as ImageSource }, Command = AddCommandItemCommand, CommandParameter = CommandItemSimHubControl.UiName},
+            new MenuItem { Header = CommandItemSimHubRole.UiName, Icon = new Image { Source = ParentWindow.FindResource(CommandItemSimHubRole.UiIcon) as ImageSource }, Command = AddCommandItemCommand, CommandParameter = CommandItemSimHubRole.UiName}
+            // @formatter:on
+        ];
     }
 
     #region IViewModel
@@ -148,17 +170,12 @@ public partial class SettingsViewModel : ObservableObject, IViewModel
     #region AddDisplayItem
 
     /// List of available display item types
-    public ObservableCollection<string> DisplayItemTypes { get; } =
-    [
-        DisplayItemImage.UiName, DisplayItemText.UiName, DisplayItemValue.UiName
-    ];
-
-    [ObservableProperty] private string _selectedAddDisplayItemType = DisplayItemImage.UiName;
+    public ObservableCollection<MenuItem> DisplayItemTypes { get; }
 
     [RelayCommand]
-    private void AddSelectedDisplayItem()
+    private void AddDisplayItem(string type)
     {
-        switch (SelectedAddDisplayItemType)
+        switch (type)
         {
             case DisplayItemImage.UiName:
                 AddDisplayItem(DisplayItemImage.Create());
@@ -196,17 +213,14 @@ public partial class SettingsViewModel : ObservableObject, IViewModel
     #region AddCommandItem
 
     /// List of available command item types
-    public ObservableCollection<string> CommandItemTypes { get; } =
-    [
-        CommandItemKeypress.UiName, CommandItemSimHubControl.UiName, CommandItemSimHubRole.UiName
-    ];
+    public ObservableCollection<MenuItem> CommandItemTypes { get; }
 
-    [ObservableProperty] private string _selectedAddCommandItemType = CommandItemKeypress.UiName;
+    [ObservableProperty] private bool _canAddCommandItem;
 
-    [RelayCommand(CanExecute = nameof(CanExecuteAddCommandItem))]
-    private void AddSelectedCommandItem()
+    [RelayCommand]
+    private void AddCommandItem(string type)
     {
-        switch (SelectedAddCommandItemType)
+        switch (type)
         {
             case CommandItemKeypress.UiName:
                 AddCommandItem(CommandItemKeypress.Create());
@@ -219,8 +233,6 @@ public partial class SettingsViewModel : ObservableObject, IViewModel
                 break;
         }
     }
-
-    private bool CanExecuteAddCommandItem() => SelectedFlatCommandItem != null;
 
     private void AddCommandItem(CommandItem newItem)
     {
