@@ -22,42 +22,6 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <!--
-        <TabControl VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Padding="5,10" Height="Auto">
-            <TabItem Header="Element" />
-            <TabItem Header="Modifiers" />
-        </TabControl>
-    -->
+    <controls:DisplayElementControl />
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" /> <!-- Name -->
-            <RowDefinition Height="Auto" /> <!-- Detail data (see DataTemplates above) -->
-            <RowDefinition Height="Auto" /> <!-- Display Parameters -->
-            <RowDefinition Height="Auto" /> <!-- Conditions -->
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" MinWidth="120" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-
-        <Label Grid.Row="0" Grid.Column="0">Item Name:</Label>
-        <TextBox Grid.Row="0" Grid.Column="1" MinWidth="150"
-                 VerticalContentAlignment="Center"
-                 Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
-                 ToolTip="Is only used for the list on the left side!" />
-
-        <ContentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding}">
-            <d:ContentControl.Content>
-                <Border Padding="10" BorderBrush="Gray" BorderThickness="1" Margin="0,5">
-                    <TextBlock Text="Placeholder for concrete DisplayItem" />
-                </Border>
-            </d:ContentControl.Content>
-        </ContentControl>
-
-        <controls:DisplayParametersControl Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,20,0,0" />
-
-        <controls:ExpressionControl Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,20,0,0"
-                                    DataContext="{Binding ExpressionControlConditionViewModel}" />
-    </Grid>
 </UserControl>

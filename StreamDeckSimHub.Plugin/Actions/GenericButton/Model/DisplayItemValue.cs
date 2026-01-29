@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2025 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -11,6 +11,7 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 public partial class DisplayItemValue : DisplayItem
 {
     public const string UiName = "Value";
+    public const string UiIcon = "DiAttachMoneyGray";
 
     [ObservableProperty] private NCalcHolder _nCalcPropertyHolder;
 
@@ -45,4 +46,3 @@ public partial class DisplayItemValue : DisplayItem
         await displayItemVisitor.Visit(this, args);
     }
 }
-

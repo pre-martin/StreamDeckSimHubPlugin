@@ -11,6 +11,7 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 public partial class CommandItemKeypress : CommandItem, ICommandItemLong
 {
     public const string UiName = "Keypress";
+    public const string UiIcon = "DiKeyboardOutlinedGray";
 
     [ObservableProperty] private string _key = string.Empty;
     [ObservableProperty] private bool _modifierCtrl;

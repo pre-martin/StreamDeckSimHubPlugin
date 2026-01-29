@@ -37,7 +37,7 @@ public partial class GenericButtonEditor
         catch (Exception ex)
         {
             // No MessageBox here, because we don't want to disturb the user when opening the editor.
-            _logger.Error(ex, "Failed to fetch Control Mapper Roles or ShakeIt Profiles from SimHub");
+            _logger.Warn("Failed to fetch Control Mapper Roles and/or ShakeIt Profiles from SimHub. Is SimHub not running? Cause: " + ex.Message);
         }
     }
 
