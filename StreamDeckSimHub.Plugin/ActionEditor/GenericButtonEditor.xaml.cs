@@ -1,10 +1,12 @@
-﻿// Copyright (C) 2025 Martin Renner
+// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Windows;
 using System.Windows.Controls;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Xaml.Behaviors;
 using NLog;
+using StreamDeckSimHub.Plugin.ActionEditor.Behaviors;
 using StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.SimHub;
@@ -24,6 +26,31 @@ public partial class GenericButtonEditor
         _actionUuid = actionUuid;
         InitializeComponent();
         DataContext = new SettingsViewModel(settings, imageManager, simHubConnection, shakeItStructureFetcher, this);
+
+        // Set up drag-drop delegates for the ListBoxes
+        SetupDragDropBehaviors();
+    }
+
+    private void SetupDragDropBehaviors()
+    {
+        // Set up DisplayItems drag-drop behavior
+        var displayItemsBehavior = Interaction.GetBehaviors(DisplayItemsListBox)
+            .OfType<ListBoxDragDropBehavior>()
+            .FirstOrDefault();
+        if (displayItemsBehavior != null)
+        {
+            displayItemsBehavior.OnItemDropped = OnDisplayItemDropped;
+        }
+
+        // Set up CommandItems drag-drop behavior
+        var commandItemsBehavior = Interaction.GetBehaviors(CommandItemsListBox)
+            .OfType<ListBoxDragDropBehavior>()
+            .FirstOrDefault();
+        if (commandItemsBehavior != null)
+        {
+            commandItemsBehavior.CanDropFunc = CanDropCommandItem;
+            commandItemsBehavior.OnItemDropped = OnCommandItemDropped;
+        }
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -83,5 +110,43 @@ public partial class GenericButtonEditor
                 ((SettingsViewModel)DataContext).RemoveCommandItem(commandItemViewModel);
             }
         }
+    }
+
+    /// <summary>
+    /// Handles the drop operation for DisplayItems, updating the order in the view model and underlying model.
+    /// </summary>
+    private void OnDisplayItemDropped(object draggedItem, object targetItem, int sourceIndex, int targetIndex)
+    {
+        if (draggedItem is not DisplayItemViewModel) return;
+
+        // Get the collection and reorder items
+        ((SettingsViewModel)DataContext).DisplayItems.Move(sourceIndex, targetIndex);
+        ((SettingsViewModel)DataContext).UpdateDisplayItemsOrder();
+    }
+
+    /// <summary>
+    /// Validates if a CommandItem can be dropped on a target item.
+    /// CommandItems can only be dropped on other CommandItems within the same StreamDeckAction group.
+    /// </summary>
+    private bool CanDropCommandItem(object draggedItem, object targetItem)
+    {
+        // If both are CommandItems, check if they're in the same StreamDeckAction group
+        if (draggedItem is CommandItemViewModel draggedCommandItem && targetItem is CommandItemViewModel targetCommandItem)
+        {
+            return draggedCommandItem.ParentAction == targetCommandItem.ParentAction;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Handles the drop operation for CommandItems, updating the order in the view model and underlying model.
+    /// </summary>
+    private void OnCommandItemDropped(object draggedItem, object targetItem, int sourceIndex, int targetIndex)
+    {
+        if (draggedItem is not CommandItemViewModel commandItem) return;
+
+        ((SettingsViewModel)DataContext).FlatCommandItems.Move(sourceIndex, targetIndex);
+        ((SettingsViewModel)DataContext).UpdateCommandItemsOrder(commandItem.ParentAction);
     }
 }

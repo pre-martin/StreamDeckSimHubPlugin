@@ -204,7 +204,7 @@ public partial class SettingsViewModel : ObservableObject, IViewModel
             DisplayItemImage img => new DisplayItemImageViewModel(img, _imageManager, this),
             DisplayItemText txt => new DisplayItemTextViewModel(txt, this),
             DisplayItemValue val => new DisplayItemValueViewModel(val, this),
-            _ => throw new InvalidOperationException("Unknown DisplayItem type.")
+            _ => throw new InvalidOperationException($"Unknown DisplayItem type: {displayItem.GetType().FullName}")
         };
     }
 
@@ -274,7 +274,7 @@ public partial class SettingsViewModel : ObservableObject, IViewModel
                 roleVm.SetAvailableRoles(_availableSimHubRoles);
                 return roleVm;
             default:
-                throw new InvalidOperationException("Unknown CommandItem type.");
+                throw new InvalidOperationException($"Unknown CommandItem type:  {commandItem.GetType().FullName}");
         }
     }
 
