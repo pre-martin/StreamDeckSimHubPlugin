@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
@@ -13,6 +14,7 @@ using StreamDeckSimHub.Plugin.ActionEditor.Dialogs;
 using StreamDeckSimHub.Plugin.ActionEditor.Tools;
 using StreamDeckSimHub.Plugin.ActionEditor.Views.Controls;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.Model.Modifiers;
 using StreamDeckSimHub.Plugin.Tools;
 using Color = SixLabors.ImageSharp.Color;
 using Point = SixLabors.ImageSharp.Point;
@@ -28,7 +30,14 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
 {
     protected DisplayItemViewModel(DisplayItem model, IViewModel parentViewModel) : this(model, parentViewModel, null)
     {
+        Modifiers = new ObservableCollection<ModifierViewModel>(model.Modifiers.Select(ModifierToViewModel));
+
+        if (model is IAcceptsModifierColor) AvailableModifiers.Add(ModifierColor.UiName);
+        if (model is IAcceptsModifierFlash) AvailableModifiers.Add(ModifierFlash.UiName);
+        CanAddModifier = AvailableModifiers.Count > 0;
     }
+
+    [ObservableProperty] private int _selectedTabIndex;
 
     #region Element Data
 
@@ -97,6 +106,92 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
     partial void OnRotationChanged(int value)
     {
         model.DisplayParameters.Rotation = value;
+    }
+
+    #endregion
+
+    #region Modifiers
+
+    public ObservableCollection<ModifierViewModel> Modifiers { get; } = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsModifierSelected))]
+    private ModifierViewModel? _selectedModifier;
+
+    public bool IsModifierSelected => SelectedModifier != null;
+
+    public ObservableCollection<string> AvailableModifiers { get; } = [];
+
+    [ObservableProperty] private bool _canAddModifier;
+
+    [RelayCommand]
+    private void AddModifier(string type)
+    {
+        switch (type)
+        {
+            case ModifierColor.UiName:
+                AddModifier(ModifierColor.Create());
+                break;
+            case ModifierFlash.UiName:
+                AddModifier(ModifierFlash.Create());
+                break;
+        }
+    }
+
+    private void AddModifier(Modifier modifier)
+    {
+        model.Modifiers.Add(modifier);
+        var vm = ModifierToViewModel(modifier);
+        Modifiers.Add(vm);
+        SelectedModifier = vm;
+    }
+
+    private ModifierViewModel ModifierToViewModel(Modifier modifier)
+    {
+        return modifier switch
+        {
+            ModifierColor colorModifier => new ModifierColorViewModel(colorModifier, ParentViewModel),
+            ModifierFlash flashModifier => new ModifierFlashViewModel(flashModifier, ParentViewModel),
+            _ => throw new InvalidOperationException($"Unknown Modifier type: {modifier.GetType().FullName}")
+        };
+    }
+
+    public void RemoveModifier(ModifierViewModel item)
+    {
+        // Remove from the underlying model
+        var modifier = item.GetModel();
+        model.Modifiers.Remove(modifier);
+
+        // Remove from the ViewModel collection
+        Modifiers.Remove(item);
+
+        // Clear selection if this was the selected item
+        if (SelectedModifier == item)
+        {
+            SelectedModifier = null;
+        }
+
+    }
+
+    #endregion
+
+    #region DragDrop
+
+    /// <summary>
+    /// Updates the underlying model when Modifiers are reordered
+    /// </summary>
+    public void UpdateModifiersOrder()
+    {
+        // Update the underlying model's Modifiers list to match the order in the ViewModel
+        // We'll create a new list with the same items but in the new order
+        var newList = Modifiers.Select(modifierVm => modifierVm.GetModel()).ToList();
+
+        // Clear and repopulate the original list to maintain the reference
+        model.Modifiers.Clear();
+        foreach (var item in newList)
+        {
+            model.Modifiers.Add(item);
+        }
     }
 
     #endregion

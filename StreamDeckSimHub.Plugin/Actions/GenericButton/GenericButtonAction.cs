@@ -14,6 +14,7 @@ using SixLabors.ImageSharp.Processing;
 using StreamDeckSimHub.Plugin.ActionEditor;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.Model.Modifiers;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Renderer;
 using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.SimHub;
@@ -144,12 +145,17 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         await SubscribeProperties();
         await Render();
 
+        PeriodicBackgroundService.Tick += OnTick;
+
         await base.OnWillAppear(args);
     }
 
     protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
     {
         Logger.LogInformation("({coords}) OnWillDisappear", args.Payload.Coordinates);
+
+        PeriodicBackgroundService.Tick -= OnTick;
+
         _actionEditorManager.RemoveGenericButtonEditor(Context);
         await _commandItemHandler.Stop();
         await UnsubscribeProperties();
@@ -277,8 +283,8 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     }
 
     /// <summary>
-    /// Determines which properties are used in the current settings and compares them to the previously subscribed properties.
-    /// No longer used properties are unsubscribed, and new properties are subscribed.
+    /// Determines which SimHub properties are used in the current settings and compares them to the previously subscribed
+    /// SimHub properties. No longer used properties are unsubscribed, and new properties are subscribed.
     /// </summary>
     private async Task SubscribeProperties()
     {
@@ -302,6 +308,17 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
                 {
                     Logger.LogDebug("({coords})   Found property \"{propName}\" in \"{name}\"", _coordinates, propName,
                         displayItem.DisplayName);
+                    newProperties.Add(propName);
+                }
+            }
+
+            // DisplayItem.Modifiers can contain properties.
+            foreach (var modifier in displayItem.Modifiers)
+            {
+                foreach (var propName in modifier.NCalcConditionHolder.UsedProperties)
+                {
+                    Logger.LogDebug("({coords})   Found property \"{propName}\" in modifier \"{name}\" of \"{itemName}\"",
+                        _coordinates, propName, modifier.DisplayName, displayItem.DisplayName);
                     newProperties.Add(propName);
                 }
             }
@@ -403,6 +420,26 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     {
         return _ncalcHandler.IsConditionActive(item.NCalcConditionHolder, GetProperty,
             $"({_coordinates})   IsActive of \"{item.DisplayName}\"");
+    }
+
+    private async Task OnTick()
+    {
+        if (_settings == null) return;
+        
+        var needsRedraw = false;
+        foreach (var displayItem in _settings.DisplayItems)
+        {
+            foreach (var modifier in displayItem.Modifiers)
+            {
+                if (modifier is ModifierFlash modifierFlash)
+                {
+                    modifierFlash.CurrentTick++;
+                    if (modifierFlash.CurrentTick == modifierFlash.DurationOn + 1) needsRedraw = true;
+                    if (modifierFlash.CurrentTick == modifierFlash.DurationOff + 1) needsRedraw = true;
+                }
+            }
+        }
+        // TODO
     }
 
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]

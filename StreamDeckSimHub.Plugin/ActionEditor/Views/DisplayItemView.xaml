@@ -22,6 +22,33 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <controls:DisplayElementControl />
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" /> <!-- Name -->
+            <RowDefinition Height="Auto" /> <!-- Detail data -->
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" MinWidth="120" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0">Item Name:</Label>
+        <TextBox Grid.Row="0" Grid.Column="1" MinWidth="150"
+                 VerticalContentAlignment="Center"
+                 Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                 ToolTip="Is only used for the list on the left side!" />
+
+        <TabControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                    Margin="0,20,0,0"
+                    Padding="0,10" Height="Auto" BorderThickness="0,1,0,0"
+                    SelectedIndex="{Binding SelectedTabIndex}">
+            <TabItem Header="Element">
+                <controls:DisplayItemControl />
+            </TabItem>
+            <TabItem Header="Modifiers">
+                <controls:ModifiersControl />
+            </TabItem>
+        </TabControl>
+    </Grid>
 
 </UserControl>

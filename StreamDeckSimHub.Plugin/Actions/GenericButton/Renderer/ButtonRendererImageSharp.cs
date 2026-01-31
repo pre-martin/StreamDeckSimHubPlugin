@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2025 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.ObjectModel;
@@ -9,11 +9,11 @@ using SharpDeck.Events.Received;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using StreamDeckSimHub.Plugin.ActionEditor.Tools;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.Model.Modifiers;
 using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.Tools;
 using Size = SixLabors.ImageSharp.Size;
@@ -153,6 +153,13 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
 
         // Color + Transparency
         var colorWithAlpha = color.WithAlpha(displayItem.DisplayParameters.Transparency);
+        foreach (var modifier in displayItem.Modifiers)
+        {
+            if (modifier is ModifierColor modifierColor && IsModifierActive(modifier))
+            {
+                colorWithAlpha = modifierColor.Color.WithAlpha(displayItem.DisplayParameters.Transparency);
+            }
+        }
 
         // Position + Size
         var position = displayItem.DisplayParameters.Position;
@@ -199,6 +206,15 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
     {
         return _ncalcHandler.IsConditionActive(item.NCalcConditionHolder, getProperty,
             $"({_coords})   Visibility of \"{item.DisplayName}\"");
+    }
+
+    /// <summary>
+    /// Same as <see cref="IsVisible"/>, but for modifiers.
+    /// </summary>
+    private bool IsModifierActive(Modifier modifier)
+    {
+        return _ncalcHandler.IsConditionActive(modifier.NCalcConditionHolder, getProperty,
+            $"({_coords})   Modifier \"{modifier.DisplayName}\"");
     }
 
     /// <summary>

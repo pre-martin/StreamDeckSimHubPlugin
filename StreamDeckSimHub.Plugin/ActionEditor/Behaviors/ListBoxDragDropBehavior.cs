@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Martin Renner
+// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.ObjectModel;
@@ -230,20 +230,22 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
                 HandleCommandItemDrop(draggedCommandItem, targetCommandItem);
             }
         }
+        else if (data is ModifierViewModel modifier)
+        {
+            HandleModifierDrop(modifier, targetItem);
+        }
     }
 
     private void HandleDisplayItemDrop(DisplayItemViewModel draggedItem, object targetItem)
     {
-        if (targetItem is not DisplayItemViewModel)
-            return;
+        if (targetItem is not DisplayItemViewModel) return;
 
         // Get the source and target indices
         var sourceIndex = AssociatedObject.Items.IndexOf(draggedItem);
         var targetIndex = AssociatedObject.Items.IndexOf(targetItem);
 
         // Don't do anything if dropping onto itself
-        if (sourceIndex == targetIndex)
-            return;
+        if (sourceIndex == targetIndex) return;
 
         // Get the collection and reorder items
         if (AssociatedObject.ItemsSource is ObservableCollection<DisplayItemViewModel> itemsSource)
@@ -266,8 +268,7 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         var targetIndex = AssociatedObject.Items.IndexOf(targetItem);
 
         // Don't do anything if dropping onto itself
-        if (sourceIndex == targetIndex)
-            return;
+        if (sourceIndex == targetIndex) return;
 
         // Get the collection and reorder items
         if (AssociatedObject.ItemsSource is ObservableCollection<IFlatCommandItemsViewModel> itemsSource)
@@ -279,6 +280,31 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
             if (AssociatedObject.DataContext is SettingsViewModel settingsViewModel)
             {
                 settingsViewModel.UpdateCommandItemsOrder(draggedItem.ParentAction);
+            }
+        }
+    }
+
+    private void HandleModifierDrop(ModifierViewModel draggedItem, object targetItem)
+    {
+        if (targetItem is not ModifierViewModel) return;
+
+        // Get the source and target indices
+        var sourceIndex = AssociatedObject.Items.IndexOf(draggedItem);
+        var targetIndex = AssociatedObject.Items.IndexOf(targetItem);
+
+        // Don't do anything if dropping onto itself
+        if (sourceIndex == targetIndex) return;
+
+        // Get the collection and reorder items
+        if (AssociatedObject.ItemsSource is ObservableCollection<ModifierViewModel> modifierSource)
+        {
+            // Move the item in the collection
+            modifierSource.Move(sourceIndex, targetIndex);
+
+            // Update the underlying model (DisplayItemViewModel.Modifiers)
+            if (AssociatedObject.DataContext is DisplayItemViewModel displayItemViewModel)
+            {
+                displayItemViewModel.UpdateModifiersOrder();
             }
         }
     }

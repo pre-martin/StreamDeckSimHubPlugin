@@ -4,11 +4,12 @@
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SixLabors.ImageSharp;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.Model.Modifiers;
 using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
-public partial class DisplayItemImage : DisplayItem
+public partial class DisplayItemImage : DisplayItem, IAcceptsModifierFlash
 {
     public const string UiName = "Image";
     public const string UiIcon = "DiInsertPhotoOutlinedGray";
