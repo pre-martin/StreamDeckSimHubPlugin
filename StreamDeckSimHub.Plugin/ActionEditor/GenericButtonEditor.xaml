@@ -69,7 +69,8 @@
                     </Button>
                 </Grid>
 
-                <ListBox Grid.Row="1"
+                <ListBox x:Name="DisplayItemsListBox"
+                         Grid.Row="1"
                          ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                          ItemsSource="{Binding DisplayItems}"
                          SelectedItem="{Binding SelectedDisplayItem, Mode=TwoWay}"
@@ -131,7 +132,8 @@
                     </Button>
                 </Grid>
 
-                <ListBox Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Visible"
+                <ListBox x:Name="CommandItemsListBox"
+                         Grid.Row="1" ScrollViewer.VerticalScrollBarVisibility="Visible"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                          ItemsSource="{Binding FlatCommandItems}"
                          SelectedItem="{Binding SelectedFlatCommandItem, Mode=TwoWay}"
