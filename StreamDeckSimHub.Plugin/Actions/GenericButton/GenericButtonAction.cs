@@ -422,10 +422,18 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
             $"({_coordinates})   IsActive of \"{item.DisplayName}\"");
     }
 
+    private bool IsModifierActive(Modifier modifier)
+    {
+        return _ncalcHandler.IsConditionActive(modifier.NCalcConditionHolder, GetProperty,
+            $"({_coordinates})   Modifier \"{modifier.DisplayName}\"");
+    }
+
     private async Task OnTick()
     {
         if (_settings == null) return;
-        
+
+        // If any flashing modifier transitioned (inactive->active or active->inactive), or if any active flashing modifier
+        // changed state (on->off or off->on), we need to redraw the button.
         var needsRedraw = false;
         foreach (var displayItem in _settings.DisplayItems)
         {
@@ -433,13 +441,49 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
             {
                 if (modifier is ModifierFlash modifierFlash)
                 {
-                    modifierFlash.CurrentTick++;
-                    if (modifierFlash.CurrentTick == modifierFlash.DurationOn + 1) needsRedraw = true;
-                    if (modifierFlash.CurrentTick == modifierFlash.DurationOff + 1) needsRedraw = true;
+                    var isActiveNow = IsModifierActive(modifier);
+
+                    // Detect transition from inactive to active: reset tick counter
+                    if (isActiveNow && !modifierFlash.WasActiveLastTick)
+                    {
+                        modifierFlash.CurrentTick = 0;
+                        needsRedraw = true;
+                    } else if (!isActiveNow && modifierFlash.WasActiveLastTick)
+                    {
+                        needsRedraw = true;
+                    }
+
+                    // Update the state for next tick
+                    modifierFlash.WasActiveLastTick = isActiveNow;
+
+                    // Only tick if the condition is active
+                    if (isActiveNow && modifierFlash is { DurationOn: not null, DurationOff: not null })
+                    {
+                        var cycleDuration = modifierFlash.DurationOn.Value + modifierFlash.DurationOff.Value;
+                        modifierFlash.CurrentTick++;
+
+                        // Wrap around at the end of the cycle
+                        if (modifierFlash.CurrentTick > cycleDuration)
+                        {
+                            modifierFlash.CurrentTick = 1;
+                        }
+
+                        // Redraw at transitions between On and Off
+                        if (modifierFlash.CurrentTick == modifierFlash.DurationOn.Value + 1 ||
+                            modifierFlash.CurrentTick == 1)
+                        {
+                            needsRedraw = true;
+                        }
+                    }
                 }
             }
         }
-        // TODO
+
+        if (needsRedraw)
+        {
+            Logger.LogDebug("({coords}) OnTick: Redrawing due to flashing modifier change", _coordinates);
+            await Render();
+        }
     }
 
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]

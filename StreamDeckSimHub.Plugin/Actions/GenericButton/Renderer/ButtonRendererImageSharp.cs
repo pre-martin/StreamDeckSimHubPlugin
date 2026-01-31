@@ -41,10 +41,27 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
         // Iterate over all display items.
         foreach (var displayItem in displayItems)
         {
-            if (!IsVisible(displayItem))
+            if (!IsVisible(displayItem)) continue;
+
+            // Check if any active ModifierFlash is in the "Off" phase
+            var shouldHideForFlash = false;
+            foreach (var modifier in displayItem.Modifiers)
             {
-                continue;
+                if (modifier is ModifierFlash modifierFlash && IsModifierActive(modifier))
+                {
+                    if (modifierFlash is { DurationOn: not null, DurationOff: not null })
+                    {
+                        // If CurrentTick is greater than DurationOn, we're in the "Off" phase
+                        if (modifierFlash.CurrentTick > modifierFlash.DurationOn.Value)
+                        {
+                            shouldHideForFlash = true;
+                            break;
+                        }
+                    }
+                }
             }
+
+            if (shouldHideForFlash) continue;
 
             // Render the item.
             switch (displayItem)

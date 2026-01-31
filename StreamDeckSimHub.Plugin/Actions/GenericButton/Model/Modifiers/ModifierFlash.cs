@@ -22,4 +22,7 @@ public partial class ModifierFlash : Modifier
 
     [JsonIgnore]
     public int CurrentTick { get; set; }
+
+    [JsonIgnore]
+    public bool WasActiveLastTick { get; set; }
 }
