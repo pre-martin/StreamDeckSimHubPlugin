@@ -3,6 +3,8 @@
 
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.Xaml.Behaviors;
+using StreamDeckSimHub.Plugin.ActionEditor.Behaviors;
 using StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor.Views.Controls;
@@ -12,6 +14,20 @@ public partial class ModifiersControl : UserControl
     public ModifiersControl()
     {
         InitializeComponent();
+
+        // Set up drag-drop delegates for the ListBoxes
+        SetupDragDropBehaviors();
+    }
+
+    private void SetupDragDropBehaviors()
+    {
+        var modifierBehavior = Interaction.GetBehaviors(ModifiersListBox)
+            .OfType<ListBoxDragDropBehavior>()
+            .FirstOrDefault();
+        if (modifierBehavior != null)
+        {
+            modifierBehavior.OnItemDropped = OnModifierDropped;
+        }
     }
 
     /// <summary>
@@ -31,5 +47,17 @@ public partial class ModifiersControl : UserControl
                 ((DisplayItemViewModel)DataContext).RemoveModifier(modifierViewModel);
             }
         }
+    }
+
+    /// <summary>
+    /// Handles the drop operation for Modifiers, updating the order in the view model and underlying model.
+    /// </summary>
+    private void OnModifierDropped(object draggedItem, object targetItem, int sourceIndex, int targetIndex)
+    {
+        if (draggedItem is not ModifierViewModel) return;
+
+        // Get the collection and reorder items
+        ((DisplayItemViewModel)DataContext).Modifiers.Move(sourceIndex, targetIndex);
+        ((DisplayItemViewModel)DataContext).UpdateModifiersOrder();
     }
 }

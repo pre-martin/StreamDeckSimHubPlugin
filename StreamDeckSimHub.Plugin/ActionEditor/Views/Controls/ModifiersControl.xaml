@@ -45,7 +45,8 @@
             </Button>
         </StackPanel>
 
-        <ListBox Grid.Row="1"
+        <ListBox x:Name="ModifiersListBox"
+                 Grid.Row="1"
                  Margin="0,10,0,0"
                  ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  ItemsSource="{Binding Modifiers}"
