@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2025 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.ComponentModel;
@@ -432,45 +432,46 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     {
         if (_settings == null) return;
 
-        // If any flashing modifier transitioned (inactive->active or active->inactive), or if any active flashing modifier
+        // If any blinking modifier transitioned (inactive->active or active->inactive), or if any active blinking modifier
         // changed state (on->off or off->on), we need to redraw the button.
         var needsRedraw = false;
         foreach (var displayItem in _settings.DisplayItems)
         {
             foreach (var modifier in displayItem.Modifiers)
             {
-                if (modifier is ModifierFlash modifierFlash)
+                if (modifier is ModifierBlink modifierBlink)
                 {
                     var isActiveNow = IsModifierActive(modifier);
 
                     // Detect transition from inactive to active: reset tick counter
-                    if (isActiveNow && !modifierFlash.WasActiveLastTick)
+                    if (isActiveNow && !modifierBlink.WasActiveLastTick)
                     {
-                        modifierFlash.CurrentTick = 0;
+                        modifierBlink.CurrentTick = 0;
                         needsRedraw = true;
-                    } else if (!isActiveNow && modifierFlash.WasActiveLastTick)
+                    }
+                    else if (!isActiveNow && modifierBlink.WasActiveLastTick)
                     {
                         needsRedraw = true;
                     }
 
                     // Update the state for next tick
-                    modifierFlash.WasActiveLastTick = isActiveNow;
+                    modifierBlink.WasActiveLastTick = isActiveNow;
 
                     // Only tick if the condition is active
-                    if (isActiveNow && modifierFlash is { DurationOn: not null, DurationOff: not null })
+                    if (isActiveNow && modifierBlink is { DurationOn: not null, DurationOff: not null })
                     {
-                        var cycleDuration = modifierFlash.DurationOn.Value + modifierFlash.DurationOff.Value;
-                        modifierFlash.CurrentTick++;
+                        var cycleDuration = modifierBlink.DurationOn.Value + modifierBlink.DurationOff.Value;
+                        modifierBlink.CurrentTick++;
 
                         // Wrap around at the end of the cycle
-                        if (modifierFlash.CurrentTick > cycleDuration)
+                        if (modifierBlink.CurrentTick > cycleDuration)
                         {
-                            modifierFlash.CurrentTick = 1;
+                            modifierBlink.CurrentTick = 1;
                         }
 
                         // Redraw at transitions between On and Off
-                        if (modifierFlash.CurrentTick == modifierFlash.DurationOn.Value + 1 ||
-                            modifierFlash.CurrentTick == 1)
+                        if (modifierBlink.CurrentTick == modifierBlink.DurationOn.Value + 1 ||
+                            modifierBlink.CurrentTick == 1)
                         {
                             needsRedraw = true;
                         }
@@ -481,7 +482,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
 
         if (needsRedraw)
         {
-            Logger.LogDebug("({coords}) OnTick: Redrawing due to flashing modifier change", _coordinates);
+            Logger.LogTrace("({coords}) OnTick: Redrawing due to blinking modifier change", _coordinates);
             await Render();
         }
     }

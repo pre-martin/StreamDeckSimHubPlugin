@@ -43,25 +43,25 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
         {
             if (!IsVisible(displayItem)) continue;
 
-            // Check if any active ModifierFlash is in the "Off" phase
-            var shouldHideForFlash = false;
+            // Check if any active ModifierBlink is in the "Off" phase
+            var shouldHideForBlink = false;
             foreach (var modifier in displayItem.Modifiers)
             {
-                if (modifier is ModifierFlash modifierFlash && IsModifierActive(modifier))
+                if (modifier is ModifierBlink modifierBlink && IsModifierActive(modifier))
                 {
-                    if (modifierFlash is { DurationOn: not null, DurationOff: not null })
+                    if (modifierBlink is { DurationOn: not null, DurationOff: not null })
                     {
                         // If CurrentTick is greater than DurationOn, we're in the "Off" phase
-                        if (modifierFlash.CurrentTick > modifierFlash.DurationOn.Value)
+                        if (modifierBlink.CurrentTick > modifierBlink.DurationOn.Value)
                         {
-                            shouldHideForFlash = true;
+                            shouldHideForBlink = true;
                             break;
                         }
                     }
                 }
             }
 
-            if (shouldHideForFlash) continue;
+            if (shouldHideForBlink) continue;
 
             // Render the item.
             switch (displayItem)

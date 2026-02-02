@@ -9,7 +9,7 @@ using StreamDeckSimHub.Plugin.PropertyLogic;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
-public partial class DisplayItemValue : DisplayItem, IAcceptsModifierColor, IAcceptsModifierFlash
+public partial class DisplayItemValue : DisplayItem, IAcceptsModifierBlink, IAcceptsModifierColor
 {
     public const string UiName = "Value";
     public const string UiIcon = "DiAttachMoneyGray";

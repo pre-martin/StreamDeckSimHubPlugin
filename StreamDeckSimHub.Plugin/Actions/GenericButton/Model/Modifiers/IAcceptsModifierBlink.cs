@@ -3,4 +3,4 @@
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model.Modifiers;
 
-public interface IAcceptsModifierFlash;
+public interface IAcceptsModifierBlink;

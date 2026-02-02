@@ -32,8 +32,8 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
     {
         Modifiers = new ObservableCollection<ModifierViewModel>(model.Modifiers.Select(ModifierToViewModel));
 
+        if (model is IAcceptsModifierBlink) AvailableModifiers.Add(ModifierBlink.UiName);
         if (model is IAcceptsModifierColor) AvailableModifiers.Add(ModifierColor.UiName);
-        if (model is IAcceptsModifierFlash) AvailableModifiers.Add(ModifierFlash.UiName);
         CanAddModifier = AvailableModifiers.Count > 0;
     }
 
@@ -129,11 +129,11 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
     {
         switch (type)
         {
+            case ModifierBlink.UiName:
+                AddModifier(ModifierBlink.Create());
+                break;
             case ModifierColor.UiName:
                 AddModifier(ModifierColor.Create());
-                break;
-            case ModifierFlash.UiName:
-                AddModifier(ModifierFlash.Create());
                 break;
         }
     }
@@ -150,8 +150,8 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
     {
         return modifier switch
         {
+            ModifierBlink modifierBlink => new ModifierBlinkViewModel(modifierBlink, ParentViewModel),
             ModifierColor colorModifier => new ModifierColorViewModel(colorModifier, ParentViewModel),
-            ModifierFlash flashModifier => new ModifierFlashViewModel(flashModifier, ParentViewModel),
             _ => throw new InvalidOperationException($"Unknown Modifier type: {modifier.GetType().FullName}")
         };
     }

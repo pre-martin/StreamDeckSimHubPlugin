@@ -8,7 +8,7 @@ using StreamDeckSimHub.Plugin.Actions.GenericButton.Model.Modifiers;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
-public partial class DisplayItemText : DisplayItem, IAcceptsModifierColor, IAcceptsModifierFlash
+public partial class DisplayItemText : DisplayItem, IAcceptsModifierBlink, IAcceptsModifierColor
 {
     public const string UiName = "Text";
     public const string UiIcon = "DiTextFieldsGray";

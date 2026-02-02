@@ -5,9 +5,9 @@ using System.Windows.Controls;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor.Views;
 
-public partial class ModifierFlashView : UserControl
+public partial class ModifierBlinkView : UserControl
 {
-    public ModifierFlashView()
+    public ModifierBlinkView()
     {
         InitializeComponent();
     }

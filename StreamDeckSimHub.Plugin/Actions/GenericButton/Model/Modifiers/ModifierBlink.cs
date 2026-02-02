@@ -6,13 +6,13 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model.Modifiers;
 
-public partial class ModifierFlash : Modifier
+public partial class ModifierBlink : Modifier
 {
-    public const string UiName = "Flash";
+    public const string UiName = "Blink";
 
-    public static ModifierFlash Create()
+    public static ModifierBlink Create()
     {
-        return new ModifierFlash();
+        return new ModifierBlink();
     }
 
     [ObservableProperty] private int? _durationOn;

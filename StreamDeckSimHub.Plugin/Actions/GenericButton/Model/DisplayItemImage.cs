@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2025 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.IO;
@@ -9,7 +9,7 @@ using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
-public partial class DisplayItemImage : DisplayItem, IAcceptsModifierFlash
+public partial class DisplayItemImage : DisplayItem, IAcceptsModifierBlink
 {
     public const string UiName = "Image";
     public const string UiIcon = "DiInsertPhotoOutlinedGray";

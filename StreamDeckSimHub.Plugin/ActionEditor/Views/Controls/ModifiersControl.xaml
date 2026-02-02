@@ -89,11 +89,11 @@
                         Margin="0,20,0,0"
                         Visibility="{Binding IsModifierSelected, Converter={StaticResource BoolToVisibilityConverter}}">
             <ContentControl.Resources>
+                <DataTemplate DataType="{x:Type viewModels:ModifierBlinkViewModel}">
+                    <views:ModifierBlinkView />
+                </DataTemplate>
                 <DataTemplate DataType="{x:Type viewModels:ModifierColorViewModel}">
                     <views:ModifierColorView />
-                </DataTemplate>
-                <DataTemplate DataType="{x:Type viewModels:ModifierFlashViewModel}">
-                    <views:ModifierFlashView />
                 </DataTemplate>
             </ContentControl.Resources>
         </ContentControl>
