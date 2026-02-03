@@ -34,7 +34,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     private readonly ImageManager _imageManager;
     private readonly ActionEditorManager _actionEditorManager;
     private readonly ISimHubConnection _simHubConnection;
-    private readonly NCalcHandler _ncalcHandler;
+    private readonly ConditionEvaluator _conditionEvaluator;
     private readonly IPropertyChangedReceiver _statePropertyChangedReceiver;
     private readonly IButtonRenderer _buttonRenderer;
     private readonly CommandItemHandler _commandItemHandler;
@@ -58,7 +58,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         _imageManager = imageManager;
         _actionEditorManager = actionEditorManager;
         _simHubConnection = simHubConnection;
-        _ncalcHandler = ncalcHandler;
+        _conditionEvaluator = new ConditionEvaluator(ncalcHandler, GetProperty, () => _coordinates?.ToString() ?? "(?)");
         _statePropertyChangedReceiver = new PropertyChangedDelegate(PropertyChanged);
         _buttonRenderer = new ButtonRendererImageSharp(GetProperty);
         _commandItemHandler = new CommandItemHandler(simHubConnection, new KeyboardUtils());
@@ -184,7 +184,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         if (_settings == null) return;
         Logger.LogInformation("({coords}) OnKeyDown", args.Payload.Coordinates);
 
-        await _commandItemHandler.KeyDown(_settings.CommandItems[StreamDeckAction.KeyDown], IsActive);
+        await _commandItemHandler.KeyDown(_settings.CommandItems[StreamDeckAction.KeyDown], _conditionEvaluator.IsItemActive);
     }
 
     protected override async Task OnKeyUp(ActionEventArgs<KeyPayload> args)
@@ -203,7 +203,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         var ticks = args.Payload.Ticks;
         await _commandItemHandler.DialRotate(
             ticks < 0 ? _settings.CommandItems[StreamDeckAction.DialLeft] : _settings.CommandItems[StreamDeckAction.DialRight],
-            IsActive, ticks);
+            _conditionEvaluator.IsItemActive, ticks);
     }
 
     protected override async Task OnDialDown(ActionEventArgs<DialPayload> args)
@@ -211,7 +211,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         if (_settings == null) return;
         Logger.LogInformation("({coords}) OnDialDown", args.Payload.Coordinates);
 
-        await _commandItemHandler.DialDown(_settings.CommandItems[StreamDeckAction.DialDown], IsActive);
+        await _commandItemHandler.DialDown(_settings.CommandItems[StreamDeckAction.DialDown], _conditionEvaluator.IsItemActive);
     }
 
     protected override async Task OnDialUp(ActionEventArgs<DialPayload> args)
@@ -227,7 +227,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         if (_settings == null) return;
         Logger.LogInformation("({coords}) OnTouchTap", args.Payload.Coordinates);
 
-        await _commandItemHandler.TouchTap(_settings.CommandItems[StreamDeckAction.TouchTap], IsActive);
+        await _commandItemHandler.TouchTap(_settings.CommandItems[StreamDeckAction.TouchTap], _conditionEvaluator.IsItemActive);
     }
 
     /// <summary>
@@ -416,18 +416,6 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         return propertyChangedArgs?.PropertyValue;
     }
 
-    private bool IsActive(Item item)
-    {
-        return _ncalcHandler.IsConditionActive(item.NCalcConditionHolder, GetProperty,
-            $"({_coordinates})   IsActive of \"{item.DisplayName}\"");
-    }
-
-    private bool IsModifierActive(Modifier modifier)
-    {
-        return _ncalcHandler.IsConditionActive(modifier.NCalcConditionHolder, GetProperty,
-            $"({_coordinates})   Modifier \"{modifier.DisplayName}\"");
-    }
-
     private async Task OnTick()
     {
         if (_settings == null) return;
@@ -441,40 +429,16 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
             {
                 if (modifier is ModifierBlink modifierBlink)
                 {
-                    var isActiveNow = IsModifierActive(modifier);
+                    var isActiveNow = _conditionEvaluator.IsModifierActive(modifier);
 
-                    // Detect transition from inactive to active: reset tick counter
-                    if (isActiveNow && !modifierBlink.WasActiveLastTick)
-                    {
-                        modifierBlink.CurrentTick = 0;
-                        needsRedraw = true;
-                    }
-                    else if (!isActiveNow && modifierBlink.WasActiveLastTick)
-                    {
-                        needsRedraw = true;
-                    }
-
-                    // Update the state for next tick
-                    modifierBlink.WasActiveLastTick = isActiveNow;
+                    var transitioned = modifierBlink.DetermineTransition(isActiveNow);
+                    if (transitioned) needsRedraw = true;
 
                     // Only tick if the condition is active
-                    if (isActiveNow && modifierBlink is { DurationOn: not null, DurationOff: not null })
+                    if (isActiveNow)
                     {
-                        var cycleDuration = modifierBlink.DurationOn.Value + modifierBlink.DurationOff.Value;
-                        modifierBlink.CurrentTick++;
-
-                        // Wrap around at the end of the cycle
-                        if (modifierBlink.CurrentTick > cycleDuration)
-                        {
-                            modifierBlink.CurrentTick = 1;
-                        }
-
-                        // Redraw at transitions between On and Off
-                        if (modifierBlink.CurrentTick == modifierBlink.DurationOn.Value + 1 ||
-                            modifierBlink.CurrentTick == 1)
-                        {
-                            needsRedraw = true;
-                        }
+                        var transitionedOnOff = modifierBlink.Tick();
+                        if (transitionedOnOff) needsRedraw = true;
                     }
                 }
             }

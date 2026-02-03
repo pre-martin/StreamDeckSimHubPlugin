@@ -20,13 +20,22 @@ using Size = SixLabors.ImageSharp.Size;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Renderer;
 
-public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButtonRenderer
+public class ButtonRendererImageSharp : IButtonRenderer
 {
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
     private readonly StreamDeckKeyInfo _defaultKeyInfo = StreamDeckKeyInfoBuilder.DefaultKeyInfo;
     private readonly NCalcHandler _ncalcHandler = new();
     private readonly FormatHelper _formatHelper = new();
+    private readonly ConditionEvaluator _conditionEvaluator;
     private Coordinates _coords = new() { Column = -1, Row = -1 };
+
+    public ButtonRendererImageSharp(GetPropertyDelegate getProperty)
+    {
+        _conditionEvaluator = new ConditionEvaluator(
+            _ncalcHandler,
+            getProperty,
+            () => _coords.ToString());
+    }
 
     public void SetCoordinates(Coordinates coordinates)
     {
@@ -41,23 +50,15 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
         // Iterate over all display items.
         foreach (var displayItem in displayItems)
         {
-            if (!IsVisible(displayItem)) continue;
+            if (!_conditionEvaluator.IsItemActive(displayItem)) continue;
 
             // Check if any active ModifierBlink is in the "Off" phase
             var shouldHideForBlink = false;
             foreach (var modifier in displayItem.Modifiers)
             {
-                if (modifier is ModifierBlink modifierBlink && IsModifierActive(modifier))
+                if (modifier is ModifierBlink modifierBlink && _conditionEvaluator.IsModifierActive(modifier))
                 {
-                    if (modifierBlink is { DurationOn: not null, DurationOff: not null })
-                    {
-                        // If CurrentTick is greater than DurationOn, we're in the "Off" phase
-                        if (modifierBlink.CurrentTick > modifierBlink.DurationOn.Value)
-                        {
-                            shouldHideForBlink = true;
-                            break;
-                        }
-                    }
+                    if (modifierBlink.IsOffPhase()) shouldHideForBlink = true;
                 }
             }
 
@@ -145,8 +146,7 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
     {
         try
         {
-            var value = _ncalcHandler.EvaluateExpression(valueItem.NCalcPropertyHolder, getProperty,
-                $"({_coords})   Value of \"{valueItem.DisplayName}\"");
+            var value = _conditionEvaluator.Evaluate(valueItem.NCalcPropertyHolder, $"Value of \"{valueItem.DisplayName}\"");
             var format = _formatHelper.CompleteFormatString(valueItem.DisplayFormat);
             var formattedValue = string.Format(CultureInfo.CurrentCulture, format, value);
             RenderString(image, keyInfo, valueItem, valueItem.Font, valueItem.Color, formattedValue);
@@ -172,7 +172,7 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
         var colorWithAlpha = color.WithAlpha(displayItem.DisplayParameters.Transparency);
         foreach (var modifier in displayItem.Modifiers)
         {
-            if (modifier is ModifierColor modifierColor && IsModifierActive(modifier))
+            if (modifier is ModifierColor modifierColor && _conditionEvaluator.IsModifierActive(modifier))
             {
                 colorWithAlpha = modifierColor.Color.WithAlpha(displayItem.DisplayParameters.Transparency);
             }
@@ -214,24 +214,6 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
             //ctx.Fill(Color.Red, new EllipsePolygon(centerPoint, 3f)); // Debug: Draw center point
             ctx.SetDrawingTransform(Matrix3x2.Identity);
         });
-    }
-
-    /// <summary>
-    /// Evaluates the conditions of the item. If the result is true or a positive number, the item is considered visible.
-    /// </summary>
-    private bool IsVisible(Item item)
-    {
-        return _ncalcHandler.IsConditionActive(item.NCalcConditionHolder, getProperty,
-            $"({_coords})   Visibility of \"{item.DisplayName}\"");
-    }
-
-    /// <summary>
-    /// Same as <see cref="IsVisible"/>, but for modifiers.
-    /// </summary>
-    private bool IsModifierActive(Modifier modifier)
-    {
-        return _ncalcHandler.IsConditionActive(modifier.NCalcConditionHolder, getProperty,
-            $"({_coords})   Modifier \"{modifier.DisplayName}\"");
     }
 
     /// <summary>
