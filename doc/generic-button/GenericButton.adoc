@@ -204,6 +204,7 @@ Each blink modifier has its own timer that alternates the visibility of the disp
 
 The diagram below shows two different modifiers ("Modifier 1" and "Modifier 2") with their conditions, and how the condition becoming true affects the visibility of the display item.
 
+ifndef::env-github[]
 [plantuml, "timing-example", svg]
 .Timing diagram for two blink modifiers
 ----
@@ -259,7 +260,10 @@ cond2 is "False"
 
 @enduml
 ----
-
+endif::[]
+ifdef::env-github[]
+image:timing-example.svg
+endif::[]
 
 ===== Modifier Color
 
