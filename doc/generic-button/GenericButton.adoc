@@ -262,7 +262,7 @@ cond2 is "False"
 ----
 endif::[]
 ifdef::env-github[]
-image:timing-example.svg
+image:timing-example.svg[Timing diagram for two blink modifiers]
 endif::[]
 
 ===== Modifier Color
