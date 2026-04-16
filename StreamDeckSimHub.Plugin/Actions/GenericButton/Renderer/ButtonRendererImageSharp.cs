@@ -42,7 +42,7 @@ public class ButtonRendererImageSharp : IButtonRenderer
         _coords = coordinates;
     }
 
-    public Image<Rgba32> Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems)
+    public Image<Rgba32> Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems, BlinkOverride? blinkOverride = null)
     {
         _logger.Debug($"({_coords}) Rendering...");
         var image = new Image<Rgba32>(targetKeyInfo.KeySize.Width, targetKeyInfo.KeySize.Height);
@@ -52,13 +52,18 @@ public class ButtonRendererImageSharp : IButtonRenderer
         {
             if (!_conditionEvaluator.IsItemActive(displayItem)) continue;
 
-            // Check if any active ModifierBlink is in the "Off" phase
+            // Check if any active ModifierBlink is in the "Off" (= hide) phase.
+            // When blinkOverride is enabled, it owns the phase state (all blink in sync). Otherwise, each ModifierBlink uses its own individual phase state.
             var shouldHideForBlink = false;
             foreach (var modifier in displayItem.Modifiers)
             {
                 if (modifier is ModifierBlink modifierBlink && _conditionEvaluator.IsModifierActive(modifier))
                 {
-                    if (modifierBlink.IsOffPhase()) shouldHideForBlink = true;
+                    if (blinkOverride is { Enabled: true } ? blinkOverride.IsOffPhase() : modifierBlink.IsOffPhase())
+                    {
+                        shouldHideForBlink = true;
+                        break;
+                    }
                 }
             }
 

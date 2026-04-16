@@ -3,6 +3,8 @@
 
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Xaml.Behaviors;
 using NLog;
@@ -55,6 +57,9 @@ public partial class GenericButtonEditor
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
+        GetWindow(this)?.AddHandler(
+            PreviewMouseDownEvent,
+            new MouseButtonEventHandler(CloseBlinkOverrideOnOutsideClick));
         try
         {
             await ((SettingsViewModel)DataContext).FetchControlMapperRoles();
@@ -70,6 +75,9 @@ public partial class GenericButtonEditor
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        GetWindow(this)?.RemoveHandler(
+            PreviewMouseDownEvent,
+            new MouseButtonEventHandler(CloseBlinkOverrideOnOutsideClick));
         WeakReferenceMessenger.Default.Send(new GenericButtonEditorClosedEvent(_actionUuid));
     }
 
@@ -148,5 +156,42 @@ public partial class GenericButtonEditor
 
         ((SettingsViewModel)DataContext).FlatCommandItems.Move(sourceIndex, targetIndex);
         ((SettingsViewModel)DataContext).UpdateCommandItemsOrder(commandItem.ParentAction);
+    }
+
+    /// <summary>
+    /// Closes the Settings popup when the user clicks anywhere in the window outside the toggle button.
+    /// Clicks inside the Popup do not reach this handler because the Popup lives in its own HwndSource.
+    /// </summary>
+    private void CloseBlinkOverrideOnOutsideClick(object sender, MouseButtonEventArgs e)
+    {
+        var vm = (SettingsViewModel)DataContext;
+        if (!vm.IsSettingsOverlayVisible) return;
+
+        if (e.OriginalSource is DependencyObject source)
+        {
+            // Click on the toggle button itself: let the Click handler toggle the state.
+            if (IsDescendantOf(source, SettingsButton)) return;
+            // Click inside the popup content: keep the popup open.
+            if (SettingsPopup.Child != null && IsDescendantOf(source, SettingsPopup.Child)) return;
+        }
+
+        vm.IsSettingsOverlayVisible = false;
+    }
+
+    private void SettingsButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        var vm = (SettingsViewModel)DataContext;
+        vm.IsSettingsOverlayVisible = !vm.IsSettingsOverlayVisible;
+    }
+
+    private static bool IsDescendantOf(DependencyObject element, DependencyObject ancestor)
+    {
+        var current = element;
+        while (current != null)
+        {
+            if (current == ancestor) return true;
+            current = VisualTreeHelper.GetParent(current);
+        }
+        return false;
     }
 }

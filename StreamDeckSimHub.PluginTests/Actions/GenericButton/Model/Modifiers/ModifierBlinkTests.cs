@@ -1,6 +1,7 @@
 ﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using System.Collections.ObjectModel;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model.Modifiers;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Renderer;
@@ -71,6 +72,44 @@ public class ModifierBlinkTests
         modifierBlink.Tick();
         var image8 = renderer.Render(DefaultKeyInfo, _settings.DisplayItems);
         Assert.That(ImageHasNonBlackPixels(image8), Is.False, "Tick 8 should be invisible");
+    }
+
+    /// <summary>
+    /// Two DisplayItems with ModifierBlink conditions that are both active. With BlinkOverride enabled
+    /// they must be in the exact same phase on every tick (synchronous blinking).
+    /// </summary>
+    [Test]
+    public void BlinkOverride_TwoItemsBlinkInSync()
+    {
+        var itemA = new DisplayItemText { Text = "A" };
+        var blinkA = new ModifierBlink { DurationOn = 3, DurationOff = 2 };
+        itemA.Modifiers.Add(blinkA);
+
+        var itemB = new DisplayItemText { Text = "B" };
+        var blinkB = new ModifierBlink { DurationOn = 1, DurationOff = 4 }; // different individual timing
+        itemB.Modifiers.Add(blinkB);
+
+        _settings.DisplayItems.Add(itemA);
+        _settings.DisplayItems.Add(itemB);
+
+        var blinkOverride = new BlinkOverride { Enabled = true, DurationOn = 2, DurationOff = 2 };
+        var renderer = new ButtonRendererImageSharp(EmptyPropertyProvider);
+
+        // Activate both modifiers (DetermineTransition resets their individual clocks, but override owns the tick)
+        blinkA.DetermineTransition(true);
+        blinkB.DetermineTransition(true);
+
+        for (var tick = 1; tick <= 8; tick++)
+        {
+            blinkOverride.Tick(); // only the override drives the clock
+
+            var imageAVisible =
+                ImageHasNonBlackPixels(renderer.Render(DefaultKeyInfo, new Collection<DisplayItem> { itemA }, blinkOverride));
+            var imageBVisible =
+                ImageHasNonBlackPixels(renderer.Render(DefaultKeyInfo, new Collection<DisplayItem> { itemB }, blinkOverride));
+
+            Assert.That(imageAVisible, Is.EqualTo(imageBVisible), $"Tick {tick}: items A and B must be in the same blink phase");
+        }
     }
 
     private string? EmptyPropertyProvider(string propName) => null;

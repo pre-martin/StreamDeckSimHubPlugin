@@ -40,7 +40,7 @@ public partial class ModifiersControl : UserControl
         if (sender is Button { DataContext: ModifierViewModel modifierViewModel })
         {
             var result = MessageBox.Show(
-                $"Are you sure you want to delete the modifier\n\"{modifierViewModel}\" ?",
+                $"Are you sure you want to delete the modifier\n\"{modifierViewModel.DisplayName}\" ?",
                 "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (result == MessageBoxResult.Yes)
             {

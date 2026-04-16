@@ -2,6 +2,7 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using Newtonsoft.Json;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings.Modifiers;
 using StreamDeckSimHub.Plugin.Actions.JsonSettings;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -15,6 +16,8 @@ public class SettingsDto
 
     [JsonIgnore]
     public List<DisplayItemDto> DisplayItems { get; set; } = [];
+
+    public BlinkOverrideDto BlinkOverride  { get; set; } = new();
 
     [JsonIgnore]
     public Dictionary<string, List<CommandItemDto>> CommandItems { get; set; } = [];

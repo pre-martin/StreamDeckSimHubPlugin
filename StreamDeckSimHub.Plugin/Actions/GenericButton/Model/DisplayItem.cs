@@ -12,10 +12,12 @@ public abstract partial class DisplayItem : Item
 {
     [ObservableProperty] private DisplayParameters _displayParameters = new();
 
-    public ObservableCollection<Modifier> Modifiers { get; set; } = [];
+    public ObservableCollection<Modifier> Modifiers { get; } = [];
 
     protected DisplayItem()
     {
+        DisplayParameters.PropertyChanged += (sender, args) => OnPropertyChanged(args);
+
         Modifiers.CollectionChanged += (_, args) =>
         {
             if (args is { Action: NotifyCollectionChangedAction.Add, NewItems: not null })
@@ -35,4 +37,9 @@ public abstract partial class DisplayItem : Item
     }
 
     public abstract Task Accept(IDisplayItemVisitor displayItemVisitor, IVisitorArgs? args = null);
+
+    partial void OnDisplayParametersChanged(DisplayParameters value)
+    {
+        value.PropertyChanged += (sender, a) => OnPropertyChanged(a);
+    }
 }

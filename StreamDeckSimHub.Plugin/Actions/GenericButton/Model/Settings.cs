@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SixLabors.ImageSharp;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.Model.Modifiers;
 using StreamDeckSimHub.Plugin.Actions.Model;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
@@ -29,6 +30,8 @@ public partial class Settings : ObservableObject
     /// </summary>
     public ObservableCollection<DisplayItem> DisplayItems { get; } = [];
 
+    [ObservableProperty] private BlinkOverride _blinkOverride = new();
+
     /// <summary>
     /// Contains the list of actions for each possible Stream Deck action.
     /// </summary>
@@ -48,14 +51,15 @@ public partial class Settings : ObservableObject
                     if (item is DisplayItem displayItem)
                     {
                         displayItem.PropertyChanged += (sender, a) => SettingsChanged?.Invoke(sender, a);
-                        displayItem.DisplayParameters.PropertyChanged += (sender, a) => SettingsChanged?.Invoke(sender, a);
                     }
                 }
             }
 
             SettingsChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayItems)));
         };
-
+        
+        BlinkOverride.PropertyChanged += (sender, a) => SettingsChanged?.Invoke(sender, a);
+        
         foreach (var action in ModelDefinitions.GetCommandItemActions())
         {
             CommandItems[action] = [];
@@ -76,6 +80,11 @@ public partial class Settings : ObservableObject
                 SettingsChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CommandItems)));
             };
         }
+    }
+
+    partial void OnBlinkOverrideChanged(BlinkOverride value)
+    {
+        value.PropertyChanged += (sender, a) => SettingsChanged?.Invoke(sender, a);
     }
 
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)

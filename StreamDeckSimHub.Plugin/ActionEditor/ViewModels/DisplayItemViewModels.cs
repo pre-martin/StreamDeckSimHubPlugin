@@ -204,7 +204,7 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
         {
             if (columnName == nameof(TransparencyText))
             {
-                if (string.IsNullOrWhiteSpace(TransparencyText)) return string.Empty;
+                if (string.IsNullOrWhiteSpace(TransparencyText)) return "Transparency value is required.";
 
                 if (!float.TryParse(TransparencyText, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
                     || parsed < 0f || parsed > 1f)

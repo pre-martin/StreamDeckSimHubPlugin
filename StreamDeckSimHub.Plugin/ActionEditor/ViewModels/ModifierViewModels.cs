@@ -52,16 +52,16 @@ public partial class ModifierBlinkViewModel(ModifierBlink model, IViewModel root
 {
     public override ImageSource? Icon => null;
 
-    [ObservableProperty] private int? _durationOn = model.DurationOn;
-    [ObservableProperty] private int? _durationOff = model.DurationOff;
+    [ObservableProperty] private int _durationOn = model.DurationOn;
+    [ObservableProperty] private int _durationOff = model.DurationOff;
 
 
-    partial void OnDurationOnChanged(int? value)
+    partial void OnDurationOnChanged(int value)
     {
         model.DurationOn = value;
     }
 
-    partial void OnDurationOffChanged(int? value)
+    partial void OnDurationOffChanged(int value)
     {
         model.DurationOff = value;
     }
@@ -84,5 +84,29 @@ public partial class ModifierColorViewModel(ModifierColor model, IViewModel root
     partial void OnImageSharpColorChanged(Color value)
     {
         model.Color = value;
+    }
+}
+
+public partial class BlinkOverrideViewModel(BlinkOverride model) : ObservableObject
+{
+    [ObservableProperty] private bool _enabled = model.Enabled;
+
+    partial void OnEnabledChanged(bool value)
+    {
+        model.Enabled = value;
+    }
+
+    [ObservableProperty] private int _durationOn = model.DurationOn;
+
+    partial void OnDurationOnChanged(int value)
+    {
+        model.DurationOn = value;
+    }
+
+    [ObservableProperty] private int _durationOff = model.DurationOff;
+
+    partial void OnDurationOffChanged(int value)
+    {
+        model.DurationOff = value;
     }
 }

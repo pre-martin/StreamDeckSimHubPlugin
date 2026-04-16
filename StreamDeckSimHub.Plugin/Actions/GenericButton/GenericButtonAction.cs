@@ -383,7 +383,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     {
         if (_settings == null || _sdKeyInfo == null) return;
 
-        var image = _buttonRenderer.Render(_sdKeyInfo, _settings.DisplayItems);
+        var image = _buttonRenderer.Render(_sdKeyInfo, _settings.DisplayItems, _settings.BlinkOverride);
         if (_sdKeyInfo.IsDial)
         {
             await SetFeedbackAsync(new DialLayout { Content = new Pixmap { Value = image.ToBase64String(PngFormat.Instance) } });
@@ -420,9 +420,12 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     {
         if (_settings == null) return;
 
+        // Check blink override first
+        var blinkOverrideActive = _settings.BlinkOverride.Tick();
+
         // If any blinking modifier transitioned (inactive->active or active->inactive), or if any active blinking modifier
         // changed state (on->off or off->on), we need to redraw the button.
-        var needsRedraw = false;
+        var needsRedraw = blinkOverrideActive;
         foreach (var displayItem in _settings.DisplayItems)
         {
             foreach (var modifier in displayItem.Modifiers)
@@ -434,11 +437,15 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
                     var transitioned = modifierBlink.DetermineTransition(isActiveNow);
                     if (transitioned) needsRedraw = true;
 
-                    // Only tick if the condition is active
+                    // Always tick individual modifiers so their independent clocks keep running.
+                    // When the override is active it controls the rendered phase (see Renderer), but the
+                    // individual clocks must still advance so they are at independent positions once the
+                    // override is disabled again.  Only let individual phase-transitions trigger a redraw
+                    // when the override is NOT active (while active, BlinkOverride.Tick() already drives redraws).
                     if (isActiveNow)
                     {
                         var transitionedOnOff = modifierBlink.Tick();
-                        if (transitionedOnOff) needsRedraw = true;
+                        if (transitionedOnOff && !_settings.BlinkOverride.Enabled) needsRedraw = true;
                     }
                 }
             }
