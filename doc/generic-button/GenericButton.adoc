@@ -200,7 +200,7 @@ Modifiers allow to change the visual appearance of display items. Each modifier 
 
 Causes the display item to blink (alternating between visible and hidden) as long as the modifier condition is true.
 
-Each blink modifier has its own timer that alternates the visibility of the display item. The timer starts the moment the condition becomes true. This means that if there are two or more blink modifiers with different conditions on different display items, the items will be displayed or hidden at different time intervals. See section <<_blink_override>> below if synchronization of multiple blink modifiers is desired.
+Each blink modifier has its own timer that alternates the visibility of the display item. The timer starts the moment the condition becomes true. This means that if there are two or more blink modifiers with different conditions on different display items, the items will be displayed or hidden at different time intervals. See section <<#blinkOverride>> below if synchronization of multiple blink modifiers is desired.
 
 The following diagram shows two different modifiers ("Modifier 1" and "Modifier 2") with their conditions, and how the condition becoming true affects the visibility of the display item:
 
@@ -265,6 +265,7 @@ ifdef::env-github[]
 image:timing-example.svg[Timing diagram for two blink modifiers]
 endif::[]
 
+[#blinkOverride]
 ===== Blink Override
 
 Blink Override allows to synchronize multiple blink modifiers on the same Stream Deck key. If Blink Override is enabled, it will control a single timer for all blink modifiers on this Stream Deck key. This means that all blink modifiers on this key will be visible or hidden at the same time, even if their conditions become true at different times.
