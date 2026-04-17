@@ -59,7 +59,7 @@ public partial class GenericButtonEditor
     {
         GetWindow(this)?.AddHandler(
             PreviewMouseDownEvent,
-            new MouseButtonEventHandler(CloseBlinkOverrideOnOutsideClick));
+            new MouseButtonEventHandler(CloseSettingsOnOutsideClick));
         try
         {
             await ((SettingsViewModel)DataContext).FetchControlMapperRoles();
@@ -73,11 +73,16 @@ public partial class GenericButtonEditor
         }
     }
 
+    private void OnDeactivated(object? sender, EventArgs e)
+    {
+        ((SettingsViewModel)DataContext).IsSettingsOverlayVisible = false;
+    }
+
     private void OnClosed(object? sender, EventArgs e)
     {
         GetWindow(this)?.RemoveHandler(
             PreviewMouseDownEvent,
-            new MouseButtonEventHandler(CloseBlinkOverrideOnOutsideClick));
+            new MouseButtonEventHandler(CloseSettingsOnOutsideClick));
         WeakReferenceMessenger.Default.Send(new GenericButtonEditorClosedEvent(_actionUuid));
     }
 
@@ -160,9 +165,8 @@ public partial class GenericButtonEditor
 
     /// <summary>
     /// Closes the Settings popup when the user clicks anywhere in the window outside the toggle button.
-    /// Clicks inside the Popup do not reach this handler because the Popup lives in its own HwndSource.
     /// </summary>
-    private void CloseBlinkOverrideOnOutsideClick(object sender, MouseButtonEventArgs e)
+    private void CloseSettingsOnOutsideClick(object sender, MouseButtonEventArgs e)
     {
         var vm = (SettingsViewModel)DataContext;
         if (!vm.IsSettingsOverlayVisible) return;
