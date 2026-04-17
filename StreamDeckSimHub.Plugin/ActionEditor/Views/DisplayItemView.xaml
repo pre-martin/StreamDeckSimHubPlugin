@@ -11,6 +11,7 @@
              d:DesignHeight="600" d:DesignWidth="750">
 
     <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <DataTemplate DataType="{x:Type viewModels:DisplayItemImageViewModel}">
             <local:DisplayItemImageView />
         </DataTemplate>
@@ -45,7 +46,14 @@
             <TabItem Header="Element">
                 <controls:DisplayItemControl />
             </TabItem>
-            <TabItem Header="Modifiers">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Modifiers" />
+                        <Ellipse Width="7" Height="7" Fill="#607D8B" Margin="5,0,0,0" VerticalAlignment="Center"
+                                 Visibility="{Binding HasModifiers, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    </StackPanel>
+                </TabItem.Header>
                 <controls:ModifiersControl />
             </TabItem>
         </TabControl>

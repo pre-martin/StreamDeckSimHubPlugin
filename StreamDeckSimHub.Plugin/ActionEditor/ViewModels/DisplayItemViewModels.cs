@@ -31,6 +31,7 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
     protected DisplayItemViewModel(DisplayItem model, IViewModel parentViewModel) : this(model, parentViewModel, null)
     {
         Modifiers = new ObservableCollection<ModifierViewModel>(model.Modifiers.Select(ModifierToViewModel));
+        Modifiers.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasModifiers));
 
         if (model is IAcceptsModifierBlink) AvailableModifiers.Add(ModifierBlink.UiName);
         if (model is IAcceptsModifierColor) AvailableModifiers.Add(ModifierColor.UiName);
@@ -113,6 +114,8 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
     #region Modifiers
 
     public ObservableCollection<ModifierViewModel> Modifiers { get; } = [];
+
+    public bool HasModifiers => Modifiers.Count > 0;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsModifierSelected))]
