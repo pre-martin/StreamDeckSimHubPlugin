@@ -1,0 +1,102 @@
+﻿<UserControl x:Class="StreamDeckSimHub.Plugin.ActionEditor.Views.Controls.ModifiersControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
+             xmlns:behaviors="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Behaviors"
+             xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:views="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Views"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=viewModels:DisplayItemViewModel, IsDesignTimeCreatable=False}"
+             d:DesignHeight="300" d:DesignWidth="750">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/ActionEditor/IconResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,10,0,0">
+            <Button Content="Add Modifier" Padding="8,2" behaviors:OpenContextMenuOnClickBehavior.Apply="True"
+                    IsEnabled="{Binding CanAddModifier}">
+                <Button.ContextMenu>
+                    <ContextMenu ItemsSource="{Binding AvailableModifiers}">
+                        <ContextMenu.ItemContainerStyle>
+                            <Style TargetType="MenuItem">
+                                <Setter Property="Header" Value="{Binding}" />
+                                <Setter Property="Command"
+                                        Value="{Binding DataContext.AddModifierCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                <Setter Property="CommandParameter" Value="{Binding}" />
+                            </Style>
+                        </ContextMenu.ItemContainerStyle>
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
+        </StackPanel>
+
+        <ListBox x:Name="ModifiersListBox"
+                 Grid.Row="1"
+                 Margin="0,10,0,0"
+                 ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 ItemsSource="{Binding Modifiers}"
+                 SelectedItem="{Binding SelectedModifier, Mode=TwoWay}"
+                 BorderThickness="1"
+                 Background="Transparent"
+                 HorizontalContentAlignment="Stretch" MinHeight="200">
+            <b:Interaction.Behaviors>
+                <behaviors:ListBoxDragDropBehavior />
+            </b:Interaction.Behaviors>
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="{x:Type ListBoxItem}">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Image Grid.Column="0" Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,5,0" />
+                        <TextBlock Grid.Column="1" Text="{Binding DisplayName}" VerticalAlignment="Center" />
+                        <Button Grid.Column="2" Background="Transparent" BorderBrush="Transparent" Focusable="False"
+                                Click="ModifierDelete_OnClick">
+                            <Image Source="{StaticResource DiDeleteRounded}" Height="16" />
+                        </Button>
+                        <TextBlock Grid.Column="3" Text="☰" FontSize="16" Cursor="SizeAll" HorizontalAlignment="Right"
+                                   behaviors:ListBoxDragDropBehavior.IsDragHandle="True" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- Detail editor for the specific item -->
+        <ContentControl Grid.Row="2" Content="{Binding SelectedModifier}"
+                        Margin="0,20,0,0"
+                        Visibility="{Binding IsModifierSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+            <ContentControl.Resources>
+                <DataTemplate DataType="{x:Type viewModels:ModifierBlinkViewModel}">
+                    <views:ModifierBlinkView />
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type viewModels:ModifierColorViewModel}">
+                    <views:ModifierColorView />
+                </DataTemplate>
+            </ContentControl.Resources>
+        </ContentControl>
+
+    </Grid>
+</UserControl>

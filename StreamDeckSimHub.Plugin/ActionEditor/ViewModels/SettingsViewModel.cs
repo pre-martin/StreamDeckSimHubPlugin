@@ -37,6 +37,10 @@ public partial class SettingsViewModel : ObservableObject, IViewModel
 
     public string NameForTitle => string.IsNullOrWhiteSpace(Name) ? "Generic Button Editor" : "Generic Button Editor: " + Name;
 
+    public BlinkOverrideViewModel BlinkOverride { get; }
+
+    [ObservableProperty] private bool _isSettingsOverlayVisible;
+
     [ObservableProperty] private string _version = "Version " + ThisAssembly.AssemblyFileVersion;
     [ObservableProperty] private string _newVersion = string.Empty;
     [ObservableProperty] private Brush _newVersionBrush = Brushes.Transparent;
@@ -91,6 +95,7 @@ public partial class SettingsViewModel : ObservableObject, IViewModel
         _shakeItStructureFetcher = shakeItStructureFetcher;
         ParentWindow = parentWindow;
         _name = settings.Name;
+        BlinkOverride = new BlinkOverrideViewModel(settings.BlinkOverride);
 
         DisplayItems = new ObservableCollection<DisplayItemViewModel>(settings.DisplayItems.Select(DisplayItemToViewModel));
 

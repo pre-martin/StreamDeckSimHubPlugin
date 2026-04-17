@@ -2,6 +2,7 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Text.Json.Serialization;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings.Modifiers;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 
@@ -11,4 +12,6 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 public abstract class DisplayItemDto : ItemDto
 {
     public required DisplayParametersDto DisplayParameters { get; set; } = new();
+
+    public List<ModifierDto> Modifiers { get; set; } = [];
 }

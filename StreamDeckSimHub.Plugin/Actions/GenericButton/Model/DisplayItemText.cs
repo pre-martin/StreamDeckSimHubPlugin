@@ -4,10 +4,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.Model.Modifiers;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
-public partial class DisplayItemText : DisplayItem
+public partial class DisplayItemText : DisplayItem, IAcceptsModifierBlink, IAcceptsModifierColor
 {
     public const string UiName = "Text";
     public const string UiIcon = "DiTextFieldsGray";

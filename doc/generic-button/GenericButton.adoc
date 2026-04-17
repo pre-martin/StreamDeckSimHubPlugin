@@ -192,6 +192,177 @@ Note that the expression itself also has a function "format()" (see <<#ncalcExpr
 
 Their usage should be self-explanatory.
 
+==== Modifiers
+
+Modifiers allow to change the visual appearance of display items. Each modifier has a condition that determines whether the modifier is active or not.
+
+===== Modifier Blink
+
+Causes the display item to blink (alternating between visible and hidden) as long as the modifier condition is true.
+
+Each blink modifier has its own timer that alternates the visibility of the display item. The timer starts the moment the condition becomes true. This means that if there are two or more blink modifiers with different conditions on different display items, the items will be displayed or hidden at different time intervals. See section <<#blinkOverride>> below if synchronization of multiple blink modifiers is desired.
+
+The following diagram shows two different modifiers ("Modifier 1" and "Modifier 2") with their conditions, and how the condition becoming true affects the visibility of the display item:
+
+ifndef::env-github[]
+[plantuml, "timing-example", svg]
+.Timing diagram for two blink modifiers
+----
+@startuml
+concise "Modifier 1 Condition" as cond1
+robust "Modifier 1" as mod1
+concise "Modifier 2 Condition" as cond2
+robust "Modifier 2" as mod2
+
+mod1 has Visible,Hidden
+mod2 has Visible,Hidden
+
+@0
+cond1 is "False"
+cond2 is "False"
+mod1 is Visible
+mod2 is Visible
+@1
+' Modifier 1
+@2
+cond1 -> mod1 : Start Timer
+cond1 is "True"
+mod1 is Visible
+@4
+mod1 is Hidden
+@6
+mod1 is Visible
+@8
+mod1 is Hidden
+@10
+mod1 is Visible
+@11
+cond1 is "False"
+mod1 is Visible
+
+' Modifier 2
+@3
+cond2 -> mod2 : Start Timer
+cond2 is "True"
+mod2 is Visible
+@5
+mod2 is Hidden
+@7
+mod2 is Visible
+@9
+mod2 is Hidden
+@11
+cond2 is "False"
+mod2 is Visible
+
+@12
+@13
+
+@enduml
+----
+endif::[]
+ifdef::env-github[]
+image:timing-example.svg[Timing diagram for two blink modifiers]
+endif::[]
+
+[#blinkOverride]
+===== Blink Override
+
+Blink Override allows to synchronize multiple blink modifiers on the same Stream Deck key. If Blink Override is enabled, it will control a single timer for all blink modifiers on this Stream Deck key. This means that all blink modifiers on this key will be visible or hidden at the same time, even if their conditions become true at different times.
+
+Blink Override can be configured in the settings of the Generic Button action. As this is a setting for the whole action, it can be found in the top right corner of the editor (button with gear icon).
+
+The diagram below shows this single timer in the first row, and how the blink modifiers only participate when their condition is true. The items are visible and hidden synchronously, as long as the blink condition is true:
+
+ifndef::env-github[]
+[plantuml, "timing-example-with-override", svg]
+.Timing diagram for two blink modifiers with Blink Override
+----
+@startuml
+robust "Blink Override" as override
+concise "Modifier 1 Condition" as cond1
+robust "Modifier 1" as mod1
+concise "Modifier 2 Condition" as cond2
+robust "Modifier 2" as mod2
+
+override has Visible,Hidden
+mod1 has Visible,Hidden
+mod2 has Visible,Hidden
+
+@0
+override is Hidden
+cond1 is "False"
+cond2 is "False"
+mod1 is Visible
+mod2 is Visible
+@1
+
+' Override
+@2
+override is Visible
+@4
+override is Hidden
+@6
+override is Visible
+@8
+override is Hidden
+@10
+override is Visible
+@12
+override is Hidden
+
+' Modifier 1
+@2
+cond1 is "True"
+cond1 -> mod1 : Participate in Override
+mod1 is Visible
+@4
+mod1 is Hidden
+@6
+mod1 is Visible
+@8
+mod1 is Hidden
+@10
+mod1 is Visible
+@11
+cond1 is "False"
+cond1 -> mod1: Stop Participate in Override
+mod1 is Visible
+@12
+
+' Modifier 2
+@3
+cond2 is "True"
+cond2 -> mod2 : Participate in Override
+mod2 is Visible
+@4
+mod2 is Hidden
+@6
+mod2 is Visible
+@8
+mod2 is Hidden
+@10
+mod2 is Visible
+@11
+cond2 is "False"
+cond2 -> mod2: Stop Participate in Override
+mod2 is Visible
+
+@12
+@13
+
+@enduml
+----
+endif::[]
+ifdef::env-github[]
+image:timing-example-with-override.svg[Timing diagram for two blink modifiers with Blink Override]
+endif::[]
+
+
+===== Modifier Color
+
+Changes the color of items that have a "Color" field.
+
 
 === Command Items
 

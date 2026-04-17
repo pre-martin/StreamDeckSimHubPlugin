@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2025 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.ComponentModel;
@@ -14,6 +14,7 @@ using SixLabors.ImageSharp.Processing;
 using StreamDeckSimHub.Plugin.ActionEditor;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.Model.Modifiers;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Renderer;
 using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.SimHub;
@@ -33,7 +34,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     private readonly ImageManager _imageManager;
     private readonly ActionEditorManager _actionEditorManager;
     private readonly ISimHubConnection _simHubConnection;
-    private readonly NCalcHandler _ncalcHandler;
+    private readonly ConditionEvaluator _conditionEvaluator;
     private readonly IPropertyChangedReceiver _statePropertyChangedReceiver;
     private readonly IButtonRenderer _buttonRenderer;
     private readonly CommandItemHandler _commandItemHandler;
@@ -57,7 +58,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         _imageManager = imageManager;
         _actionEditorManager = actionEditorManager;
         _simHubConnection = simHubConnection;
-        _ncalcHandler = ncalcHandler;
+        _conditionEvaluator = new ConditionEvaluator(ncalcHandler, GetProperty, () => _coordinates?.ToString() ?? "(?)");
         _statePropertyChangedReceiver = new PropertyChangedDelegate(PropertyChanged);
         _buttonRenderer = new ButtonRendererImageSharp(GetProperty);
         _commandItemHandler = new CommandItemHandler(simHubConnection, new KeyboardUtils());
@@ -144,12 +145,17 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         await SubscribeProperties();
         await Render();
 
+        PeriodicBackgroundService.Tick += OnTick;
+
         await base.OnWillAppear(args);
     }
 
     protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
     {
         Logger.LogInformation("({coords}) OnWillDisappear", args.Payload.Coordinates);
+
+        PeriodicBackgroundService.Tick -= OnTick;
+
         _actionEditorManager.RemoveGenericButtonEditor(Context);
         await _commandItemHandler.Stop();
         await UnsubscribeProperties();
@@ -178,7 +184,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         if (_settings == null) return;
         Logger.LogInformation("({coords}) OnKeyDown", args.Payload.Coordinates);
 
-        await _commandItemHandler.KeyDown(_settings.CommandItems[StreamDeckAction.KeyDown], IsActive);
+        await _commandItemHandler.KeyDown(_settings.CommandItems[StreamDeckAction.KeyDown], _conditionEvaluator.IsItemActive);
     }
 
     protected override async Task OnKeyUp(ActionEventArgs<KeyPayload> args)
@@ -197,7 +203,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         var ticks = args.Payload.Ticks;
         await _commandItemHandler.DialRotate(
             ticks < 0 ? _settings.CommandItems[StreamDeckAction.DialLeft] : _settings.CommandItems[StreamDeckAction.DialRight],
-            IsActive, ticks);
+            _conditionEvaluator.IsItemActive, ticks);
     }
 
     protected override async Task OnDialDown(ActionEventArgs<DialPayload> args)
@@ -205,7 +211,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         if (_settings == null) return;
         Logger.LogInformation("({coords}) OnDialDown", args.Payload.Coordinates);
 
-        await _commandItemHandler.DialDown(_settings.CommandItems[StreamDeckAction.DialDown], IsActive);
+        await _commandItemHandler.DialDown(_settings.CommandItems[StreamDeckAction.DialDown], _conditionEvaluator.IsItemActive);
     }
 
     protected override async Task OnDialUp(ActionEventArgs<DialPayload> args)
@@ -221,7 +227,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         if (_settings == null) return;
         Logger.LogInformation("({coords}) OnTouchTap", args.Payload.Coordinates);
 
-        await _commandItemHandler.TouchTap(_settings.CommandItems[StreamDeckAction.TouchTap], IsActive);
+        await _commandItemHandler.TouchTap(_settings.CommandItems[StreamDeckAction.TouchTap], _conditionEvaluator.IsItemActive);
     }
 
     /// <summary>
@@ -277,8 +283,8 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     }
 
     /// <summary>
-    /// Determines which properties are used in the current settings and compares them to the previously subscribed properties.
-    /// No longer used properties are unsubscribed, and new properties are subscribed.
+    /// Determines which SimHub properties are used in the current settings and compares them to the previously subscribed
+    /// SimHub properties. No longer used properties are unsubscribed, and new properties are subscribed.
     /// </summary>
     private async Task SubscribeProperties()
     {
@@ -302,6 +308,17 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
                 {
                     Logger.LogDebug("({coords})   Found property \"{propName}\" in \"{name}\"", _coordinates, propName,
                         displayItem.DisplayName);
+                    newProperties.Add(propName);
+                }
+            }
+
+            // DisplayItem.Modifiers can contain properties.
+            foreach (var modifier in displayItem.Modifiers)
+            {
+                foreach (var propName in modifier.NCalcConditionHolder.UsedProperties)
+                {
+                    Logger.LogDebug("({coords})   Found property \"{propName}\" in modifier \"{name}\" of \"{itemName}\"",
+                        _coordinates, propName, modifier.DisplayName, displayItem.DisplayName);
                     newProperties.Add(propName);
                 }
             }
@@ -366,7 +383,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     {
         if (_settings == null || _sdKeyInfo == null) return;
 
-        var image = _buttonRenderer.Render(_sdKeyInfo, _settings.DisplayItems);
+        var image = _buttonRenderer.Render(_sdKeyInfo, _settings.DisplayItems, _settings.BlinkOverride);
         if (_sdKeyInfo.IsDial)
         {
             await SetFeedbackAsync(new DialLayout { Content = new Pixmap { Value = image.ToBase64String(PngFormat.Instance) } });
@@ -399,10 +416,46 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         return propertyChangedArgs?.PropertyValue;
     }
 
-    private bool IsActive(Item item)
+    private async Task OnTick()
     {
-        return _ncalcHandler.IsConditionActive(item.NCalcConditionHolder, GetProperty,
-            $"({_coordinates})   IsActive of \"{item.DisplayName}\"");
+        if (_settings == null) return;
+
+        // Check blink override first
+        var blinkOverrideActive = _settings.BlinkOverride.Tick();
+
+        // If any blinking modifier transitioned (inactive->active or active->inactive), or if any active blinking modifier
+        // changed state (on->off or off->on), we need to redraw the button.
+        var needsRedraw = blinkOverrideActive;
+        foreach (var displayItem in _settings.DisplayItems)
+        {
+            foreach (var modifier in displayItem.Modifiers)
+            {
+                if (modifier is ModifierBlink modifierBlink)
+                {
+                    var isActiveNow = _conditionEvaluator.IsModifierActive(modifier);
+
+                    var transitioned = modifierBlink.DetermineTransition(isActiveNow);
+                    if (transitioned) needsRedraw = true;
+
+                    // Always tick individual modifiers so their independent clocks keep running.
+                    // When the override is active it controls the rendered phase (see Renderer), but the
+                    // individual clocks must still advance so they are at independent positions once the
+                    // override is disabled again.  Only let individual phase-transitions trigger a redraw
+                    // when the override is NOT active (while active, BlinkOverride.Tick() already drives redraws).
+                    if (isActiveNow)
+                    {
+                        var transitionedOnOff = modifierBlink.Tick();
+                        if (transitionedOnOff && !_settings.BlinkOverride.Enabled) needsRedraw = true;
+                    }
+                }
+            }
+        }
+
+        if (needsRedraw)
+        {
+            Logger.LogTrace("({coords}) OnTick: Redrawing due to blinking modifier change", _coordinates);
+            await Render();
+        }
     }
 
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]

@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2025 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using NCalc;
@@ -123,14 +123,14 @@ public class NCalcHandler
         try
         {
             var result = expression.Evaluate();
-            if (_logger.IsDebugEnabled)
+            if (_logger.IsTraceEnabled)
             {
                 var msg = $"{loggingContext}: ";
                 msg += $"\"{expression.ExpressionString}\" => \"{result}\", ";
                 msg += "parameters: ";
                 msg = nCalcHolder.UsedProperties.Aggregate(msg, (current, propName) =>
                     current + $"\"{propName}\"=\"{getProperty.Invoke(propName)}\", ");
-                _logger.Debug(msg);
+                _logger.Trace(msg);
             }
 
             return result;
@@ -140,22 +140,6 @@ public class NCalcHandler
             _logger.Warn($"{loggingContext}: Error evaluating expression: {e.Message}");
             return null;
         }
-    }
-
-    /// <summary>
-    /// Specialized version of <see cref="EvaluateExpression"/> that evaluates if the given expression
-    /// (which should be a condition) is "active".
-    /// </summary>
-    public bool IsConditionActive(NCalcHolder nCalcConditionHolder, GetPropertyDelegate getProperty, string loggingContext)
-    {
-        if (nCalcConditionHolder.NCalcExpression == null)
-        {
-            _logger.Debug($"{loggingContext}: No condition set, always active.");
-            return true; // No condition means always active.
-        }
-
-        var value = EvaluateExpression(nCalcConditionHolder, getProperty, loggingContext);
-        return value is true or > 0 or > 0.0f or > 0.0d;
     }
 
     /// <summary>

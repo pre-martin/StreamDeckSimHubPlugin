@@ -4,11 +4,12 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.Model.Modifiers;
 using StreamDeckSimHub.Plugin.PropertyLogic;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
-public partial class DisplayItemValue : DisplayItem
+public partial class DisplayItemValue : DisplayItem, IAcceptsModifierBlink, IAcceptsModifierColor
 {
     public const string UiName = "Value";
     public const string UiIcon = "DiAttachMoneyGray";

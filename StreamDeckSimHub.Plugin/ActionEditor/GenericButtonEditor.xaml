@@ -12,9 +12,10 @@
         d:DataContext="{d:DesignInstance Type=viewModels:SettingsViewModelDesignTime, IsDesignTimeCreatable=True}"
         Loaded="OnLoaded"
         Closed="OnClosed"
+        Deactivated="OnDeactivated"
         Icon="/ActionEditor/GenericButtonEditor.ico"
         Title="{Binding NameForTitle}"
-        Height="800" Width="1000" MinHeight="750" MinWidth="800">
+        Height="810" Width="1000" MinHeight="810" MinWidth="800">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -183,6 +184,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" MinWidth="120" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
                     <Label Grid.Column="0" Content="Button Name:" VerticalAlignment="Center" />
@@ -190,6 +192,13 @@
                              VerticalContentAlignment="Center"
                              Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                              ToolTip="Is only used for visualization" />
+                    <ToggleButton x:Name="SettingsButton" Grid.Column="2" Margin="12,0,0,0" Padding="2"
+                                  Background="Transparent" BorderBrush="Transparent"
+                                  IsChecked="{Binding IsSettingsOverlayVisible, Mode=OneWay}"
+                                  Click="SettingsButton_OnClick"
+                                  ToolTip="Settings">
+                        <Image Source="{StaticResource DiSettingsOutlinedGray}" Width="16" Height="16" />
+                    </ToggleButton>
                 </Grid>
 
                 <!-- Separator line -->
@@ -211,6 +220,42 @@
                         </DataTemplate>
                     </ContentControl.Resources>
                 </ContentControl>
+
+                <!-- Settings popup: anchored to SettingsButton, right-aligned with it. -->
+                <Popup x:Name="SettingsPopup" Grid.Row="0"
+                       PlacementTarget="{Binding ElementName=SettingsButton}"
+                       Placement="Bottom"
+                       HorizontalOffset="-218"
+                       IsOpen="{Binding IsSettingsOverlayVisible, Mode=TwoWay}"
+                       AllowsTransparency="True">
+                    <Border Background="White" BorderBrush="#AAAAAA" BorderThickness="1"
+                            CornerRadius="4" Padding="12" Width="240">
+                        <StackPanel>
+                            <TextBlock Text="Blink Override" FontWeight="Bold" Margin="0,0,0,10" />
+                            <CheckBox Content="Enabled"
+                                      IsChecked="{Binding BlinkOverride.Enabled}"
+                                      Margin="0,0,0,8" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" MinWidth="100" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Label Grid.Row="0" Grid.Column="0" Content="Duration On:" VerticalAlignment="Center" />
+                                <TextBox Grid.Row="0" Grid.Column="1" Margin="0,2"
+                                         VerticalContentAlignment="Center"
+                                         Text="{Binding BlinkOverride.DurationOn, UpdateSourceTrigger=PropertyChanged}" />
+                                <Label Grid.Row="1" Grid.Column="0" Content="Duration Off:" VerticalAlignment="Center" />
+                                <TextBox Grid.Row="1" Grid.Column="1" Margin="0,2"
+                                         VerticalContentAlignment="Center"
+                                         Text="{Binding BlinkOverride.DurationOff, UpdateSourceTrigger=PropertyChanged}" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </Popup>
             </Grid>
         </Grid>
     </DockPanel>
