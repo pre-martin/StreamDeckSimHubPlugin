@@ -448,17 +448,19 @@ public class SimHubConnection(IOptions<ConnectionSettings> connectionSettings, P
     }
 
     /// <summary>
-    /// Returns <c>true</c> if the server version reported in the connect string is at least v1.6.0,
+    /// Returns <c>true</c> if the (optional) server version reported in the connect string is at least v1.16.0,
     /// which is the version that introduced the heartbeat ping mechanism.
     /// </summary>
     private static bool IsHeartbeatSupported(string connectString)
     {
-        // Connect string format: "SimHub Property Server v1.6.0"
+        // Connect string format:
+        // - up to v1.15: "SimHub Property Server"
+        // - from v1.16 : "SimHub Property Server v1.16.0"
         var idx = connectString.LastIndexOf('v');
         if (idx < 0) return false;
         var versionStr = connectString.Substring(idx + 1);
         if (!Version.TryParse(versionStr, out var version)) return false;
-        return version >= new Version(1, 6, 0);
+        return version >= new Version(1, 16, 0);
     }
 
     private async Task WriteToServer(string line)
