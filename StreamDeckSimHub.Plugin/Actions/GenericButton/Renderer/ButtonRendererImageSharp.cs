@@ -8,6 +8,7 @@ using NLog;
 using SharpDeck.Events.Received;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -72,6 +73,9 @@ public class ButtonRendererImageSharp : IButtonRenderer
             // Render the item.
             switch (displayItem)
             {
+                case DisplayItemBox boxItem:
+                    RenderBox(image, targetKeyInfo, boxItem);
+                    break;
                 case DisplayItemImage imageItem:
                     RenderImage(image, targetKeyInfo, imageItem);
                     break;
@@ -89,6 +93,61 @@ public class ButtonRendererImageSharp : IButtonRenderer
         }
 
         return image;
+    }
+
+    /// <summary>
+    /// Renders a box.
+    /// </summary>
+    private void RenderBox(Image<Rgba32> image, StreamDeckKeyInfo keyInfo, DisplayItemBox boxItem)
+    {
+        try
+        {
+            // Color + Transparency + Color Modifiers
+            var color = boxItem.Color.WithAlpha(boxItem.DisplayParameters.Transparency);
+            foreach (var modifier in boxItem.Modifiers)
+            {
+                if (modifier is ModifierColor modifierColor && _conditionEvaluator.IsModifierActive(modifier))
+                {
+                    color = modifierColor.Color.WithAlpha(boxItem.DisplayParameters.Transparency);
+                }
+            }
+
+            // Position + Size
+            var position = boxItem.DisplayParameters.Position;
+            var boundingSize = boxItem.DisplayParameters.Size ?? keyInfo.KeySize;
+            var rect = new RectangleF(position.X, position.Y, boundingSize.Width, boundingSize.Height);
+
+            // Rotation
+            if (boxItem.DisplayParameters.Rotation == 0)
+            {
+                // No rotation, draw rectangle directly
+                image.Mutate(ctx => ctx.Fill(color, rect));
+            }
+            else
+            {
+                // With rotation, create a rotated rectangle using matrix transformation
+                var centerPoint = new PointF(rect.X + rect.Width / 2f, rect.Y + rect.Height / 2f);
+                var rotationRadians = boxItem.DisplayParameters.Rotation * (float)Math.PI / 180f;
+
+                // Create transformation: translate to origin, rotate, translate back to center
+                var transform = Matrix3x2.CreateTranslation(-centerPoint) *
+                                Matrix3x2.CreateRotation(rotationRadians) *
+                                Matrix3x2.CreateTranslation(centerPoint);
+
+                // Draw rectangle
+                var path = new RectangularPolygon(rect.X, rect.Y, rect.Width, rect.Height);
+                image.Mutate(ctx =>
+                {
+                    ctx.SetDrawingTransform(transform);
+                    ctx.Fill(color, path);
+                    ctx.SetDrawingTransform(Matrix3x2.Identity);
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, $"({_coords})   Error rendering box item \"{boxItem.DisplayName}\"");
+        }
     }
 
     /// <summary>
@@ -173,7 +232,7 @@ public class ButtonRendererImageSharp : IButtonRenderer
         // Scale font to the device key size
         var scaledFont = ScaleFont(font, keyInfo.KeySize);
 
-        // Color + Transparency
+        // Color + Transparency + Color Modifiers
         var colorWithAlpha = color.WithAlpha(displayItem.DisplayParameters.Transparency);
         foreach (var modifier in displayItem.Modifiers)
         {

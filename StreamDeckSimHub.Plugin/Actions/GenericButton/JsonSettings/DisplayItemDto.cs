@@ -6,6 +6,7 @@ using StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings.Modifiers;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 
+[JsonDerivedType(typeof(DisplayItemBoxDto), typeDiscriminator: "Box")]
 [JsonDerivedType(typeof(DisplayItemImageDto), typeDiscriminator: "Image")]
 [JsonDerivedType(typeof(DisplayItemTextDto), typeDiscriminator: "Text")]
 [JsonDerivedType(typeof(DisplayItemValueDto), typeDiscriminator: "Value")]

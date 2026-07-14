@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2025 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using StreamDeckSimHub.Plugin.Actions.Model;
@@ -16,6 +16,7 @@ public interface ICommandItemVisitor
 
 public interface IDisplayItemVisitor
 {
+    Task Visit(DisplayItemBox displayItem, IVisitorArgs? args);
     Task Visit(DisplayItemImage displayItem, IVisitorArgs? args);
     Task Visit(DisplayItemText displayItem, IVisitorArgs? args);
     Task Visit(DisplayItemValue displayItem, IVisitorArgs? args);

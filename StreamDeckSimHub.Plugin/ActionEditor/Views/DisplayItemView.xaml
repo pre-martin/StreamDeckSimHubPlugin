@@ -12,6 +12,9 @@
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <DataTemplate DataType="{x:Type viewModels:DisplayItemBoxViewModel}">
+            <local:DisplayItemBoxView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:DisplayItemImageViewModel}">
             <local:DisplayItemImageView />
         </DataTemplate>

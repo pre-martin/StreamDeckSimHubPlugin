@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2025 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.ObjectModel;
@@ -34,6 +34,13 @@ public class ItemScaler : IDisplayItemVisitor
     }
 
     #region IDisplayItemVisitor
+
+    public Task Visit(DisplayItemBox displayItem, IVisitorArgs? args)
+    {
+        var scalerArgs = args as ItemScalerArgs ?? new ItemScalerArgs(1, 1);
+        ScaleDisplayParameters(displayItem.DisplayParameters, scalerArgs);
+        return Task.CompletedTask;
+    }
 
     public Task Visit(DisplayItemImage displayItem, IVisitorArgs? args)
     {

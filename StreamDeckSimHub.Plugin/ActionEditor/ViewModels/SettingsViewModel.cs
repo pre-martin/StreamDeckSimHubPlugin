@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Martin Renner
+// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.ObjectModel;
@@ -127,6 +127,7 @@ public partial class SettingsViewModel : ObservableObject, IViewModel
         DisplayItemTypes =
         [
             // @formatter:off
+            new MenuItem { Header = DisplayItemBox.UiName, Icon = new Image { Source = ParentWindow.FindResource(DisplayItemBox.UiIcon) as ImageSource }, Command = AddDisplayItemCommand, CommandParameter = DisplayItemBox.UiName},
             new MenuItem { Header = DisplayItemImage.UiName, Icon = new Image { Source = ParentWindow.FindResource(DisplayItemImage.UiIcon) as ImageSource }, Command = AddDisplayItemCommand, CommandParameter = DisplayItemImage.UiName},
             new MenuItem { Header = DisplayItemText.UiName, Icon = new Image { Source = ParentWindow.FindResource(DisplayItemText.UiIcon) as ImageSource }, Command = AddDisplayItemCommand, CommandParameter = DisplayItemText.UiName},
             new MenuItem { Header = DisplayItemValue.UiName, Icon = new Image { Source = ParentWindow.FindResource(DisplayItemValue.UiIcon) as ImageSource }, Command = AddDisplayItemCommand, CommandParameter = DisplayItemValue.UiName}
@@ -182,6 +183,9 @@ public partial class SettingsViewModel : ObservableObject, IViewModel
     {
         switch (type)
         {
+            case DisplayItemBox.UiName:
+                AddDisplayItem(DisplayItemBox.Create());
+                break;
             case DisplayItemImage.UiName:
                 AddDisplayItem(DisplayItemImage.Create());
                 break;
@@ -206,6 +210,7 @@ public partial class SettingsViewModel : ObservableObject, IViewModel
     {
         return displayItem switch
         {
+            DisplayItemBox box => new DisplayItemBoxViewModel(box, this),
             DisplayItemImage img => new DisplayItemImageViewModel(img, _imageManager, this),
             DisplayItemText txt => new DisplayItemTextViewModel(txt, this),
             DisplayItemValue val => new DisplayItemValueViewModel(val, this),

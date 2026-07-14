@@ -222,6 +222,29 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
 }
 
 /// <summary>
+/// ViewModel for DisplayItemBox
+/// </summary>
+public partial class DisplayItemBoxViewModel(DisplayItemBox model, IViewModel parentViewModel)
+    : DisplayItemViewModel(model, parentViewModel), IColorSelectable
+{
+    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource(DisplayItemBox.UiIcon) as ImageSource;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ColorHex))]
+    [NotifyPropertyChangedFor(nameof(ColorAsWpf))]
+    private Color _imageSharpColor = model.Color;
+
+    public string ColorHex => $"#{model.Color.ToHexWithoutAlpha()}";
+
+    public System.Windows.Media.Color ColorAsWpf => ImageSharpColor.ToWpfColor();
+
+    partial void OnImageSharpColorChanged(Color value)
+    {
+        model.Color = value;
+    }
+}
+
+/// <summary>
 /// ViewModel for DisplayItemImage
 /// </summary>
 public partial class DisplayItemImageViewModel(DisplayItemImage model, ImageManager imageManager, IViewModel parentViewModel)

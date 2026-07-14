@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2025 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.ObjectModel;
@@ -110,6 +110,10 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
     {
         DisplayItem? displayItem = dto switch
         {
+            DisplayItemBoxDto boxDto => new DisplayItemBox
+            {
+                Color = Color.TryParseHex(boxDto.Color, out var color) ? color : Color.White
+            },
             DisplayItemImageDto imageDto => new DisplayItemImage
             {
                 Image = imageManager.GetCustomImage(imageDto.RelativePath, keyInfo),
@@ -152,6 +156,15 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
     {
         DisplayItemDto? dto = model switch
         {
+            DisplayItemBox box => new DisplayItemBoxDto
+            {
+              Name = model.Name,
+              DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
+              Modifiers = model.Modifiers.Select(ModifierToDto).Where(dto => dto != null).ToList()!,
+              ConditionsString = model.NCalcConditionHolder.ExpressionString,
+              ConditionsShakeItDictionary = model.NCalcConditionHolder.ShakeItDictionary,
+              Color = box.Color.ToHexWithoutAlpha()
+            },
             DisplayItemImage image => new DisplayItemImageDto
             {
                 Name = model.Name,
