@@ -223,6 +223,8 @@ Modifiers allow to change the visual appearance of display items. Each modifier 
 
 Causes the display item to blink (alternating between visible and hidden) as long as the modifier condition is true.
 
+You can read this and the next section, or watch a https://youtu.be/vRb1mFhEyMs[video on YouTube].
+
 Each blink modifier has its own timer that alternates the visibility of the display item. The timer starts the moment the condition becomes true. This means that if there are two or more blink modifiers with different conditions on different display items, the items will be displayed or hidden at different time intervals. See section <<#blinkOverride>> below if synchronization of multiple blink modifiers is desired.
 
 The following diagram shows two different modifiers ("Modifier 1" and "Modifier 2") with their conditions, and how the condition becoming true affects the visibility of the display item:
@@ -272,8 +274,7 @@ mod2 is Visible
 mod2 is Hidden
 @7
 mod2 is Visible
-@9
-mod2 is Hidden
+@9mod2 is Hidden
 @11
 cond2 is "False"
 mod2 is Visible
