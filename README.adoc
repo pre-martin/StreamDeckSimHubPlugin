@@ -68,7 +68,7 @@ Download the installer from the GitHub "Releases" page and double-click it to in
 
 The installation is also explained in the following video:
 
-[.text-center]
+[.text-center,link=https://youtu.be/4Zh_6QLN8AA]
 image:images/teaser/installer.webp[Installer,400] +
 https://youtu.be/4Zh_6QLN8AA[Watch on YouTube]
 
