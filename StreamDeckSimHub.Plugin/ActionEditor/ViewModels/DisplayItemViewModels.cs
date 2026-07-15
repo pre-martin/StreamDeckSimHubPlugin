@@ -25,7 +25,9 @@ namespace StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 /// <summary>
 /// Base ViewModel for all DisplayItems
 /// </summary>
+#pragma warning disable CS9113 // Parameter is unread.
 public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel parentViewModel, byte? _)
+#pragma warning restore CS9113 // Parameter is unread.
     : ItemViewModel(model, parentViewModel), IDataErrorInfo
 {
     protected DisplayItemViewModel(DisplayItem model, IViewModel parentViewModel) : this(model, parentViewModel, null)
@@ -88,6 +90,8 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
             SizeHeight = null;
             model.DisplayParameters.Size = null;
         }
+
+        OnDisplaySizeChanged();
     }
 
     partial void OnSizeHeightChanged(int? value)
@@ -102,6 +106,8 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
             SizeWidth = null;
             model.DisplayParameters.Size = null;
         }
+
+        OnDisplaySizeChanged();
     }
 
     partial void OnRotationChanged(int value)
@@ -216,8 +222,23 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
                 }
             }
 
-            return string.Empty;
+            return ValidateColumn(columnName);
         }
+    }
+
+    /// <summary>
+    /// Hook for subclasses if they want to participate in data validation.
+    /// </summary>
+    protected virtual string ValidateColumn(string columnName)
+    {
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Hook for subclasses if they depend on display size (SizeWidth/SizeHeight).
+    /// </summary>
+    protected virtual void OnDisplaySizeChanged()
+    {
     }
 }
 
@@ -241,6 +262,76 @@ public partial class DisplayItemBoxViewModel(DisplayItemBox model, IViewModel pa
     partial void OnImageSharpColorChanged(Color value)
     {
         model.Color = value;
+    }
+
+    [ObservableProperty] private int _cornerRadius = model.CornerRadius;
+    [ObservableProperty] private string _cornerRadiusText = model.CornerRadius.ToString(CultureInfo.InvariantCulture);
+
+    public string CornerRadiusToolTip => BuildCornerRadiusToolTip();
+
+    partial void OnCornerRadiusChanged(int value)
+    {
+        if (value < 0)
+        {
+            CornerRadius = 0;
+            return;
+        }
+
+        model.CornerRadius = value;
+        var newTextValue = value.ToString(CultureInfo.InvariantCulture);
+        if (!string.Equals(CornerRadiusText, newTextValue, StringComparison.Ordinal))
+        {
+            CornerRadiusText = newTextValue;
+        }
+    }
+
+    partial void OnCornerRadiusTextChanged(string value)
+    {
+        if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedValue))
+        {
+            CornerRadius = parsedValue;
+        }
+    }
+
+    protected override string ValidateColumn(string columnName)
+    {
+        return columnName != nameof(CornerRadiusText) ? string.Empty : ValidateCornerRadiusText(CornerRadiusText);
+    }
+
+    protected override void OnDisplaySizeChanged()
+    {
+        OnPropertyChanged(nameof(CornerRadiusToolTip));
+    }
+
+    private string BuildCornerRadiusToolTip()
+    {
+        if (SizeWidth.HasValue && SizeHeight.HasValue && SizeWidth.Value > 0 && SizeHeight.Value > 0)
+        {
+            var maxRadius = Math.Min(SizeWidth.Value, SizeHeight.Value) / 2f;
+            return $"Effective max with current size: {maxRadius.ToString("0.##", CultureInfo.InvariantCulture)}";
+        }
+
+        return "Effective max is min(width, height) / 2.";
+    }
+
+    private static string ValidateCornerRadiusText(string cornerRadiusText)
+    {
+        if (string.IsNullOrWhiteSpace(cornerRadiusText))
+        {
+            return "Corner radius value is required.";
+        }
+
+        if (!int.TryParse(cornerRadiusText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedValue))
+        {
+            return "Invalid corner radius value. Please enter an integer number.";
+        }
+
+        if (parsedValue < 0)
+        {
+            return "Corner radius must be greater than or equal to 0.";
+        }
+
+        return string.Empty;
     }
 }
 

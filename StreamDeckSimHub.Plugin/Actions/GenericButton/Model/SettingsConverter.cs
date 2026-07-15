@@ -112,7 +112,8 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
         {
             DisplayItemBoxDto boxDto => new DisplayItemBox
             {
-                Color = Color.TryParseHex(boxDto.Color, out var color) ? color : Color.White
+                Color = Color.TryParseHex(boxDto.Color, out var color) ? color : Color.White,
+                CornerRadius = boxDto.CornerRadius
             },
             DisplayItemImageDto imageDto => new DisplayItemImage
             {
@@ -158,12 +159,13 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
         {
             DisplayItemBox box => new DisplayItemBoxDto
             {
-              Name = model.Name,
-              DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
-              Modifiers = model.Modifiers.Select(ModifierToDto).Where(dto => dto != null).ToList()!,
-              ConditionsString = model.NCalcConditionHolder.ExpressionString,
-              ConditionsShakeItDictionary = model.NCalcConditionHolder.ShakeItDictionary,
-              Color = box.Color.ToHexWithoutAlpha()
+                Name = model.Name,
+                DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
+                Modifiers = model.Modifiers.Select(ModifierToDto).Where(dto => dto != null).ToList()!,
+                ConditionsString = model.NCalcConditionHolder.ExpressionString,
+                ConditionsShakeItDictionary = model.NCalcConditionHolder.ShakeItDictionary,
+                Color = box.Color.ToHexWithoutAlpha(),
+                CornerRadius = box.CornerRadius
             },
             DisplayItemImage image => new DisplayItemImageDto
             {

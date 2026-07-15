@@ -39,6 +39,10 @@ public class ItemScaler : IDisplayItemVisitor
     {
         var scalerArgs = args as ItemScalerArgs ?? new ItemScalerArgs(1, 1);
         ScaleDisplayParameters(displayItem.DisplayParameters, scalerArgs);
+
+        var uniformScaleFactor = Math.Min(scalerArgs.ScaleFactorX, scalerArgs.ScaleFactorY);
+        displayItem.CornerRadius = (int)(uniformScaleFactor * displayItem.CornerRadius);
+
         return Task.CompletedTask;
     }
 

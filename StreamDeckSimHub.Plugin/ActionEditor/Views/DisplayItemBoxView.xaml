@@ -6,11 +6,12 @@
              xmlns:viewModels="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.ViewModels"
              xmlns:controls="clr-namespace:StreamDeckSimHub.Plugin.ActionEditor.Views.Controls"
              mc:Ignorable="d"
-             d:DataContext="{d:DesignInstance Type=viewModels:DisplayItemTextViewModel, IsDesignTimeCreatable=False}"
+             d:DataContext="{d:DesignInstance Type=viewModels:DisplayItemBoxViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="600" d:DesignWidth="750">
 
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -19,6 +20,14 @@
         </Grid.ColumnDefinitions>
 
         <controls:ColorSelectorControl Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" />
+
+        <Label Grid.Row="1" Grid.Column="0" Margin="0,10,0,0">Corner Radius:</Label>
+        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
+            <TextBox Width="50" Text="{Binding CornerRadiusText, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
+                     VerticalContentAlignment="Center" />
+            <Label FontWeight="Light" Margin="80,0,0,0" Content="{Binding CornerRadiusToolTip}" />
+        </StackPanel>
+
     </Grid>
 
 </UserControl>

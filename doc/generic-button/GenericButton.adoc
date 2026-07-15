@@ -99,6 +99,29 @@ All items have the field "Size". If this is empty, the size of the Stream Deck k
 
 If a rotation is given, the item will be rotated around the center of the bounding box.
 
+==== Display Item "Box"
+
+Displays a colored box on the button. This can be used to create a background for other display items.
+
+image:Display-Item-Box.png[Display Item Box]
+
+===== Field "Corner Radius"
+
+The corner radius of the box. If this is empty, the box will have sharp corners. If a value is given, the corners will be rounded with the given radius.
+
+The label to the right of the input field shows the maximum possible corner radius for the given size of the box. If the given value is larger than the maximum possible corner radius, it will be clamped to the maximum. If the box has no specific size (like in the screenshot above), the maximum value depends on the size of the Stream Deck key.
+
+The corner radius can also be used to create circles, as long as the size of the box is square (see above).
+
+===== Field "Condition"
+
+See section <<#ncalcExpressions>> below for more information about NCalc expressions.
+
+===== Other Fields
+
+Their usage should be self-explanatory.
+
+
 ==== Display Item "Image"
 
 Displays an image on the button.

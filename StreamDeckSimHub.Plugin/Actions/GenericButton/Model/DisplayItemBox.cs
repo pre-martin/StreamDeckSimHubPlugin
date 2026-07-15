@@ -13,6 +13,12 @@ public partial class DisplayItemBox : DisplayItem, IAcceptsModifierBlink, IAccep
     public const string UiIcon = "DiEmptyBoxGray";
 
     [ObservableProperty] private Color _color = Color.White;
+    [ObservableProperty] private int _cornerRadius;
+
+    partial void OnCornerRadiusChanged(int value)
+    {
+        CornerRadius = Math.Max(0, value);
+    }
 
     protected override string RawDisplayName => !string.IsNullOrEmpty(Name) ? Name : UiName;
 

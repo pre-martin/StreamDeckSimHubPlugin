@@ -112,20 +112,25 @@ public class ButtonRendererImageSharp : IButtonRenderer
                 }
             }
 
-            // Position + Size
+            // Position + Size + Corner Radius
             var position = boxItem.DisplayParameters.Position;
             var boundingSize = boxItem.DisplayParameters.Size ?? keyInfo.KeySize;
             var rect = new RectangleF(position.X, position.Y, boundingSize.Width, boundingSize.Height);
+            var maxCornerRadius = MathF.Min(rect.Width, rect.Height) / 2f;
+            var cornerRadius = Math.Clamp(boxItem.CornerRadius, 0f, maxCornerRadius);
+            var path = cornerRadius <= 0f
+                ? new RectangularPolygon(rect)
+                : CreateRoundedRectanglePath(rect, cornerRadius);
 
             // Rotation
             if (boxItem.DisplayParameters.Rotation == 0)
             {
-                // No rotation, draw rectangle directly
-                image.Mutate(ctx => ctx.Fill(color, rect));
+                // No rotation
+                image.Mutate(ctx => ctx.Fill(color, path));
             }
             else
             {
-                // With rotation, create a rotated rectangle using matrix transformation
+                // With rotation, create a rotated shape using matrix transformation
                 var centerPoint = new PointF(rect.X + rect.Width / 2f, rect.Y + rect.Height / 2f);
                 var rotationRadians = boxItem.DisplayParameters.Rotation * (float)Math.PI / 180f;
 
@@ -134,8 +139,6 @@ public class ButtonRendererImageSharp : IButtonRenderer
                                 Matrix3x2.CreateRotation(rotationRadians) *
                                 Matrix3x2.CreateTranslation(centerPoint);
 
-                // Draw rectangle
-                var path = new RectangularPolygon(rect.X, rect.Y, rect.Width, rect.Height);
                 image.Mutate(ctx =>
                 {
                     ctx.SetDrawingTransform(transform);
@@ -148,6 +151,35 @@ public class ButtonRendererImageSharp : IButtonRenderer
         {
             _logger.Error(ex, $"({_coords})   Error rendering box item \"{boxItem.DisplayName}\"");
         }
+    }
+
+    private static IPath CreateRoundedRectanglePath(RectangleF rect, float cornerRadius)
+    {
+        var left = rect.Left;
+        var top = rect.Top;
+        var right = rect.Right;
+        var bottom = rect.Bottom;
+        var radius = Math.Clamp(cornerRadius, 0f, MathF.Min(rect.Width, rect.Height) / 2f);
+
+        if (radius <= 0f)
+        {
+            return new RectangularPolygon(rect);
+        }
+
+        var pathBuilder = new PathBuilder();
+        pathBuilder.StartFigure();
+        pathBuilder.MoveTo(new PointF(left + radius, top));
+        pathBuilder.LineTo(right - radius, top);
+        pathBuilder.ArcTo(radius, radius, 0, false, true, new PointF(right, top + radius));
+        pathBuilder.LineTo(right, bottom - radius);
+        pathBuilder.ArcTo(radius, radius, 0, false, true, new PointF(right - radius, bottom));
+        pathBuilder.LineTo(left + radius, bottom);
+        pathBuilder.ArcTo(radius, radius, 0, false, true, new PointF(left, bottom - radius));
+        pathBuilder.LineTo(left, top + radius);
+        pathBuilder.ArcTo(radius, radius, 0, false, true, new PointF(left + radius, top));
+        pathBuilder.CloseFigure();
+
+        return pathBuilder.Build();
     }
 
     /// <summary>

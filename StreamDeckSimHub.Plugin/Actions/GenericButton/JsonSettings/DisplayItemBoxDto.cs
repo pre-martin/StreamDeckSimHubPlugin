@@ -8,4 +8,6 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
 public class DisplayItemBoxDto : DisplayItemDto
 {
     public required string Color { get; set; } = SixLabors.ImageSharp.Color.White.ToHexWithoutAlpha();
+
+    public required int CornerRadius { get; set; }
 }
