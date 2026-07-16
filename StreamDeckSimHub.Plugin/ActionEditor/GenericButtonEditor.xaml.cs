@@ -22,12 +22,12 @@ public partial class GenericButtonEditor
     private readonly string _actionUuid;
 
     public GenericButtonEditor(
-        string actionUuid, Settings settings, ImageManager imageManager,
+        string actionUuid, Settings settings, SettingsConverter settingsConverter, ImageManager imageManager,
         ISimHubConnection simHubConnection, ShakeItStructureFetcher shakeItStructureFetcher)
     {
         _actionUuid = actionUuid;
         InitializeComponent();
-        DataContext = new SettingsViewModel(settings, imageManager, simHubConnection, shakeItStructureFetcher, this);
+        DataContext = new SettingsViewModel(settings, settingsConverter, imageManager, simHubConnection, shakeItStructureFetcher, this);
 
         // Set up drag-drop delegates for the ListBoxes
         SetupDragDropBehaviors();

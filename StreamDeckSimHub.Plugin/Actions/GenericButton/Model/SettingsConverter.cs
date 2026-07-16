@@ -84,6 +84,22 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
         return settingsDto;
     }
 
+    public DisplayItem CloneDisplayItem(DisplayItem displayItem, StreamDeckKeyInfo keyInfo)
+    {
+        var dto = DisplayItemToDto(displayItem)
+                  ?? throw new InvalidOperationException($"Failed to clone DisplayItem of type {displayItem.GetType().FullName}.");
+        return DisplayItemToModel(dto, keyInfo)
+               ?? throw new InvalidOperationException($"Failed to clone DisplayItem DTO of type {dto.GetType().FullName}.");
+    }
+
+    public CommandItem CloneCommandItem(CommandItem commandItem)
+    {
+        var dto = CommandItemToDto(commandItem)
+                  ?? throw new InvalidOperationException($"Failed to clone CommandItem of type {commandItem.GetType().FullName}.");
+        return CommandItemToModel(dto)
+               ?? throw new InvalidOperationException($"Failed to clone CommandItem DTO of type {dto.GetType().FullName}.");
+    }
+
     private BlinkOverride BlinkOverrideToModel(BlinkOverrideDto dto)
     {
         return new BlinkOverride

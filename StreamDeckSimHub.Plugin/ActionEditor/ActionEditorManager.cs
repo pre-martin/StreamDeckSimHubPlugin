@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2025 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.Concurrent;
@@ -18,13 +18,16 @@ public class ActionEditorManager : IRecipient<GenericButtonEditorClosedEvent>
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private readonly ConcurrentDictionary<string, GenericButtonEditor> _actionEditors = new();
+    private readonly SettingsConverter _settingsConverter;
     private readonly ImageManager _imageManager;
     private readonly ISimHubConnection _simHubConnection;
     private readonly ShakeItStructureFetcher _shakeItStructureFetcher;
 
     public ActionEditorManager(
-        ImageManager imageManager, ISimHubConnection simHubConnection, ShakeItStructureFetcher shakeItStructureFetcher)
+        SettingsConverter settingsConverter, ImageManager imageManager, ISimHubConnection simHubConnection,
+        ShakeItStructureFetcher shakeItStructureFetcher)
     {
+        _settingsConverter = settingsConverter;
         _imageManager = imageManager;
         _simHubConnection = simHubConnection;
         _shakeItStructureFetcher = shakeItStructureFetcher;
@@ -44,7 +47,7 @@ public class ActionEditorManager : IRecipient<GenericButtonEditorClosedEvent>
 
             Logger.Debug("Showing new editor for action {ActionUuid}", actionUuid);
             var newEditor =
-                new GenericButtonEditor(actionUuid, settings, _imageManager, _simHubConnection, _shakeItStructureFetcher)
+                new GenericButtonEditor(actionUuid, settings, _settingsConverter, _imageManager, _simHubConnection, _shakeItStructureFetcher)
                 {
                     WindowStartupLocation =
                         WindowStartupLocation.CenterScreen, // show on the same screen as the Stream Deck software
