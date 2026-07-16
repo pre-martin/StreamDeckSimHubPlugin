@@ -65,7 +65,7 @@ public partial class App
             };
             settings.SettingsChanged += (sender, e) =>
             {
-                Console.WriteLine($"sender: {sender} / {e.PropertyName}");
+                Console.WriteLine($"Dev mode - settings changed. Sender: {sender} / Property: {e.PropertyName}");
             };
 
             var actionEditorManager = _host.Services.GetService<ActionEditorManager>();

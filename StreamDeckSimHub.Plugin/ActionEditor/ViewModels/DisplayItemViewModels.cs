@@ -1,6 +1,7 @@
-// Copyright (C) 2025 Martin Renner
+// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
@@ -13,7 +14,7 @@ using StreamDeckSimHub.Plugin.ActionEditor.Dialogs;
 using StreamDeckSimHub.Plugin.ActionEditor.Tools;
 using StreamDeckSimHub.Plugin.ActionEditor.Views.Controls;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
-using StreamDeckSimHub.Plugin.PropertyLogic;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.Model.Modifiers;
 using StreamDeckSimHub.Plugin.Tools;
 using Color = SixLabors.ImageSharp.Color;
 using Point = SixLabors.ImageSharp.Point;
@@ -24,9 +25,25 @@ namespace StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 /// <summary>
 /// Base ViewModel for all DisplayItems
 /// </summary>
-public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel parentViewModel)
+#pragma warning disable CS9113 // Parameter is unread.
+public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel parentViewModel, byte? _)
+#pragma warning restore CS9113 // Parameter is unread.
     : ItemViewModel(model, parentViewModel), IDataErrorInfo
 {
+    protected DisplayItemViewModel(DisplayItem model, IViewModel parentViewModel) : this(model, parentViewModel, null)
+    {
+        Modifiers = new ObservableCollection<ModifierViewModel>(model.Modifiers.Select(ModifierToViewModel));
+        Modifiers.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasModifiers));
+
+        if (model is IAcceptsModifierBlink) AvailableModifiers.Add(ModifierBlink.UiName);
+        if (model is IAcceptsModifierColor) AvailableModifiers.Add(ModifierColor.UiName);
+        CanAddModifier = AvailableModifiers.Count > 0;
+    }
+
+    [ObservableProperty] private int _selectedTabIndex;
+
+    #region Element Data
+
     [ObservableProperty] private float _transparency = model.DisplayParameters.Transparency;
 
     [ObservableProperty]
@@ -73,6 +90,8 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
             SizeHeight = null;
             model.DisplayParameters.Size = null;
         }
+
+        OnDisplaySizeChanged();
     }
 
     partial void OnSizeHeightChanged(int? value)
@@ -87,12 +106,104 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
             SizeWidth = null;
             model.DisplayParameters.Size = null;
         }
+
+        OnDisplaySizeChanged();
     }
 
     partial void OnRotationChanged(int value)
     {
         model.DisplayParameters.Rotation = value;
     }
+
+    #endregion
+
+    #region Modifiers
+
+    public ObservableCollection<ModifierViewModel> Modifiers { get; } = [];
+
+    public bool HasModifiers => Modifiers.Count > 0;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsModifierSelected))]
+    private ModifierViewModel? _selectedModifier;
+
+    public bool IsModifierSelected => SelectedModifier != null;
+
+    public ObservableCollection<string> AvailableModifiers { get; } = [];
+
+    [ObservableProperty] private bool _canAddModifier;
+
+    [RelayCommand]
+    private void AddModifier(string type)
+    {
+        switch (type)
+        {
+            case ModifierBlink.UiName:
+                AddModifier(ModifierBlink.Create());
+                break;
+            case ModifierColor.UiName:
+                AddModifier(ModifierColor.Create());
+                break;
+        }
+    }
+
+    private void AddModifier(Modifier modifier)
+    {
+        model.Modifiers.Add(modifier);
+        var vm = ModifierToViewModel(modifier);
+        Modifiers.Add(vm);
+        SelectedModifier = vm;
+    }
+
+    private ModifierViewModel ModifierToViewModel(Modifier modifier)
+    {
+        return modifier switch
+        {
+            ModifierBlink modifierBlink => new ModifierBlinkViewModel(modifierBlink, ParentViewModel),
+            ModifierColor colorModifier => new ModifierColorViewModel(colorModifier, ParentViewModel),
+            _ => throw new InvalidOperationException($"Unknown Modifier type: {modifier.GetType().FullName}")
+        };
+    }
+
+    public void RemoveModifier(ModifierViewModel item)
+    {
+        // Remove from the underlying model
+        var modifier = item.GetModel();
+        model.Modifiers.Remove(modifier);
+
+        // Remove from the ViewModel collection
+        Modifiers.Remove(item);
+
+        // Clear selection if this was the selected item
+        if (SelectedModifier == item)
+        {
+            SelectedModifier = null;
+        }
+
+    }
+
+    #endregion
+
+    #region DragDrop
+
+    /// <summary>
+    /// Updates the underlying model when Modifiers are reordered
+    /// </summary>
+    public void UpdateModifiersOrder()
+    {
+        // Update the underlying model's Modifiers list to match the order in the ViewModel
+        // We'll create a new list with the same items but in the new order
+        var newList = Modifiers.Select(modifierVm => modifierVm.GetModel()).ToList();
+
+        // Clear and repopulate the original list to maintain the reference
+        model.Modifiers.Clear();
+        foreach (var item in newList)
+        {
+            model.Modifiers.Add(item);
+        }
+    }
+
+    #endregion
 
     public string Error => string.Empty;
 
@@ -102,7 +213,7 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
         {
             if (columnName == nameof(TransparencyText))
             {
-                if (string.IsNullOrWhiteSpace(TransparencyText)) return string.Empty;
+                if (string.IsNullOrWhiteSpace(TransparencyText)) return "Transparency value is required.";
 
                 if (!float.TryParse(TransparencyText, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
                     || parsed < 0f || parsed > 1f)
@@ -111,8 +222,116 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
                 }
             }
 
-            return string.Empty;
+            return ValidateColumn(columnName);
         }
+    }
+
+    /// <summary>
+    /// Hook for subclasses if they want to participate in data validation.
+    /// </summary>
+    protected virtual string ValidateColumn(string columnName)
+    {
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Hook for subclasses if they depend on display size (SizeWidth/SizeHeight).
+    /// </summary>
+    protected virtual void OnDisplaySizeChanged()
+    {
+    }
+}
+
+/// <summary>
+/// ViewModel for DisplayItemBox
+/// </summary>
+public partial class DisplayItemBoxViewModel(DisplayItemBox model, IViewModel parentViewModel)
+    : DisplayItemViewModel(model, parentViewModel), IColorSelectable
+{
+    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource(DisplayItemBox.UiIcon) as ImageSource;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ColorHex))]
+    [NotifyPropertyChangedFor(nameof(ColorAsWpf))]
+    private Color _imageSharpColor = model.Color;
+
+    public string ColorHex => $"#{model.Color.ToHexWithoutAlpha()}";
+
+    public System.Windows.Media.Color ColorAsWpf => ImageSharpColor.ToWpfColor();
+
+    partial void OnImageSharpColorChanged(Color value)
+    {
+        model.Color = value;
+    }
+
+    [ObservableProperty] private int _cornerRadius = model.CornerRadius;
+    [ObservableProperty] private string _cornerRadiusText = model.CornerRadius.ToString(CultureInfo.InvariantCulture);
+
+    public string CornerRadiusToolTip => BuildCornerRadiusToolTip();
+
+    partial void OnCornerRadiusChanged(int value)
+    {
+        if (value < 0)
+        {
+            CornerRadius = 0;
+            return;
+        }
+
+        model.CornerRadius = value;
+        var newTextValue = value.ToString(CultureInfo.InvariantCulture);
+        if (!string.Equals(CornerRadiusText, newTextValue, StringComparison.Ordinal))
+        {
+            CornerRadiusText = newTextValue;
+        }
+    }
+
+    partial void OnCornerRadiusTextChanged(string value)
+    {
+        if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedValue))
+        {
+            CornerRadius = parsedValue;
+        }
+    }
+
+    protected override string ValidateColumn(string columnName)
+    {
+        return columnName != nameof(CornerRadiusText) ? string.Empty : ValidateCornerRadiusText(CornerRadiusText);
+    }
+
+    protected override void OnDisplaySizeChanged()
+    {
+        OnPropertyChanged(nameof(CornerRadiusToolTip));
+    }
+
+    private string BuildCornerRadiusToolTip()
+    {
+        if (SizeWidth.HasValue && SizeHeight.HasValue && SizeWidth.Value > 0 && SizeHeight.Value > 0)
+        {
+            var maxRadius = Math.Min(SizeWidth.Value, SizeHeight.Value) / 2f;
+            return $"Effective max with current size: {maxRadius.ToString("0.##", CultureInfo.InvariantCulture)}";
+        }
+
+        return "Effective max is min(width, height) / 2.";
+    }
+
+    private static string ValidateCornerRadiusText(string cornerRadiusText)
+    {
+        if (string.IsNullOrWhiteSpace(cornerRadiusText))
+        {
+            return "Corner radius value is required.";
+        }
+
+        if (!int.TryParse(cornerRadiusText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedValue))
+        {
+            return "Invalid corner radius value. Please enter an integer number.";
+        }
+
+        if (parsedValue < 0)
+        {
+            return "Corner radius must be greater than or equal to 0.";
+        }
+
+        return string.Empty;
     }
 }
 
@@ -122,7 +341,7 @@ public abstract partial class DisplayItemViewModel(DisplayItem model, IViewModel
 public partial class DisplayItemImageViewModel(DisplayItemImage model, ImageManager imageManager, IViewModel parentViewModel)
     : DisplayItemViewModel(model, parentViewModel)
 {
-    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource("DiInsertPhotoOutlinedGray") as ImageSource;
+    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource(DisplayItemImage.UiIcon) as ImageSource;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayName))] // see DisplayItemImage.DisplayName which uses RelativePath
@@ -158,7 +377,7 @@ public partial class DisplayItemImageViewModel(DisplayItemImage model, ImageMana
 public partial class DisplayItemTextViewModel(DisplayItemText model, IViewModel parentViewModel)
     : DisplayItemViewModel(model, parentViewModel), IFontSelectable, IColorSelectable
 {
-    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource("DiTextFieldsGray") as ImageSource;
+    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource(DisplayItemText.UiIcon) as ImageSource;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayName))] // see DisplayItemText.DisplayName which uses Text
@@ -200,7 +419,6 @@ public partial class DisplayItemTextViewModel(DisplayItemText model, IViewModel 
 /// </summary>
 public partial class DisplayItemValueViewModel : DisplayItemViewModel, IFontSelectable, IColorSelectable
 {
-    private readonly NCalcHandler _ncalcHandler = new();
     private readonly DisplayItemValue _model;
 
     public DisplayItemValueViewModel(DisplayItemValue model, IViewModel parentViewModel) : base(model, parentViewModel)
@@ -210,7 +428,7 @@ public partial class DisplayItemValueViewModel : DisplayItemViewModel, IFontSele
         {
             ExpressionLabel = "Expression:",
             ExpressionToolTip = "Please enter a valid NCalc expression, that returns a value",
-            Example="round( [DataCorePlugin.GameData.Fuel], 1)",
+            Example = "round( [DataCorePlugin.GameData.Fuel], 1)",
             FetchShakeItProfilesCallback = FetchShakeItProfilesCallback
         };
         _displayFormat = model.DisplayFormat;
@@ -218,7 +436,7 @@ public partial class DisplayItemValueViewModel : DisplayItemViewModel, IFontSele
         _imageSharpColor = model.Color;
     }
 
-    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource("DiAttachMoneyGray") as ImageSource;
+    public override ImageSource? Icon => ParentViewModel.ParentWindow.FindResource(DisplayItemValue.UiIcon) as ImageSource;
 
     [ObservableProperty] private ExpressionControlViewModel _expressionControlPropertyViewModel;
 

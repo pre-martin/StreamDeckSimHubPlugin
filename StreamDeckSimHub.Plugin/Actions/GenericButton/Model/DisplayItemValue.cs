@@ -1,16 +1,18 @@
-﻿// Copyright (C) 2025 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.Model.Modifiers;
 using StreamDeckSimHub.Plugin.PropertyLogic;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
-public partial class DisplayItemValue : DisplayItem
+public partial class DisplayItemValue : DisplayItem, IAcceptsModifierBlink, IAcceptsModifierColor
 {
     public const string UiName = "Value";
+    public const string UiIcon = "DiAttachMoneyGray";
 
     [ObservableProperty] private NCalcHolder _nCalcPropertyHolder;
 
@@ -45,4 +47,3 @@ public partial class DisplayItemValue : DisplayItem
         await displayItemVisitor.Visit(this, args);
     }
 }
-

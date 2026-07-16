@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2025 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.ObjectModel;
@@ -7,6 +7,8 @@ using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using StreamDeckSimHub.Plugin.ActionEditor.Tools;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.JsonSettings.Modifiers;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.Model.Modifiers;
 using StreamDeckSimHub.Plugin.Actions.JsonSettings;
 using StreamDeckSimHub.Plugin.Actions.Model;
 using StreamDeckSimHub.Plugin.PropertyLogic;
@@ -47,6 +49,8 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
             settings.DisplayItems.Add(displayItem!);
         }
 
+        settings.BlinkOverride = BlinkOverrideToModel(dto.BlinkOverride);
+
         // To ensure that we only convert actions that are actually known, we iterate over the Settings, which contains all possible actions.
         foreach (var action in settings.CommandItems.Keys)
         {
@@ -73,10 +77,31 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
                 .Select(DisplayItemToDto)
                 .Where(di => di != null)
                 .ToList()!,
+            BlinkOverride = BlinkOverrideToDto(settings.BlinkOverride),
             CommandItems = CommandsToDto(settings.CommandItems)
         };
         settingsDto.SerializeItemsToStrings();
         return settingsDto;
+    }
+
+    private BlinkOverride BlinkOverrideToModel(BlinkOverrideDto dto)
+    {
+        return new BlinkOverride
+        {
+            Enabled = dto.Enabled,
+            DurationOn = dto.DurationOn,
+            DurationOff = dto.DurationOff
+        };
+    }
+
+    private BlinkOverrideDto BlinkOverrideToDto(BlinkOverride blinkOverride)
+    {
+        return new BlinkOverrideDto
+        {
+            Enabled = blinkOverride.Enabled,
+            DurationOn = blinkOverride.DurationOn,
+            DurationOff = blinkOverride.DurationOff
+        };
     }
 
     #region DisplayItem
@@ -85,6 +110,11 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
     {
         DisplayItem? displayItem = dto switch
         {
+            DisplayItemBoxDto boxDto => new DisplayItemBox
+            {
+                Color = Color.TryParseHex(boxDto.Color, out var color) ? color : Color.White,
+                CornerRadius = boxDto.CornerRadius
+            },
             DisplayItemImageDto imageDto => new DisplayItemImage
             {
                 Image = imageManager.GetCustomImage(imageDto.RelativePath, keyInfo),
@@ -110,6 +140,11 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
         {
             displayItem.Name = dto.Name;
             displayItem.DisplayParameters = DisplayParametersToModel(dto.DisplayParameters);
+            foreach (var modifier in dto.Modifiers.Select(ModifierToModel).Where(m => m != null))
+            {
+                displayItem.Modifiers.Add(modifier!);
+            }
+
             displayItem.NCalcConditionHolder = ExpressionToNCalcHolder(dto.ConditionsString, dto.ConditionsShakeItDictionary);
             return displayItem;
         }
@@ -122,10 +157,21 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
     {
         DisplayItemDto? dto = model switch
         {
+            DisplayItemBox box => new DisplayItemBoxDto
+            {
+                Name = model.Name,
+                DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
+                Modifiers = model.Modifiers.Select(ModifierToDto).Where(dto => dto != null).ToList()!,
+                ConditionsString = model.NCalcConditionHolder.ExpressionString,
+                ConditionsShakeItDictionary = model.NCalcConditionHolder.ShakeItDictionary,
+                Color = box.Color.ToHexWithoutAlpha(),
+                CornerRadius = box.CornerRadius
+            },
             DisplayItemImage image => new DisplayItemImageDto
             {
                 Name = model.Name,
                 DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
+                Modifiers = model.Modifiers.Select(ModifierToDto).Where(dto => dto != null).ToList()!,
                 ConditionsString = model.NCalcConditionHolder.ExpressionString,
                 ConditionsShakeItDictionary = model.NCalcConditionHolder.ShakeItDictionary,
                 RelativePath = image.RelativePath,
@@ -134,6 +180,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
             {
                 Name = model.Name,
                 DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
+                Modifiers = model.Modifiers.Select(ModifierToDto).Where(dto => dto != null).ToList()!,
                 ConditionsString = model.NCalcConditionHolder.ExpressionString,
                 ConditionsShakeItDictionary = model.NCalcConditionHolder.ShakeItDictionary,
                 Text = text.Text,
@@ -146,6 +193,7 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
             {
                 Name = model.Name,
                 DisplayParameters = DisplayParametersToDto(model.DisplayParameters),
+                Modifiers = model.Modifiers.Select(ModifierToDto).Where(dto => dto != null).ToList()!,
                 ConditionsString = model.NCalcConditionHolder.ExpressionString,
                 ConditionsShakeItDictionary = model.NCalcConditionHolder.ShakeItDictionary,
                 Property = value.NCalcPropertyHolder.ExpressionString,
@@ -202,6 +250,58 @@ public class SettingsConverter(ImageManager imageManager, NCalcHandler ncalcHand
             Scale = model.Scale.ToString(),
             Rotation = model.Rotation,
         };
+    }
+
+    private Modifier? ModifierToModel(ModifierDto dto)
+    {
+        Modifier? modifier = dto switch
+        {
+            ModifierBlinkDto blinkDto => new ModifierBlink
+            {
+                NCalcConditionHolder = ExpressionToNCalcHolder(blinkDto.ConditionsString, blinkDto.ConditionsShakeItDictionary),
+                DurationOn = blinkDto.DurationOn,
+                DurationOff = blinkDto.DurationOff
+            },
+            ModifierColorDto colorDto => new ModifierColor
+            {
+                NCalcConditionHolder = ExpressionToNCalcHolder(colorDto.ConditionsString, colorDto.ConditionsShakeItDictionary),
+                Color = Color.TryParseHex(colorDto.Color, out var color) ? color : Color.White
+            },
+            _ => null
+        };
+        if (modifier == null)
+        {
+            Logger.Error($"Don't know how to convert ModifierDto of type {dto.GetType()}. Modifier will be ignored.");
+        }
+
+        return modifier;
+    }
+
+    private ModifierDto? ModifierToDto(Modifier modifier)
+    {
+        ModifierDto? dto = modifier switch
+        {
+            ModifierBlink modifierBlink => new ModifierBlinkDto
+            {
+                ConditionsString = modifierBlink.NCalcConditionHolder.ExpressionString,
+                ConditionsShakeItDictionary = modifierBlink.NCalcConditionHolder.ShakeItDictionary,
+                DurationOn = modifierBlink.DurationOn,
+                DurationOff = modifierBlink.DurationOff
+            },
+            ModifierColor modifierColor => new ModifierColorDto
+            {
+                ConditionsString = modifierColor.NCalcConditionHolder.ExpressionString,
+                ConditionsShakeItDictionary = modifierColor.NCalcConditionHolder.ShakeItDictionary,
+                Color = modifierColor.Color.ToHexWithoutAlpha()
+            },
+            _ => null
+        };
+        if (dto == null)
+        {
+            Logger.Error($"Don't know how to convert Modifer of type {modifier.GetType()}. Modifier will be ignored.");
+        }
+
+        return dto;
     }
 
     #endregion

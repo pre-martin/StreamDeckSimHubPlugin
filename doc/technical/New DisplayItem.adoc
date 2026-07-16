@@ -1,0 +1,75 @@
+= Generic Button: Add a New DisplayItem
+:toc:
+:toclevels: 2
+
+This checklist summarizes the typical changes required to add a new display item type to the Generic Button action.
+
+== 1) Model layer
+
+* Create a new model class in `StreamDeckSimHub.Plugin/Actions/GenericButton/Model/` (for example `DisplayItemX.cs`).
+* Inherit from `DisplayItem`.
+* Add `UiName` and `UiIcon` constants.
+* Implement `Create()` factory method.
+* Add optional marker interfaces (`IAcceptsModifierBlink`, `IAcceptsModifierColor`) if supported.
+
+== 2) DTO and serialization
+
+* Create DTO class in `StreamDeckSimHub.Plugin/Actions/GenericButton/JsonSettings/` (for example `DisplayItemXDto.cs`).
+* Add discriminator mapping in `DisplayItemDto.cs` via `[JsonDerivedType(...)]`.
+* Add all required DTO properties with sensible defaults.
+
+
+== 3) Model <-> DTO conversion
+
+* Update `SettingsConverter.DisplayItemToModel(...)` to create the new model instance.
+* Update `SettingsConverter.DisplayItemToDto(...)` to serialize it back.
+* Convert all item-specific fields in both directions.
+
+== 4) Visitor-based processing
+
+* Extend `IItemVisitor`/`IDisplayItemVisitor` with `Visit(DisplayItemX, ...)`.
+* Update all visitor implementations (at least `ItemScaler`) to handle the new type.
+* If the item has size-dependent properties, scale them explicitly.
+
+== 5) Rendering
+
+* Update renderer switch in `ButtonRendererImageSharp.Render(...)`.
+* Add `RenderX(...)` method in `ButtonRendererImageSharp`.
+* Handle common display parameters: position, size fallback, transparency, rotation.
+* Apply supported modifiers consistently (for example `ModifierColor`).
+
+== 6) Editor UI (WPF)
+
+=== Icons
+
+* Add icon resource in `StreamDeckSimHub.Plugin/ActionEditor/IconResources.xaml`.
+* Ensure the resource key matches `UiIcon`.
+
+=== ViewModel
+
+* Add a `DisplayItemXViewModel` in `ActionEditor/ViewModels/DisplayItemViewModels.cs`.
+* Bind model properties to VM properties.
+* Add validation (`IDataErrorInfo`) for text-based numeric inputs when needed.
+
+=== View
+
+* Create `ActionEditor/Views/DisplayItemXView.xaml` + `.xaml.cs`.
+* Add `DataTemplate` mapping in `ActionEditor/Views/DisplayItemView.xaml`.
+
+=== Settings editor wiring
+
+* Update `ActionEditor/ViewModels/SettingsViewModel.cs`:
+* Add new item to the "Add Display Item" menu.
+* Create the model in `AddDisplayItem(...)` switch.
+* Map model -> concrete DisplayItem view model.
+
+== 7) Documentation
+
+* Update user docs in `doc/generic-button/GenericButton.adoc`.
+* Add/update screenshots if the new item has dedicated UI.
+
+== Notes
+
+* Keep naming consistent: `DisplayItemX`, `DisplayItemXDto`, `DisplayItemXViewModel`, `DisplayItemXView`.
+* Keep default values stable to avoid breaking existing profiles. Especially no new `required` properties in DTOs of existing items.
+* If changes affect geometry, verify behavior after automatic scaling (`ItemScaler`) and rotation.

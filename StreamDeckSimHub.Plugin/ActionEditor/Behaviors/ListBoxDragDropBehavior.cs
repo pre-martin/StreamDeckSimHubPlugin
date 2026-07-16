@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Martin Renner
+// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.ObjectModel;
@@ -8,7 +8,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Xaml.Behaviors;
-using StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor.Behaviors;
 
@@ -26,6 +25,28 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
     {
         get => (Type)GetValue(DraggableTypeProperty);
         set => SetValue(DraggableTypeProperty, value);
+    }
+
+    /// Dependency property for custom drop validation function
+    public static readonly DependencyProperty CanDropFuncProperty = DependencyProperty.Register(
+        nameof(CanDropFunc), typeof(Func<object, object, bool>), typeof(ListBoxDragDropBehavior), new PropertyMetadata(null));
+
+    /// Function to validate if a drop operation is allowed. Parameters: (draggedItem, targetItem) => bool
+    public Func<object, object, bool>? CanDropFunc
+    {
+        get => (Func<object, object, bool>?)GetValue(CanDropFuncProperty);
+        set => SetValue(CanDropFuncProperty, value);
+    }
+
+    /// Dependency property for custom drop handling action
+    public static readonly DependencyProperty OnItemDroppedProperty = DependencyProperty.Register(
+        nameof(OnItemDropped), typeof(Action<object, object, int, int>), typeof(ListBoxDragDropBehavior), new PropertyMetadata(null));
+
+    /// Action to handle the drop operation. Parameters: (draggedItem, targetItem, sourceIndex, targetIndex)
+    public Action<object, object, int, int>? OnItemDropped
+    {
+        get => (Action<object, object, int, int>?)GetValue(OnItemDroppedProperty);
+        set => SetValue(OnItemDroppedProperty, value);
     }
 
     /// Attached property to mark an element as a drag handle. Drag and drop will only start if the mouse is pressed on an element with this property set to true.
@@ -70,10 +91,7 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
 
         // Only start dragging if the mouse is pressed on an element with IsDragHandle set to true
         var dragHandle = FindAncestorWithDragHandle(e.OriginalSource as DependencyObject);
-        if (dragHandle == null)
-        {
-            return;
-        }
+        if (dragHandle == null) return;
 
         _draggedItem = FindAncestor<ListBoxItem>(dragHandle);
 
@@ -147,40 +165,25 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
             return;
         }
 
-        // For CommandItems, check if the target is within the same StreamDeckAction group
-        if (data is CommandItemViewModel draggedCommandItem)
+        // Find the item under the drop position
+        var dropPosition = e.GetPosition(AssociatedObject);
+        var targetElement = GetItemAtPosition(dropPosition);
+
+        if (targetElement == null)
         {
-            // Find the item under the drop position
-            var dropPosition = e.GetPosition(AssociatedObject);
-            var targetElement = GetItemAtPosition(dropPosition);
+            e.Effects = DragDropEffects.None;
+            e.Handled = true;
+            return;
+        }
 
-            if (targetElement == null)
-            {
-                e.Effects = DragDropEffects.None;
-                e.Handled = true;
-                return;
-            }
+        var targetItem = targetElement.DataContext;
 
-            var targetItem = targetElement.DataContext;
-
-            // If target is a StreamDeckActionViewModel, don't allow drop
-            if (targetItem is StreamDeckActionViewModel)
-            {
-                e.Effects = DragDropEffects.None;
-                e.Handled = true;
-                return;
-            }
-
-            // If target is a CommandItemViewModel, check if it's in the same StreamDeckAction group
-            if (targetItem is CommandItemViewModel targetCommandItem)
-            {
-                if (draggedCommandItem.ParentAction != targetCommandItem.ParentAction)
-                {
-                    e.Effects = DragDropEffects.None;
-                    e.Handled = true;
-                    return;
-                }
-            }
+        // Use custom validation function if provided
+        if (CanDropFunc != null && !CanDropFunc(data, targetItem))
+        {
+            e.Effects = DragDropEffects.None;
+            e.Handled = true;
+            return;
         }
 
         // Update insertion marker
@@ -195,90 +198,39 @@ public class ListBoxDragDropBehavior : Behavior<ListBox>
         // Clean up adorners
         CleanupAdorners();
 
-        if (_draggedItem == null)
-            return;
+        if (_draggedItem == null) return;
 
         var data = e.Data.GetData(_draggedItem.DataContext.GetType());
-        if (data == null)
-            return;
+        if (data == null) return;
 
         // Find the item under the drop position
         var dropPosition = e.GetPosition(AssociatedObject);
         var targetElement = GetItemAtPosition(dropPosition);
 
-        if (targetElement == null)
-            return;
+        if (targetElement == null) return;
 
         var targetItem = targetElement.DataContext;
 
-        // Handle different item types
-        if (data is DisplayItemViewModel displayItem)
-        {
-            HandleDisplayItemDrop(displayItem, targetItem);
-        }
-        else if (data is CommandItemViewModel draggedCommandItem)
-        {
-            // For CommandItems, ensure we're dropping within the same StreamDeckAction group
-            if (targetItem is StreamDeckActionViewModel)
-                return;
-
-            if (targetItem is CommandItemViewModel targetCommandItem)
-            {
-                if (draggedCommandItem.ParentAction != targetCommandItem.ParentAction)
-                    return;
-
-                HandleCommandItemDrop(draggedCommandItem, targetCommandItem);
-            }
-        }
-    }
-
-    private void HandleDisplayItemDrop(DisplayItemViewModel draggedItem, object targetItem)
-    {
-        if (targetItem is not DisplayItemViewModel)
-            return;
-
         // Get the source and target indices
-        var sourceIndex = AssociatedObject.Items.IndexOf(draggedItem);
+        var sourceIndex = AssociatedObject.Items.IndexOf(data);
         var targetIndex = AssociatedObject.Items.IndexOf(targetItem);
 
         // Don't do anything if dropping onto itself
-        if (sourceIndex == targetIndex)
-            return;
+        if (sourceIndex == targetIndex) return;
 
-        // Get the collection and reorder items
-        if (AssociatedObject.ItemsSource is ObservableCollection<DisplayItemViewModel> itemsSource)
+        // Use custom drop handler if provided
+        if (OnItemDropped != null)
         {
-            // Move the item in the collection
-            itemsSource.Move(sourceIndex, targetIndex);
-
-            // Update the underlying model (Settings.DisplayItems)
-            if (AssociatedObject.DataContext is SettingsViewModel settingsViewModel)
-            {
-                settingsViewModel.UpdateDisplayItemsOrder();
-            }
+            OnItemDropped(data, targetItem, sourceIndex, targetIndex);
         }
-    }
-
-    private void HandleCommandItemDrop(CommandItemViewModel draggedItem, CommandItemViewModel targetItem)
-    {
-        // Get the source and target indices within the FlatCommandItems collection
-        var sourceIndex = AssociatedObject.Items.IndexOf(draggedItem);
-        var targetIndex = AssociatedObject.Items.IndexOf(targetItem);
-
-        // Don't do anything if dropping onto itself
-        if (sourceIndex == targetIndex)
-            return;
-
-        // Get the collection and reorder items
-        if (AssociatedObject.ItemsSource is ObservableCollection<IFlatCommandItemsViewModel> itemsSource)
+        else
         {
-            // Move the item in the collection
-            itemsSource.Move(sourceIndex, targetIndex);
-
-            // Update the underlying model (Settings.CommandItems)
-            if (AssociatedObject.DataContext is SettingsViewModel settingsViewModel)
+            // Default behavior: move item in the collection if it's an ObservableCollection
+            var itemsSource = AssociatedObject.ItemsSource;
+            if (itemsSource.GetType().IsGenericType && itemsSource.GetType().GetGenericTypeDefinition() == typeof(ObservableCollection<>))
             {
-                settingsViewModel.UpdateCommandItemsOrder(draggedItem.ParentAction);
+                dynamic observableCollection = itemsSource;
+                observableCollection.Move(sourceIndex, targetIndex);
             }
         }
     }

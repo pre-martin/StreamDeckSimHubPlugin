@@ -15,7 +15,7 @@ if ($Args.Count -lt 2) {
 $ManifestFile = $Args[0]
 $Version = $Args[1]
 
-Write-Host "Setting version $Version in file $ManifestFile"
+Write-Host "`nSetting version $Version in file $ManifestFile"
 
 try {
     $manifest = (Get-Content($ManifestFile) | ConvertFrom-Json)
@@ -25,10 +25,10 @@ try {
     $null = New-Item -Force ($ManifestFile + ".new") -Value $newContent
 
     Move-Item ($ManifestFile + ".new") -Destination $ManifestFile -Force
-    Write-Host "Done"
+    Write-Host "Setting version: Done"
 }
 catch {
-    Write-Host "An error occured:"
+    Write-Host "`nAn error occured while setting the version:"
     Write-Host $_
     Exit 1
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2025 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.ObjectModel;
@@ -8,32 +8,42 @@ using NLog;
 using SharpDeck.Events.Received;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using StreamDeckSimHub.Plugin.ActionEditor.Tools;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.Model.Modifiers;
 using StreamDeckSimHub.Plugin.PropertyLogic;
 using StreamDeckSimHub.Plugin.Tools;
 using Size = SixLabors.ImageSharp.Size;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Renderer;
 
-public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButtonRenderer
+public class ButtonRendererImageSharp : IButtonRenderer
 {
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
     private readonly StreamDeckKeyInfo _defaultKeyInfo = StreamDeckKeyInfoBuilder.DefaultKeyInfo;
     private readonly NCalcHandler _ncalcHandler = new();
     private readonly FormatHelper _formatHelper = new();
+    private readonly ConditionEvaluator _conditionEvaluator;
     private Coordinates _coords = new() { Column = -1, Row = -1 };
+
+    public ButtonRendererImageSharp(GetPropertyDelegate getProperty)
+    {
+        _conditionEvaluator = new ConditionEvaluator(
+            _ncalcHandler,
+            getProperty,
+            () => _coords.ToString());
+    }
 
     public void SetCoordinates(Coordinates coordinates)
     {
         _coords = coordinates;
     }
 
-    public Image<Rgba32> Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems)
+    public Image<Rgba32> Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems, BlinkOverride? blinkOverride = null)
     {
         _logger.Debug($"({_coords}) Rendering...");
         var image = new Image<Rgba32>(targetKeyInfo.KeySize.Width, targetKeyInfo.KeySize.Height);
@@ -41,14 +51,31 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
         // Iterate over all display items.
         foreach (var displayItem in displayItems)
         {
-            if (!IsVisible(displayItem))
+            if (!_conditionEvaluator.IsItemActive(displayItem)) continue;
+
+            // Check if any active ModifierBlink is in the "Off" (= hide) phase.
+            // When blinkOverride is enabled, it owns the phase state (all blink in sync). Otherwise, each ModifierBlink uses its own individual phase state.
+            var shouldHideForBlink = false;
+            foreach (var modifier in displayItem.Modifiers)
             {
-                continue;
+                if (modifier is ModifierBlink modifierBlink && _conditionEvaluator.IsModifierActive(modifier))
+                {
+                    if (blinkOverride is { Enabled: true } ? blinkOverride.IsOffPhase() : modifierBlink.IsOffPhase())
+                    {
+                        shouldHideForBlink = true;
+                        break;
+                    }
+                }
             }
+
+            if (shouldHideForBlink) continue;
 
             // Render the item.
             switch (displayItem)
             {
+                case DisplayItemBox boxItem:
+                    RenderBox(image, targetKeyInfo, boxItem);
+                    break;
                 case DisplayItemImage imageItem:
                     RenderImage(image, targetKeyInfo, imageItem);
                     break;
@@ -66,6 +93,93 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
         }
 
         return image;
+    }
+
+    /// <summary>
+    /// Renders a box.
+    /// </summary>
+    private void RenderBox(Image<Rgba32> image, StreamDeckKeyInfo keyInfo, DisplayItemBox boxItem)
+    {
+        try
+        {
+            // Color + Transparency + Color Modifiers
+            var color = boxItem.Color.WithAlpha(boxItem.DisplayParameters.Transparency);
+            foreach (var modifier in boxItem.Modifiers)
+            {
+                if (modifier is ModifierColor modifierColor && _conditionEvaluator.IsModifierActive(modifier))
+                {
+                    color = modifierColor.Color.WithAlpha(boxItem.DisplayParameters.Transparency);
+                }
+            }
+
+            // Position + Size + Corner Radius
+            var position = boxItem.DisplayParameters.Position;
+            var boundingSize = boxItem.DisplayParameters.Size ?? keyInfo.KeySize;
+            var rect = new RectangleF(position.X, position.Y, boundingSize.Width, boundingSize.Height);
+            var maxCornerRadius = MathF.Min(rect.Width, rect.Height) / 2f;
+            var cornerRadius = Math.Clamp(boxItem.CornerRadius, 0f, maxCornerRadius);
+            var path = cornerRadius <= 0f
+                ? new RectangularPolygon(rect)
+                : CreateRoundedRectanglePath(rect, cornerRadius);
+
+            // Rotation
+            if (boxItem.DisplayParameters.Rotation == 0)
+            {
+                // No rotation
+                image.Mutate(ctx => ctx.Fill(color, path));
+            }
+            else
+            {
+                // With rotation, create a rotated shape using matrix transformation
+                var centerPoint = new PointF(rect.X + rect.Width / 2f, rect.Y + rect.Height / 2f);
+                var rotationRadians = boxItem.DisplayParameters.Rotation * (float)Math.PI / 180f;
+
+                // Create transformation: translate to origin, rotate, translate back to center
+                var transform = Matrix3x2.CreateTranslation(-centerPoint) *
+                                Matrix3x2.CreateRotation(rotationRadians) *
+                                Matrix3x2.CreateTranslation(centerPoint);
+
+                image.Mutate(ctx =>
+                {
+                    ctx.SetDrawingTransform(transform);
+                    ctx.Fill(color, path);
+                    ctx.SetDrawingTransform(Matrix3x2.Identity);
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, $"({_coords})   Error rendering box item \"{boxItem.DisplayName}\"");
+        }
+    }
+
+    private static IPath CreateRoundedRectanglePath(RectangleF rect, float cornerRadius)
+    {
+        var left = rect.Left;
+        var top = rect.Top;
+        var right = rect.Right;
+        var bottom = rect.Bottom;
+        var radius = Math.Clamp(cornerRadius, 0f, MathF.Min(rect.Width, rect.Height) / 2f);
+
+        if (radius <= 0f)
+        {
+            return new RectangularPolygon(rect);
+        }
+
+        var pathBuilder = new PathBuilder();
+        pathBuilder.StartFigure();
+        pathBuilder.MoveTo(new PointF(left + radius, top));
+        pathBuilder.LineTo(right - radius, top);
+        pathBuilder.ArcTo(radius, radius, 0, false, true, new PointF(right, top + radius));
+        pathBuilder.LineTo(right, bottom - radius);
+        pathBuilder.ArcTo(radius, radius, 0, false, true, new PointF(right - radius, bottom));
+        pathBuilder.LineTo(left + radius, bottom);
+        pathBuilder.ArcTo(radius, radius, 0, false, true, new PointF(left, bottom - radius));
+        pathBuilder.LineTo(left, top + radius);
+        pathBuilder.ArcTo(radius, radius, 0, false, true, new PointF(left + radius, top));
+        pathBuilder.CloseFigure();
+
+        return pathBuilder.Build();
     }
 
     /// <summary>
@@ -128,8 +242,7 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
     {
         try
         {
-            var value = _ncalcHandler.EvaluateExpression(valueItem.NCalcPropertyHolder, getProperty,
-                $"({_coords})   Value of \"{valueItem.DisplayName}\"");
+            var value = _conditionEvaluator.Evaluate(valueItem.NCalcPropertyHolder, $"Value of \"{valueItem.DisplayName}\"");
             var format = _formatHelper.CompleteFormatString(valueItem.DisplayFormat);
             var formattedValue = string.Format(CultureInfo.CurrentCulture, format, value);
             RenderString(image, keyInfo, valueItem, valueItem.Font, valueItem.Color, formattedValue);
@@ -151,8 +264,15 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
         // Scale font to the device key size
         var scaledFont = ScaleFont(font, keyInfo.KeySize);
 
-        // Color + Transparency
+        // Color + Transparency + Color Modifiers
         var colorWithAlpha = color.WithAlpha(displayItem.DisplayParameters.Transparency);
+        foreach (var modifier in displayItem.Modifiers)
+        {
+            if (modifier is ModifierColor modifierColor && _conditionEvaluator.IsModifierActive(modifier))
+            {
+                colorWithAlpha = modifierColor.Color.WithAlpha(displayItem.DisplayParameters.Transparency);
+            }
+        }
 
         // Position + Size
         var position = displayItem.DisplayParameters.Position;
@@ -190,15 +310,6 @@ public class ButtonRendererImageSharp(GetPropertyDelegate getProperty) : IButton
             //ctx.Fill(Color.Red, new EllipsePolygon(centerPoint, 3f)); // Debug: Draw center point
             ctx.SetDrawingTransform(Matrix3x2.Identity);
         });
-    }
-
-    /// <summary>
-    /// Evaluates the conditions of the item. If the result is true or a positive number, the item is considered visible.
-    /// </summary>
-    private bool IsVisible(Item item)
-    {
-        return _ncalcHandler.IsConditionActive(item.NCalcConditionHolder, getProperty,
-            $"({_coords})   Visibility of \"{item.DisplayName}\"");
     }
 
     /// <summary>

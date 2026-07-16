@@ -41,11 +41,22 @@ namespace StreamDeckSimHub.Installer.Actions
         {
             try
             {
-                // Delete all files in the base directory
                 var baseDirInfo = new DirectoryInfo(pluginDir);
+
+                // Delete all files in the base directory.
+                // This is where most user issues arise, which is why we keep very detailed logs here.
                 foreach (var fileInfo in baseDirInfo.EnumerateFiles())
                 {
-                    fileInfo.Delete();
+                    try
+                    {
+                        fileInfo.Delete();
+                    }
+                    catch (Exception e)
+                    {
+                        SetAndLogError(e, $"Could not delete existing installation: File={fileInfo.FullName}, " +
+                                          "Type={e.GetType().FullName}, HResult=0x{e.HResult:x8}, Message={e.Message}");
+                        return false;
+                    }
                 }
 
                 // Delete all directories recursive in the base directory - except "images"
@@ -65,7 +76,8 @@ namespace StreamDeckSimHub.Installer.Actions
             }
             catch (Exception e)
             {
-                SetAndLogError(e, $"Could not delete existing installation: {e.Message}");
+                SetAndLogError(e, $"Could not delete existing installation: File=(subdirectory), " +
+                                  "Type={e.GetType().FullName}, HResult=0x{e.HResult:x8}, Message={e.Message}");
                 return false;
             }
         }

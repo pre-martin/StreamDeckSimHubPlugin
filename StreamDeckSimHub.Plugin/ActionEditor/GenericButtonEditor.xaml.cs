@@ -1,10 +1,14 @@
-﻿// Copyright (C) 2025 Martin Renner
+// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Xaml.Behaviors;
 using NLog;
+using StreamDeckSimHub.Plugin.ActionEditor.Behaviors;
 using StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.SimHub;
@@ -24,10 +28,38 @@ public partial class GenericButtonEditor
         _actionUuid = actionUuid;
         InitializeComponent();
         DataContext = new SettingsViewModel(settings, imageManager, simHubConnection, shakeItStructureFetcher, this);
+
+        // Set up drag-drop delegates for the ListBoxes
+        SetupDragDropBehaviors();
+    }
+
+    private void SetupDragDropBehaviors()
+    {
+        // Set up DisplayItems drag-drop behavior
+        var displayItemsBehavior = Interaction.GetBehaviors(DisplayItemsListBox)
+            .OfType<ListBoxDragDropBehavior>()
+            .FirstOrDefault();
+        if (displayItemsBehavior != null)
+        {
+            displayItemsBehavior.OnItemDropped = OnDisplayItemDropped;
+        }
+
+        // Set up CommandItems drag-drop behavior
+        var commandItemsBehavior = Interaction.GetBehaviors(CommandItemsListBox)
+            .OfType<ListBoxDragDropBehavior>()
+            .FirstOrDefault();
+        if (commandItemsBehavior != null)
+        {
+            commandItemsBehavior.CanDropFunc = CanDropCommandItem;
+            commandItemsBehavior.OnItemDropped = OnCommandItemDropped;
+        }
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
+        GetWindow(this)?.AddHandler(
+            PreviewMouseDownEvent,
+            new MouseButtonEventHandler(CloseSettingsOnOutsideClick));
         try
         {
             await ((SettingsViewModel)DataContext).FetchControlMapperRoles();
@@ -37,12 +69,20 @@ public partial class GenericButtonEditor
         catch (Exception ex)
         {
             // No MessageBox here, because we don't want to disturb the user when opening the editor.
-            _logger.Error(ex, "Failed to fetch Control Mapper Roles or ShakeIt Profiles from SimHub");
+            _logger.Warn("Failed to fetch Control Mapper Roles and/or ShakeIt Profiles from SimHub. Is SimHub not running? Cause: " + ex.Message);
         }
+    }
+
+    private void OnDeactivated(object? sender, EventArgs e)
+    {
+        ((SettingsViewModel)DataContext).IsSettingsOverlayVisible = false;
     }
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        GetWindow(this)?.RemoveHandler(
+            PreviewMouseDownEvent,
+            new MouseButtonEventHandler(CloseSettingsOnOutsideClick));
         WeakReferenceMessenger.Default.Send(new GenericButtonEditorClosedEvent(_actionUuid));
     }
 
@@ -83,5 +123,79 @@ public partial class GenericButtonEditor
                 ((SettingsViewModel)DataContext).RemoveCommandItem(commandItemViewModel);
             }
         }
+    }
+
+    /// <summary>
+    /// Handles the drop operation for DisplayItems, updating the order in the view model and underlying model.
+    /// </summary>
+    private void OnDisplayItemDropped(object draggedItem, object targetItem, int sourceIndex, int targetIndex)
+    {
+        if (draggedItem is not DisplayItemViewModel) return;
+
+        // Get the collection and reorder items
+        ((SettingsViewModel)DataContext).DisplayItems.Move(sourceIndex, targetIndex);
+        ((SettingsViewModel)DataContext).UpdateDisplayItemsOrder();
+    }
+
+    /// <summary>
+    /// Validates if a CommandItem can be dropped on a target item.
+    /// CommandItems can only be dropped on other CommandItems within the same StreamDeckAction group.
+    /// </summary>
+    private bool CanDropCommandItem(object draggedItem, object targetItem)
+    {
+        // If both are CommandItems, check if they're in the same StreamDeckAction group
+        if (draggedItem is CommandItemViewModel draggedCommandItem && targetItem is CommandItemViewModel targetCommandItem)
+        {
+            return draggedCommandItem.ParentAction == targetCommandItem.ParentAction;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Handles the drop operation for CommandItems, updating the order in the view model and underlying model.
+    /// </summary>
+    private void OnCommandItemDropped(object draggedItem, object targetItem, int sourceIndex, int targetIndex)
+    {
+        if (draggedItem is not CommandItemViewModel commandItem) return;
+
+        ((SettingsViewModel)DataContext).FlatCommandItems.Move(sourceIndex, targetIndex);
+        ((SettingsViewModel)DataContext).UpdateCommandItemsOrder(commandItem.ParentAction);
+    }
+
+    /// <summary>
+    /// Closes the Settings popup when the user clicks anywhere in the window outside the toggle button.
+    /// </summary>
+    private void CloseSettingsOnOutsideClick(object sender, MouseButtonEventArgs e)
+    {
+        var vm = (SettingsViewModel)DataContext;
+        if (!vm.IsSettingsOverlayVisible) return;
+
+        if (e.OriginalSource is DependencyObject source)
+        {
+            // Click on the toggle button itself: let the Click handler toggle the state.
+            if (IsDescendantOf(source, SettingsButton)) return;
+            // Click inside the popup content: keep the popup open.
+            if (SettingsPopup.Child != null && IsDescendantOf(source, SettingsPopup.Child)) return;
+        }
+
+        vm.IsSettingsOverlayVisible = false;
+    }
+
+    private void SettingsButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        var vm = (SettingsViewModel)DataContext;
+        vm.IsSettingsOverlayVisible = !vm.IsSettingsOverlayVisible;
+    }
+
+    private static bool IsDescendantOf(DependencyObject element, DependencyObject ancestor)
+    {
+        var current = element;
+        while (current != null)
+        {
+            if (current == ancestor) return true;
+            current = VisualTreeHelper.GetParent(current);
+        }
+        return false;
     }
 }

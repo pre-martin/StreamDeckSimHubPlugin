@@ -1,15 +1,17 @@
-﻿// Copyright (C) 2025 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
+using StreamDeckSimHub.Plugin.Actions.GenericButton.Model.Modifiers;
 
 namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 
-public partial class DisplayItemText : DisplayItem
+public partial class DisplayItemText : DisplayItem, IAcceptsModifierBlink, IAcceptsModifierColor
 {
     public const string UiName = "Text";
+    public const string UiIcon = "DiTextFieldsGray";
 
     [ObservableProperty] private string _text = string.Empty;
     [ObservableProperty] private Font _font = SystemFonts.CreateFont("Arial", 16, FontStyle.Regular);

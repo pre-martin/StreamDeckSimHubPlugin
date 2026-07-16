@@ -9,6 +9,7 @@ namespace StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 public partial class CommandItemSimHubControl : CommandItem, ICommandItemLong
 {
     public const string UiName = "SimHub Control";
+    public const string UiIcon = "DiSimHubControlGray";
 
     [ObservableProperty] private string _control = string.Empty;
 

@@ -11,6 +11,10 @@
              d:DesignHeight="600" d:DesignWidth="750">
 
     <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <DataTemplate DataType="{x:Type viewModels:DisplayItemBoxViewModel}">
+            <local:DisplayItemBoxView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type viewModels:DisplayItemImageViewModel}">
             <local:DisplayItemImageView />
         </DataTemplate>
@@ -22,19 +26,10 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <!--
-        <TabControl VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Padding="5,10" Height="Auto">
-            <TabItem Header="Element" />
-            <TabItem Header="Modifiers" />
-        </TabControl>
-    -->
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" /> <!-- Name -->
-            <RowDefinition Height="Auto" /> <!-- Detail data (see DataTemplates above) -->
-            <RowDefinition Height="Auto" /> <!-- Display Parameters -->
-            <RowDefinition Height="Auto" /> <!-- Conditions -->
+            <RowDefinition Height="Auto" /> <!-- Detail data -->
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" MinWidth="120" />
@@ -47,17 +42,24 @@
                  Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                  ToolTip="Is only used for the list on the left side!" />
 
-        <ContentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding}">
-            <d:ContentControl.Content>
-                <Border Padding="10" BorderBrush="Gray" BorderThickness="1" Margin="0,5">
-                    <TextBlock Text="Placeholder for concrete DisplayItem" />
-                </Border>
-            </d:ContentControl.Content>
-        </ContentControl>
-
-        <controls:DisplayParametersControl Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,20,0,0" />
-
-        <controls:ExpressionControl Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,20,0,0"
-                                    DataContext="{Binding ExpressionControlConditionViewModel}" />
+        <TabControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                    Margin="0,20,0,0"
+                    Padding="0,10" Height="Auto" BorderThickness="0,1,0,0"
+                    SelectedIndex="{Binding SelectedTabIndex}">
+            <TabItem Header="Element">
+                <controls:DisplayItemControl />
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Modifiers" />
+                        <Ellipse Width="7" Height="7" Fill="#607D8B" Margin="5,0,0,0" VerticalAlignment="Center"
+                                 Visibility="{Binding HasModifiers, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    </StackPanel>
+                </TabItem.Header>
+                <controls:ModifiersControl />
+            </TabItem>
+        </TabControl>
     </Grid>
+
 </UserControl>
