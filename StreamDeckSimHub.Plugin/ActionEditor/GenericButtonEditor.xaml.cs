@@ -10,9 +10,6 @@ using Microsoft.Xaml.Behaviors;
 using NLog;
 using StreamDeckSimHub.Plugin.ActionEditor.Behaviors;
 using StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
-using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
-using StreamDeckSimHub.Plugin.SimHub;
-using StreamDeckSimHub.Plugin.Tools;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor;
 
@@ -21,21 +18,28 @@ public partial class GenericButtonEditor
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
     private readonly string _actionUuid;
 
-    public GenericButtonEditor(
-        string actionUuid, Settings settings, ImageManager imageManager,
-        ISimHubConnection simHubConnection, ShakeItStructureFetcher shakeItStructureFetcher)
+    [Obsolete("Only for XAML designer support. Use the constructor with actionUuid instead.",  false)]
+    public GenericButtonEditor() : this(string.Empty)
+    {
+    }
+
+    public GenericButtonEditor(string actionUuid)
     {
         _actionUuid = actionUuid;
         InitializeComponent();
-        DataContext = new SettingsViewModel(settings, imageManager, simHubConnection, shakeItStructureFetcher, this);
 
-        // Set up drag-drop delegates for the ListBoxes
+        // Set up drag-and-drop delegates for the ListBoxes
         SetupDragDropBehaviors();
+    }
+
+    public void SetViewModel(SettingsViewModel settingsViewModel)
+    {
+        DataContext = settingsViewModel;
     }
 
     private void SetupDragDropBehaviors()
     {
-        // Set up DisplayItems drag-drop behavior
+        // Set up DisplayItems drag-and-drop behavior
         var displayItemsBehavior = Interaction.GetBehaviors(DisplayItemsListBox)
             .OfType<ListBoxDragDropBehavior>()
             .FirstOrDefault();
@@ -44,7 +48,7 @@ public partial class GenericButtonEditor
             displayItemsBehavior.OnItemDropped = OnDisplayItemDropped;
         }
 
-        // Set up CommandItems drag-drop behavior
+        // Set up CommandItems drag-and-drop behavior
         var commandItemsBehavior = Interaction.GetBehaviors(CommandItemsListBox)
             .OfType<ListBoxDragDropBehavior>()
             .FirstOrDefault();

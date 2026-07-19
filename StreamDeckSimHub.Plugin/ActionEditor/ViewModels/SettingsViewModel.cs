@@ -19,6 +19,7 @@ namespace StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 public partial class SettingsViewModel : ObservableObject, IViewModel
 {
     private readonly Settings _settings;
+    private readonly SettingsConverter _settingsConverter;
     private readonly ImageManager _imageManager;
     private readonly ISimHubConnection _simHubConnection;
     private readonly ShakeItStructureFetcher _shakeItStructureFetcher;
@@ -86,10 +87,11 @@ public partial class SettingsViewModel : ObservableObject, IViewModel
         if (value != null) SelectedDisplayItem = null; // CommandItem selected -> no DisplayItem selected
     }
 
-    public SettingsViewModel(Settings settings, ImageManager imageManager, ISimHubConnection simHubConnection,
-        ShakeItStructureFetcher shakeItStructureFetcher, Window parentWindow)
+    public SettingsViewModel(Settings settings, SettingsConverter settingsConverter, ImageManager imageManager,
+        ISimHubConnection simHubConnection, ShakeItStructureFetcher shakeItStructureFetcher, Window parentWindow)
     {
         _settings = settings;
+        _settingsConverter = settingsConverter;
         _imageManager = imageManager;
         _simHubConnection = simHubConnection;
         _shakeItStructureFetcher = shakeItStructureFetcher;
@@ -291,6 +293,56 @@ public partial class SettingsViewModel : ObservableObject, IViewModel
     #endregion
 
     #region RemoveItem
+
+    [RelayCommand]
+    private void CloneDisplayItem(DisplayItemViewModel item)
+    {
+        var displayItem = (DisplayItem)item.GetModel();
+        var clone = _settingsConverter.CloneDisplayItem(displayItem, StreamDeckKeyInfoBuilder.DefaultKeyInfo);
+        clone.Name = !string.IsNullOrWhiteSpace(item.Name) ? item.Name + " (copy)" : item.DisplayName + " (copy)";
+
+        var modelIndex = _settings.DisplayItems.IndexOf(displayItem);
+        if (modelIndex < 0)
+        {
+            _settings.DisplayItems.Add(clone);
+            var appendedVm = DisplayItemToViewModel(clone);
+            DisplayItems.Add(appendedVm);
+            SelectedDisplayItem = appendedVm;
+            return;
+        }
+
+        _settings.DisplayItems.Insert(modelIndex + 1, clone);
+        var vm = DisplayItemToViewModel(clone);
+
+        var vmIndex = DisplayItems.IndexOf(item);
+        DisplayItems.Insert(vmIndex + 1, vm);
+        SelectedDisplayItem = vm;
+    }
+
+    [RelayCommand]
+    private void CloneCommandItem(CommandItemViewModel commandItemViewModel)
+    {
+        var commandItem = (CommandItem)commandItemViewModel.GetModel();
+        var action = commandItemViewModel.ParentAction;
+        var clone = _settingsConverter.CloneCommandItem(commandItem);
+        clone.Name = !string.IsNullOrWhiteSpace(commandItem.Name) ? commandItem.Name + " (copy)" : commandItem.DisplayName + " (copy)";
+
+        var modelList = _settings.CommandItems[action];
+        var modelIndex = modelList.IndexOf(commandItem);
+        if (modelIndex < 0)
+        {
+            modelList.Add(clone);
+        }
+        else
+        {
+            modelList.Insert(modelIndex + 1, clone);
+        }
+
+        var vm = CommandItemToViewModel(clone, action);
+        var vmIndex = FlatCommandItems.IndexOf(commandItemViewModel);
+        FlatCommandItems.Insert(vmIndex + 1, vm);
+        SelectedFlatCommandItem = vm;
+    }
 
     public void RemoveDisplayItem(DisplayItemViewModel item)
     {
