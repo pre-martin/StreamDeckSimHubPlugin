@@ -42,6 +42,7 @@ public class ItemScaler : IDisplayItemVisitor
 
         var uniformScaleFactor = Math.Min(scalerArgs.ScaleFactorX, scalerArgs.ScaleFactorY);
         displayItem.CornerRadius = (int)(uniformScaleFactor * displayItem.CornerRadius);
+        displayItem.BorderWidth = Math.Max(1, (int)(uniformScaleFactor * displayItem.BorderWidth));
 
         return Task.CompletedTask;
     }

@@ -13,6 +13,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" MinWidth="120" />
@@ -21,11 +23,33 @@
 
         <controls:ColorSelectorControl Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" />
 
-        <Label Grid.Row="1" Grid.Column="0" Margin="0,10,0,0">Corner Radius:</Label>
-        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
+        <Label Grid.Row="1" Grid.Column="0" Margin="0,10,0,0">Filled:</Label>
+        <CheckBox Grid.Row="1" Grid.Column="1" Margin="0,10,0,0" IsChecked="{Binding IsFilled}" VerticalAlignment="Center" />
+
+        <Label Grid.Row="2" Grid.Column="0" Margin="0,10,0,0">Corner Radius:</Label>
+        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
             <TextBox Width="50" Text="{Binding CornerRadiusText, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
                      VerticalContentAlignment="Center" />
             <Label FontWeight="Light" Margin="80,0,0,0" Content="{Binding CornerRadiusToolTip}" />
+        </StackPanel>
+
+        <Label Grid.Row="3" Grid.Column="0" Margin="0,10,0,0">Border Width:</Label>
+        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
+            <TextBox Width="50"
+                     Text="{Binding BorderWidthText, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
+                     VerticalContentAlignment="Center">
+                <TextBox.Style>
+                    <Style TargetType="TextBox">
+                        <Setter Property="IsEnabled" Value="True" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsFilled}" Value="True">
+                                <Setter Property="IsEnabled" Value="False" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBox.Style>
+            </TextBox>
+            <Label FontWeight="Light" Margin="80,0,0,0" Content="{Binding BorderWidthToolTip}" />
         </StackPanel>
 
     </Grid>

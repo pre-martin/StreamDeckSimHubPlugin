@@ -14,10 +14,17 @@ public partial class DisplayItemBox : DisplayItem, IAcceptsModifierBlink, IAccep
 
     [ObservableProperty] private Color _color = Color.White;
     [ObservableProperty] private int _cornerRadius;
+    [ObservableProperty] private bool _isFilled = true;
+    [ObservableProperty] private int _borderWidth = 1;
 
     partial void OnCornerRadiusChanged(int value)
     {
         CornerRadius = Math.Max(0, value);
+    }
+
+    partial void OnBorderWidthChanged(int value)
+    {
+        BorderWidth = Math.Max(1, value);
     }
 
     protected override string RawDisplayName => !string.IsNullOrEmpty(Name) ? Name : UiName;
