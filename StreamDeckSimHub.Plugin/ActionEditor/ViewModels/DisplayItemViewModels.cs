@@ -266,8 +266,12 @@ public partial class DisplayItemBoxViewModel(DisplayItemBox model, IViewModel pa
 
     [ObservableProperty] private int _cornerRadius = model.CornerRadius;
     [ObservableProperty] private string _cornerRadiusText = model.CornerRadius.ToString(CultureInfo.InvariantCulture);
+    [ObservableProperty] private bool _isFilled = model.IsFilled;
+    [ObservableProperty] private int _borderWidth = model.BorderWidth;
+    [ObservableProperty] private string _borderWidthText = model.BorderWidth.ToString(CultureInfo.InvariantCulture);
 
     public string CornerRadiusToolTip => BuildCornerRadiusToolTip();
+    public string BorderWidthToolTip => "Only used when Fill is disabled.";
 
     partial void OnCornerRadiusChanged(int value)
     {
@@ -293,9 +297,40 @@ public partial class DisplayItemBoxViewModel(DisplayItemBox model, IViewModel pa
         }
     }
 
+    partial void OnIsFilledChanged(bool value)
+    {
+        model.IsFilled = value;
+    }
+
+    partial void OnBorderWidthChanged(int value)
+    {
+        if (value < 1)
+        {
+            BorderWidth = 1;
+            return;
+        }
+
+        model.BorderWidth = value;
+        var newTextValue = value.ToString(CultureInfo.InvariantCulture);
+        if (!string.Equals(BorderWidthText, newTextValue, StringComparison.Ordinal))
+        {
+            BorderWidthText = newTextValue;
+        }
+    }
+
+    partial void OnBorderWidthTextChanged(string value)
+    {
+        if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedValue))
+        {
+            BorderWidth = parsedValue;
+        }
+    }
+
     protected override string ValidateColumn(string columnName)
     {
-        return columnName != nameof(CornerRadiusText) ? string.Empty : ValidateCornerRadiusText(CornerRadiusText);
+        if (columnName == nameof(CornerRadiusText)) return ValidateCornerRadiusText(CornerRadiusText);
+        if (columnName == nameof(BorderWidthText)) return ValidateBorderWidthText(BorderWidthText);
+        return string.Empty;
     }
 
     protected override void OnDisplaySizeChanged()
@@ -329,6 +364,26 @@ public partial class DisplayItemBoxViewModel(DisplayItemBox model, IViewModel pa
         if (parsedValue < 0)
         {
             return "Corner radius must be greater than or equal to 0.";
+        }
+
+        return string.Empty;
+    }
+
+    private static string ValidateBorderWidthText(string borderWidthText)
+    {
+        if (string.IsNullOrWhiteSpace(borderWidthText))
+        {
+            return "Border width value is required.";
+        }
+
+        if (!int.TryParse(borderWidthText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedValue))
+        {
+            return "Invalid border width value. Please enter an integer number.";
+        }
+
+        if (parsedValue < 1)
+        {
+            return "Border width must be greater than or equal to 1.";
         }
 
         return string.Empty;
