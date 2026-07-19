@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Windows;
 using CommunityToolkit.Mvvm.Messaging;
 using NLog;
+using StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.SimHub;
 using StreamDeckSimHub.Plugin.Tools;
@@ -46,12 +47,14 @@ public class ActionEditorManager : IRecipient<GenericButtonEditorClosedEvent>
             }
 
             Logger.Debug("Showing new editor for action {ActionUuid}", actionUuid);
-            var newEditor =
-                new GenericButtonEditor(actionUuid, settings, _settingsConverter, _imageManager, _simHubConnection, _shakeItStructureFetcher)
-                {
-                    WindowStartupLocation =
-                        WindowStartupLocation.CenterScreen, // show on the same screen as the Stream Deck software
-                };
+            var newEditor = new GenericButtonEditor(actionUuid)
+            {
+                WindowStartupLocation =
+                    WindowStartupLocation.CenterScreen, // show on the same screen as the Stream Deck software
+            };
+            var viewModel = new SettingsViewModel(settings, _settingsConverter, _imageManager, _simHubConnection,
+                _shakeItStructureFetcher, newEditor);
+            newEditor.SetViewModel(viewModel);
             _actionEditors.TryAdd(actionUuid, newEditor);
             newEditor.Show();
 
