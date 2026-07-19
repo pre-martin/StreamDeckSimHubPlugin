@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+  "$schema": "https://schemas.key123.vip/streamdock/plugins/manifest.json",
   "Actions": [
     {
       "Icon": "images/actions/hotkey",
@@ -42,7 +42,7 @@
         }
       ],
       "Controllers": [
-        "Encoder",
+        "Knob",
         "Keypad",
         "Information"
       ],
@@ -93,7 +93,7 @@
     },
     {
       "Controllers": [
-        "Encoder"
+        "Knob"
       ],
       "Encoder": {
         "layout": "layout/dial-layout.json"
@@ -118,7 +118,7 @@
   "Description": "Keep you StreamDeck buttons in sync with SimHub (and your simulation)<p>NOTE: SimHub Property Server has to be installed! See https://github.com/pre-martin/SimHubPropertyServer",
   "Icon": "images/store/plugin",
   "Name": "Stream Deck SimHub",
-  "Version": "will be replaced",
+  "Version": "0.0.0.0",
   "UUID": "net.planetrenner.simhub",
   "URL": "https://github.com/pre-martin/StreamDeckSimHubPlugin",
   "SDKVersion": 2,

@@ -16,6 +16,7 @@
         }
       ],
       "Tooltip": "Hotkey with SimHub state",
+      "SupportURL": "https://github.com/pre-martin/StreamDeckSimHubPlugin/blob/main/doc/hotkey/Hotkey.adoc",
       "UUID": "net.planetrenner.simhub.hotkey"
     },
     {
@@ -30,6 +31,7 @@
       ],
       "Tooltip": "Flags",
       "SupportedInMultiActions": false,
+      "SupportURL": "https://github.com/pre-martin/StreamDeckSimHubPlugin/blob/main/doc/flags/Flags.adoc",
       "UUID": "net.planetrenner.simhub.flags"
     },
     {
@@ -50,6 +52,7 @@
       },
       "Tooltip": "Generic Button",
       "SupportedInMultiActions": false,
+      "SupportURL": "https://github.com/pre-martin/StreamDeckSimHubPlugin/blob/main/doc/generic-button/GenericButton.adoc",
       "UUID": "net.planetrenner.simhub.generic-button"
     },
     {
@@ -75,6 +78,7 @@
         }
       ],
       "Tooltip": "Hotkey with SimHub state (4 states)",
+      "SupportURL": "https://github.com/pre-martin/StreamDeckSimHubPlugin/blob/main/doc/hotkey-4-state/Hotkey-4-state.adoc",
       "UUID": "net.planetrenner.simhub.hotkey4"
     },
     {
@@ -107,6 +111,7 @@
         }
       ],
       "Tooltip": "Dial with SimHub state",
+      "SupportURL": "https://github.com/pre-martin/StreamDeckSimHubPlugin/blob/main/doc/inputtrigger/InputTrigger.adoc",
       "UUID": "net.planetrenner.simhub.dial"
     }
   ],
@@ -117,10 +122,11 @@
   "Description": "Keep you StreamDeck buttons in sync with SimHub (and your simulation)<p>NOTE: SimHub Property Server has to be installed! See https://github.com/pre-martin/SimHubPropertyServer",
   "Icon": "images/store/plugin",
   "Name": "Stream Deck SimHub",
-  "Version": "will be replaced",
+  "Version": "0.0.0.0",
   "UUID": "net.planetrenner.simhub",
   "URL": "https://github.com/pre-martin/StreamDeckSimHubPlugin",
-  "SDKVersion": 2,
+  "SDKVersion": 3,
+  "SupportURL": "https://github.com/pre-martin/StreamDeckSimHubPlugin",
   "OS": [
     {
       "Platform": "windows",
@@ -128,6 +134,6 @@
     }
   ],
   "Software": {
-    "MinimumVersion": "6.5"
+    "MinimumVersion": "7.0"
   }
 }
