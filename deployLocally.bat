@@ -27,7 +27,9 @@ taskkill /im StreamDock.exe /t /f
 timeout 1 > nul
 
 cd build
+copy /y net.planetrenner.simhub.sdPlugin\manifest-streamdeck.json net.planetrenner.simhub.sdPlugin\manifest.json
 xcopy net.planetrenner.simhub.sdPlugin "%AppData%\Elgato\StreamDeck\Plugins\net.planetrenner.simhub.sdPlugin\" /e /y /q
+copy /y net.planetrenner.simhub.sdPlugin\manifest-streamdock.json net.planetrenner.simhub.sdPlugin\manifest.json
 xcopy net.planetrenner.simhub.sdPlugin "%AppData%\HotSpot\StreamDock\Plugins\net.planetrenner.simhub.sdPlugin\" /e /y /q
 cd ..
 
