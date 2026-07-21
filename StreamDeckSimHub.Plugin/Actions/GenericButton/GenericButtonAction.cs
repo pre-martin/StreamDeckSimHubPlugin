@@ -42,6 +42,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     private StreamDeckKeyInfo? _sdKeyInfo;
     private Coordinates? _coordinates;
     private Settings? _settings;
+    private bool _isVisible;
     private readonly HashSet<string> _subscribedProperties = new(StringComparer.OrdinalIgnoreCase);
     private CancellationTokenSource _settingsChangedDebounceCts = new();
 
@@ -134,6 +135,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     protected override async Task OnWillAppear(ActionEventArgs<AppearancePayload> args)
     {
         Logger.LogInformation("({coords}) OnWillAppear", args.Payload.Coordinates);
+        _isVisible = true;
         _coordinates = args.Payload.Coordinates;
         _buttonRenderer.SetCoordinates(_coordinates);
 
@@ -153,6 +155,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     protected override async Task OnWillDisappear(ActionEventArgs<AppearancePayload> args)
     {
         Logger.LogInformation("({coords}) OnWillDisappear", args.Payload.Coordinates);
+        _isVisible = false;
 
         PeriodicBackgroundService.Tick -= OnTick;
 
@@ -169,6 +172,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         // we can omit the code for the StreamDeckKeyInfo.
 
         Logger.LogInformation("({coords}) OnDidReceiveSettings", args.Payload.Coordinates);
+        _isVisible = true;
         _coordinates = args.Payload.Coordinates;
 
         _settings = await ConvertSettings(args.Payload.GetSettings<SettingsDto>(), _sdKeyInfo!);
@@ -381,32 +385,39 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
 
     private async Task Render()
     {
-        if (_settings == null || _sdKeyInfo == null) return;
+        if (!_isVisible || _settings == null || _sdKeyInfo == null) return;
 
         var image = _buttonRenderer.Render(_sdKeyInfo, _settings.DisplayItems, _settings.BlinkOverride);
-        if (_sdKeyInfo.IsDial)
+        try
         {
-            await SetFeedbackAsync(new DialLayout { Content = new Pixmap { Value = image.ToBase64String(PngFormat.Instance) } });
-
-            if (_settings.DisplayItems.Count > 0)
+            if (_sdKeyInfo.IsDial)
             {
-                // Dial image for the Stream Deck app.
-                const int cropWidth = 100;
-                const int cropHeight = 100;
-                var x1 = image.Width / 2 - cropWidth / 2;
-                var y1 = image.Height / 2 - cropHeight / 2;
-                image.Mutate(x => x.Crop(new Rectangle(x1, y1, cropWidth, cropHeight)));
-                await SetImageAsync(image.ToBase64String(PngFormat.Instance));
+                await SetFeedbackAsync(new DialLayout { Content = new Pixmap { Value = image.ToBase64String(PngFormat.Instance) } });
+
+                if (_settings.DisplayItems.Count > 0)
+                {
+                    // Dial image for the Stream Deck app.
+                    const int cropWidth = 100;
+                    const int cropHeight = 100;
+                    var x1 = image.Width / 2 - cropWidth / 2;
+                    var y1 = image.Height / 2 - cropHeight / 2;
+                    image.Mutate(x => x.Crop(new Rectangle(x1, y1, cropWidth, cropHeight)));
+                    await SetImageAsync(image.ToBase64String(PngFormat.Instance));
+                }
+                else
+                {
+                    // Stream Deck app shall display the manifest icon.
+                    await SetImageAsync(string.Empty);
+                }
             }
             else
             {
-                // Stream Deck app shall display the manifest icon.
-                await SetImageAsync(string.Empty);
+                await SetImageAsync(image.ToBase64String(PngFormat.Instance));
             }
         }
-        else
+        catch (NullReferenceException e)
         {
-            await SetImageAsync(image.ToBase64String(PngFormat.Instance));
+            Logger.LogWarning(e, "({coords}) Skipping render update because Stream Deck context is no longer available", _coordinates);
         }
     }
 
