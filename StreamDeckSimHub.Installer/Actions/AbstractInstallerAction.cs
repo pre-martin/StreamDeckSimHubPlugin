@@ -73,10 +73,15 @@ namespace StreamDeckSimHub.Installer.Actions
             _logger.Info(message);
         }
 
+        protected void LogError(string message)
+        {
+            _logger.Error(message);
+        }
+
         protected void SetAndLogError(string message)
         {
             Message = message;
-            _logger.Info(message);
+            _logger.Error(message);
         }
 
         protected void SetAndLogError(Exception e, string message)

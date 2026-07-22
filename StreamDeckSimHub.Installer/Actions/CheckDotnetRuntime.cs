@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Martin Renner
+// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System;
@@ -14,10 +14,10 @@ namespace StreamDeckSimHub.Installer.Actions
     public class CheckDotnetRuntime : AbstractInstallerAction
     {
         private readonly Regex _dotnetDesktop = new Regex(@"Microsoft.WindowsDesktop.App (\d+\.\d+\.\d+).*", RegexOptions.IgnoreCase);
-        public readonly Version DotnetRequired = new Version(8, 0, 21);
-        private const string BaseUrl = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/8.0.21/";
-        private const string InstallerName = "windowsdesktop-runtime-8.0.21-win-x64.exe";
-        private const string InstallerHash = "10b837434f08ea2bae299fda5665e4e0539116d52b4101202a1e4255ad40474329d41a82bb3129ce44d61aaa49c92d0b6ae9cdfa04fee88e6239d26beff65775";
+        public readonly Version DotnetRequired = new Version(10, 0, 10);
+        private const string BaseUrl = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/10.0.10/";
+        private const string InstallerName = "windowsdesktop-runtime-10.0.10-win-x64.exe";
+        private const string InstallerHash = "a5502261c25ba163f35bca7d50611c195e78b8797b16c5bbf2203fbdfff92c0275d36838a3200c08443d2d23a2f6a867c58093d5c239a60dd798a6596df4dc13";
         private readonly string _installerFile = Path.Combine(Path.GetTempPath(), InstallerName);
 
         public override string Name => "Checking .NET Desktop Runtime version";
@@ -82,6 +82,7 @@ namespace StreamDeckSimHub.Installer.Actions
                         if (calculatedChecksumString != InstallerHash)
                         {
                             SetAndLogError("Invalid checksum for downloaded file");
+                            LogError($"Checksum is {calculatedChecksumString}, expected {InstallerHash}");
                             return false;
                         }
                     }
