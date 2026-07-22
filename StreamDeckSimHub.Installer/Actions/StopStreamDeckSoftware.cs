@@ -1,6 +1,7 @@
-﻿// Copyright (C) 2024 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
+using System.IO;
 using System.Threading.Tasks;
 using StreamDeckSimHub.Installer.Tools;
 
@@ -11,6 +12,8 @@ namespace StreamDeckSimHub.Installer.Actions
     /// </summary>
     public class StopStreamDeckSoftware : AbstractInstallerAction
     {
+        private static readonly string PluginInstallDir = Path.Combine(Configuration.StreamDeckPluginDir, Configuration.PluginDirName);
+
         public override string Name => "Stopping Stream Deck software";
 
         protected override async Task<ActionResult> ExecuteInternal()
@@ -35,8 +38,10 @@ namespace StreamDeckSimHub.Installer.Actions
             if (IsPluginRunning())
             {
                 SetAndLogInfo("Stopping Stream Deck SimHub Plugin");
-                var process = ProcessTools.GetProcess(Configuration.PluginProcessName);
-                process?.Kill();
+                foreach (var process in ProcessTools.GetProcessesInDirectory(Configuration.PluginProcessName, PluginInstallDir))
+                {
+                    process.Kill();
+                }
 
                 if (!await WaitForPluginKilled())
                 {
@@ -47,6 +52,13 @@ namespace StreamDeckSimHub.Installer.Actions
             else
             {
                 SetAndLogInfo("Plugin is not running, stopping not required.");
+            }
+
+
+            var otherPluginInstances = ProcessTools.GetProcesses(Configuration.PluginProcessName).Length;
+            if (otherPluginInstances > 0)
+            {
+                SetAndLogInfo($"Ignored {otherPluginInstances} Stream Deck SimHub Plugin process(es) outside installer plugin directory: \"{PluginInstallDir}\"");
             }
 
             SetAndLogInfo("The Stream Deck software stopped.");
@@ -60,7 +72,7 @@ namespace StreamDeckSimHub.Installer.Actions
 
         private bool IsPluginRunning()
         {
-            return ProcessTools.IsProcessRunning(Configuration.PluginProcessName);
+            return ProcessTools.IsProcessRunningInDirectory(Configuration.PluginProcessName, PluginInstallDir);
         }
 
         private async Task<bool> WaitForStreamDeckKilled()

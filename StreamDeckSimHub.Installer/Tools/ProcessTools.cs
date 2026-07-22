@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System;
@@ -19,11 +19,36 @@ namespace StreamDeckSimHub.Installer.Tools
         }
 
         /// <summary>
+        /// Is a given process running from within a specific directory?
+        /// </summary>
+        public static bool IsProcessRunningInDirectory(string processName, string directoryPath)
+        {
+            return GetProcessesInDirectory(processName, directoryPath).Any();
+        }
+
+        /// <summary>
         /// Simple wrapper for <c>Process.GetProcessesByName()</c>.
         /// </summary>
         public static Process GetProcess(string processName)
         {
             return Process.GetProcessesByName(processName).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Returns all processes with the given name.
+        /// </summary>
+        public static Process[] GetProcesses(string processName)
+        {
+            return Process.GetProcessesByName(processName);
+        }
+
+        /// <summary>
+        /// Returns all processes with the given name that are started from within the given directory.
+        /// </summary>
+        public static Process[] GetProcessesInDirectory(string processName, string directoryPath)
+        {
+            var normalizedDirectoryPath = NormalizeDirectoryPath(directoryPath);
+            return GetProcesses(processName).Where(process => IsProcessInDirectory(process, normalizedDirectoryPath)).ToArray();
         }
 
         /// <summary>
@@ -55,6 +80,37 @@ namespace StreamDeckSimHub.Installer.Tools
             process.WaitForExit();
             output = stdout.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             return process.ExitCode;
+        }
+
+        private static bool IsProcessInDirectory(Process process, string normalizedDirectoryPath)
+        {
+            try
+            {
+                var executablePath = process.MainModule?.FileName;
+                if (string.IsNullOrWhiteSpace(executablePath))
+                {
+                    return false;
+                }
+
+                var normalizedProcessPath = Path.GetFullPath(executablePath);
+                return normalizedProcessPath.StartsWith(normalizedDirectoryPath, StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static string NormalizeDirectoryPath(string directoryPath)
+        {
+            var normalizedDirectoryPath = Path.GetFullPath(directoryPath);
+            if (!normalizedDirectoryPath.EndsWith(Path.DirectorySeparatorChar.ToString()) &&
+                !normalizedDirectoryPath.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
+            {
+                normalizedDirectoryPath += Path.DirectorySeparatorChar;
+            }
+
+            return normalizedDirectoryPath;
         }
     }
 }
