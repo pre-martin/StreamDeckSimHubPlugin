@@ -63,7 +63,7 @@ public abstract class StreamDeckKeyInfoBuilder
         }
         else
         {
-            if (deviceInfo.Type is DeviceType.StreamDeckXL or DeviceType.StreamDeckPlus or DeviceType.StreamDeckPlusXL)
+            if (deviceInfo.Type is DeviceType.StreamDeckXL or DeviceType.StreamDeckPlus or DeviceType.StreamDeckPlusXL or DeviceType.VirtualStreamDeck)
             {
                 // SD XL or SD+ or SD+ XL (https://docs.elgato.com/guidelines/stream-deck/plugins#sizing-2)
                 keySize = new(144, 144);
