@@ -1,10 +1,11 @@
-﻿// Copyright (C) 2025 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Collections.Concurrent;
 using System.Windows;
 using CommunityToolkit.Mvvm.Messaging;
 using NLog;
+using StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
 using StreamDeckSimHub.Plugin.SimHub;
 using StreamDeckSimHub.Plugin.Tools;
@@ -18,13 +19,16 @@ public class ActionEditorManager : IRecipient<GenericButtonEditorClosedEvent>
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private readonly ConcurrentDictionary<string, GenericButtonEditor> _actionEditors = new();
+    private readonly SettingsConverter _settingsConverter;
     private readonly ImageManager _imageManager;
     private readonly ISimHubConnection _simHubConnection;
     private readonly ShakeItStructureFetcher _shakeItStructureFetcher;
 
     public ActionEditorManager(
-        ImageManager imageManager, ISimHubConnection simHubConnection, ShakeItStructureFetcher shakeItStructureFetcher)
+        SettingsConverter settingsConverter, ImageManager imageManager, ISimHubConnection simHubConnection,
+        ShakeItStructureFetcher shakeItStructureFetcher)
     {
+        _settingsConverter = settingsConverter;
         _imageManager = imageManager;
         _simHubConnection = simHubConnection;
         _shakeItStructureFetcher = shakeItStructureFetcher;
@@ -43,12 +47,14 @@ public class ActionEditorManager : IRecipient<GenericButtonEditorClosedEvent>
             }
 
             Logger.Debug("Showing new editor for action {ActionUuid}", actionUuid);
-            var newEditor =
-                new GenericButtonEditor(actionUuid, settings, _imageManager, _simHubConnection, _shakeItStructureFetcher)
-                {
-                    WindowStartupLocation =
-                        WindowStartupLocation.CenterScreen, // show on the same screen as the Stream Deck software
-                };
+            var newEditor = new GenericButtonEditor(actionUuid)
+            {
+                WindowStartupLocation =
+                    WindowStartupLocation.CenterScreen, // show on the same screen as the Stream Deck software
+            };
+            var viewModel = new SettingsViewModel(settings, _settingsConverter, _imageManager, _simHubConnection,
+                _shakeItStructureFetcher, newEditor);
+            newEditor.SetViewModel(viewModel);
             _actionEditors.TryAdd(actionUuid, newEditor);
             newEditor.Show();
 

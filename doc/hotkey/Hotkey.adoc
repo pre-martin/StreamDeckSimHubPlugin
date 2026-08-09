@@ -10,6 +10,8 @@ endif::[]
 
 TIP: Always read the *correct version* of the documentation, which matches the version of the plugin that you have installed. To do so, use the dropdown in the top left, which usually contains the value "main". Select the "tag" that matches your installed version.
 
+NOTE: This action is deprecated since version 2.4.x. Please use the link:../generic-button/GenericButton.adoc[Generic Button.adoc] action. _Deprecated_ means, that this action will not receive any new features, but it will still be supported, and it will not be removed.
+
 == Description
 
 This action offers the same functionality as the built-in action "Hotkey", but with some additional - mostly SimHub related - features. The features are as follows:

@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2025 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using StreamDeckSimHub.Plugin.Actions.GenericButton.Model;
@@ -8,7 +8,7 @@ using Size = SixLabors.ImageSharp.Size;
 
 namespace StreamDeckSimHub.Plugin.ActionEditor.ViewModels;
 
-public class SettingsViewModelDesignTime() : SettingsViewModel(Settings, null!, null!, null!, null!)
+public class SettingsViewModelDesignTime() : SettingsViewModel(Settings, null!, null!, null!, null!, null!)
 {
     private static readonly Settings Settings = new()
     {
@@ -23,4 +23,4 @@ public class SettingsViewModelDesignTime() : SettingsViewModel(Settings, null!, 
         Settings.CommandItems[StreamDeckAction.KeyUp].Add(CommandItemKeypress.Create());
         Settings.CommandItems[StreamDeckAction.KeyUp].Add(CommandItemSimHubControl.Create());
     }
-};
+}

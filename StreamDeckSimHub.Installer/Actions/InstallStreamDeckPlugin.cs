@@ -19,7 +19,7 @@ namespace StreamDeckSimHub.Installer.Actions
             if (Directory.Exists(Path.Combine(Configuration.StreamDeckPluginDir, Configuration.PluginDirName)))
             {
                 var pluginDir = Path.Combine(Configuration.StreamDeckPluginDir, Configuration.PluginDirName);
-                SetAndLogInfo($"Deleting existing Stream Deck SimHub Plugin from {pluginDir}");
+                SetAndLogInfo($"Deleting existing Stream Deck SimHub Plugin from \"{pluginDir}\"");
                 var result = DeleteExistingInstallation(pluginDir);
                 if (!result)
                 {
@@ -27,7 +27,7 @@ namespace StreamDeckSimHub.Installer.Actions
                 }
             }
 
-            SetAndLogInfo($"Installing Stream Deck SimHub Plugin to {Configuration.StreamDeckPluginDir}");
+            SetAndLogInfo($"Installing Stream Deck SimHub Plugin to \"{Configuration.StreamDeckPluginDir}\"");
             if (!ExtractPlugin(Configuration.StreamDeckPluginDir))
             {
                 return Task.FromResult(ActionResult.Error);
@@ -53,7 +53,7 @@ namespace StreamDeckSimHub.Installer.Actions
                     }
                     catch (Exception e)
                     {
-                        SetAndLogError(e, $"Could not delete existing installation: File={fileInfo.FullName}, " +
+                        SetAndLogError(e, $"Could not delete existing installation: File=\"{fileInfo.FullName}\", " +
                                           "Type={e.GetType().FullName}, HResult=0x{e.HResult:x8}, Message={e.Message}");
                         return false;
                     }

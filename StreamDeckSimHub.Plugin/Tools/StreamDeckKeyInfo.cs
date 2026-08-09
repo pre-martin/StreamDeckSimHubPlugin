@@ -63,15 +63,15 @@ public abstract class StreamDeckKeyInfoBuilder
         }
         else
         {
-            if (deviceInfo.Type == DeviceType.StreamDeckXL || deviceInfo.Type == DeviceType.StreamDeckPlus)
+            if (deviceInfo.Type is DeviceType.StreamDeckXL or DeviceType.StreamDeckPlus or DeviceType.StreamDeckPlusXL or DeviceType.VirtualStreamDeck)
             {
-                // SD XL or SD+ (https://docs.elgato.com/sdk/plugins/style-guide#sizes)
+                // SD XL or SD+ or SD+ XL (https://docs.elgato.com/guidelines/stream-deck/plugins#sizing-2)
                 keySize = new(144, 144);
                 isHighRes = true;
             }
             else
             {
-                // SD or SD Mini (https://docs.elgato.com/sdk/plugins/style-guide#sizes)
+                // SD or SD Mini (https://docs.elgato.com/guidelines/stream-deck/plugins#sizing-2)
                 keySize = new(72, 72);
             }
         }

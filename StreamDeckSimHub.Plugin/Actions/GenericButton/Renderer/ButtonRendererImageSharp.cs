@@ -126,7 +126,14 @@ public class ButtonRendererImageSharp : IButtonRenderer
             if (boxItem.DisplayParameters.Rotation == 0)
             {
                 // No rotation
-                image.Mutate(ctx => ctx.Fill(color, path));
+                if (boxItem.IsFilled)
+                {
+                    image.Mutate(ctx => ctx.Fill(color, path));
+                }
+                else
+                {
+                    image.Mutate(ctx => ctx.Draw(color, boxItem.BorderWidth, path));
+                }
             }
             else
             {
@@ -142,7 +149,14 @@ public class ButtonRendererImageSharp : IButtonRenderer
                 image.Mutate(ctx =>
                 {
                     ctx.SetDrawingTransform(transform);
-                    ctx.Fill(color, path);
+                    if (boxItem.IsFilled)
+                    {
+                        ctx.Fill(color, path);
+                    }
+                    else
+                    {
+                        ctx.Draw(color, boxItem.BorderWidth, path);
+                    }
                     ctx.SetDrawingTransform(Matrix3x2.Identity);
                 });
             }

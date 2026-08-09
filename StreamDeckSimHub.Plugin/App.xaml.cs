@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2025 Martin Renner
+﻿// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Windows;
@@ -22,9 +22,12 @@ public partial class App
 
     public App()
     {
-        var localDevMode = Environment.GetCommandLineArgs().Length == 2 && Environment.GetCommandLineArgs()[1] == "dev";
+        var logger = LogManager.GetCurrentClassLogger();
+
+        var localDevMode = IsLocalDevMode();
         _host = Program.CreateHost(localDevMode);
-        LogManager.GetCurrentClassLogger().Info("Starting StreamDeckSimHub plugin {version}", ThisAssembly.AssemblyFileVersion);
+        logger.Info("Starting StreamDeckSimHub plugin {version}", ThisAssembly.AssemblyFileVersion);
+        logger.Debug("Command line arguments: {args}", string.Join(" ", Environment.GetCommandLineArgs()));
     }
 
     private async void Application_Startup(object sender, StartupEventArgs e)
@@ -44,7 +47,7 @@ public partial class App
         }
 
 
-        var localDevMode = Environment.GetCommandLineArgs().Length == 2 && Environment.GetCommandLineArgs()[1] == "dev";
+        var localDevMode = IsLocalDevMode();
 
         if (localDevMode)
         {
@@ -63,9 +66,9 @@ public partial class App
             {
                 KeySize = StreamDeckKeyInfoBuilder.DefaultKeyInfo.KeySize
             };
-            settings.SettingsChanged += (sender, e) =>
+            settings.SettingsChanged += (nestedSender, nestedArgs) =>
             {
-                Console.WriteLine($"Dev mode - settings changed. Sender: {sender} / Property: {e.PropertyName}");
+                Console.WriteLine($"Dev mode - settings changed. Sender: {nestedSender} / Property: {nestedArgs.PropertyName}");
             };
 
             var actionEditorManager = _host.Services.GetService<ActionEditorManager>();
@@ -101,5 +104,10 @@ public partial class App
             UpdateStatus.LatestVersion = null;
             UpdateStatus.LatestVersionException = ex;
         }
+    }
+
+    private bool IsLocalDevMode()
+    {
+        return Environment.GetCommandLineArgs().Length == 2 && Environment.GetCommandLineArgs()[1] == "dev";
     }
 }

@@ -72,6 +72,7 @@ The installation is also explained in the following video:
 image:images/teaser/installer.webp[Installer,400,link=https://youtu.be/4Zh_6QLN8AA] +
 https://youtu.be/4Zh_6QLN8AA[Watch on YouTube]
 
+If you don't want to use the installer, or cannot use it, you can also install the plugin manually. To do so, download the `*.streamDeckPlugin` file from the GitHub "Releases" page and double-click it. This will install the plugin into Stream Deck. Be sure to have the SimHub Property Server plugin installed into SimHub (see above), and also the required .NET Windows Desktop Runtime 10.0 (https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
 
 == Usage
 

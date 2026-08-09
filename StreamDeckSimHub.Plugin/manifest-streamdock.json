@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+  "$schema": "https://schemas.key123.vip/streamdock/plugins/manifest.json",
   "Actions": [
     {
       "Icon": "images/actions/hotkey",
@@ -15,7 +15,7 @@
           "Name": "on"
         }
       ],
-      "Tooltip": "Hotkey with SimHub state",
+      "Tooltip": "Hotkey with SimHub state (deprecated)",
       "UUID": "net.planetrenner.simhub.hotkey"
     },
     {
@@ -42,7 +42,7 @@
         }
       ],
       "Controllers": [
-        "Encoder",
+        "Knob",
         "Keypad",
         "Information"
       ],
@@ -75,7 +75,7 @@
           "Name": "3"
         }
       ],
-      "Tooltip": "Hotkey with SimHub state (4 states)",
+      "Tooltip": "Hotkey with SimHub state - supports 4 states (deprecated)",
       "UUID": "net.planetrenner.simhub.hotkey4"
     },
     {
@@ -88,12 +88,12 @@
           "Name": "Input"
         }
       ],
-      "Tooltip": "Input control for SimHub",
+      "Tooltip": "Input control for SimHub (deprecated)",
       "UUID": "net.planetrenner.simhub.input"
     },
     {
       "Controllers": [
-        "Encoder"
+        "Knob"
       ],
       "Encoder": {
         "layout": "layout/dial-layout.json"
@@ -107,7 +107,7 @@
           "Name": "Dial"
         }
       ],
-      "Tooltip": "Dial with SimHub state",
+      "Tooltip": "Dial with SimHub state (deprecated)",
       "UUID": "net.planetrenner.simhub.dial"
     }
   ],
@@ -118,7 +118,7 @@
   "Description": "Keep you StreamDeck buttons in sync with SimHub (and your simulation)<p>NOTE: SimHub Property Server has to be installed! See https://github.com/pre-martin/SimHubPropertyServer",
   "Icon": "images/store/plugin",
   "Name": "Stream Deck SimHub",
-  "Version": "will be replaced",
+  "Version": "0.0.0.0",
   "UUID": "net.planetrenner.simhub",
   "URL": "https://github.com/pre-martin/StreamDeckSimHubPlugin",
   "SDKVersion": 2,
