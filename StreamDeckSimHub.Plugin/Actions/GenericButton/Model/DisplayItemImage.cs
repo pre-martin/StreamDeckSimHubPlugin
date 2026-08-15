@@ -18,6 +18,15 @@ public partial class DisplayItemImage : DisplayItem, IAcceptsModifierBlink
     public Image Image { get; set; } = ImageUtils.EmptyImage;
     [ObservableProperty] private string _relativePath = string.Empty;
 
+    /// <summary>
+    /// Forces a <see cref="System.ComponentModel.PropertyChangedEventArgs"/> for <c>RelativePath</c> even if the value has not changed,
+    /// so that listeners (e.g. GenericButtonAction) reload the image from disk.
+    /// </summary>
+    public void ForceRelativePathChanged()
+    {
+        OnPropertyChanged(nameof(RelativePath));
+    }
+
     protected override string RawDisplayName => !string.IsNullOrWhiteSpace(Name) ? Name :
         !string.IsNullOrWhiteSpace(RelativePath) ? Path.GetFileNameWithoutExtension(RelativePath) : "Image";
 
