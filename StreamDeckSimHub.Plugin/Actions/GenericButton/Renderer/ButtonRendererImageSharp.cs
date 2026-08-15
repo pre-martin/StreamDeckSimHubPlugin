@@ -46,7 +46,7 @@ public class ButtonRendererImageSharp : IButtonRenderer
     public Image<Rgba32> Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems, BlinkOverride? blinkOverride = null)
     {
         _logger.Debug($"({_coords}) Rendering...");
-        var image = new Image<Rgba32>(targetKeyInfo.KeySize.Width, targetKeyInfo.KeySize.Height);
+        var image = new Image<Rgba32>(targetKeyInfo.KeySize.Width, targetKeyInfo.KeySize.Height, Color.Black);
 
         // Iterate over all display items.
         foreach (var displayItem in displayItems)
