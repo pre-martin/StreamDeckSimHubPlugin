@@ -33,7 +33,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     private readonly ItemScaler _itemScaler;
     private readonly ImageManager _imageManager;
     private readonly ActionEditorManager _actionEditorManager;
-    private readonly ISimHubConnection _simHubConnection;
+    private readonly IPropertySource _propertySource;
     private readonly ConditionEvaluator _conditionEvaluator;
     private readonly IPropertyChangedReceiver _statePropertyChangedReceiver;
     private readonly IButtonRenderer _buttonRenderer;
@@ -52,13 +52,14 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         ImageManager imageManager,
         ActionEditorManager actionEditorManager,
         ISimHubConnection simHubConnection,
+        PropertyRouter propertyRouter,
         NCalcHandler ncalcHandler)
     {
         _settingsConverter = settingsConverter;
         _itemScaler = itemScaler;
         _imageManager = imageManager;
         _actionEditorManager = actionEditorManager;
-        _simHubConnection = simHubConnection;
+        _propertySource = propertyRouter;
         _conditionEvaluator = new ConditionEvaluator(ncalcHandler, GetProperty, () => _coordinates?.ToString() ?? "(?)");
         _statePropertyChangedReceiver = new PropertyChangedDelegate(PropertyChanged);
         _buttonRenderer = new ButtonRendererImageSharp(GetProperty);
@@ -357,12 +358,12 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
 
         foreach (var prop in danglingProps)
         {
-            await _simHubConnection.Unsubscribe(prop, _statePropertyChangedReceiver);
+            await _propertySource.Unsubscribe(prop, _statePropertyChangedReceiver);
         }
 
         foreach (var prop in newToSubProps)
         {
-            await _simHubConnection.Subscribe(prop, _statePropertyChangedReceiver);
+            await _propertySource.Subscribe(prop, _statePropertyChangedReceiver);
         }
     }
 
@@ -370,7 +371,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     {
         foreach (var prop in _subscribedProperties)
         {
-            await _simHubConnection.Unsubscribe(prop, _statePropertyChangedReceiver);
+            await _propertySource.Unsubscribe(prop, _statePropertyChangedReceiver);
         }
 
         _subscribedProperties.Clear();
@@ -423,7 +424,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
 
     private IComparable? GetProperty(string propertyName)
     {
-        var propertyChangedArgs = _simHubConnection.GetProperty(propertyName);
+        var propertyChangedArgs = _propertySource.GetProperty(propertyName);
         return propertyChangedArgs?.PropertyValue;
     }
 
