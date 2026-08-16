@@ -671,3 +671,18 @@ Profiles containing Generic Button actions can be exported and imported like any
 However, there is one special aspect to note: *The images used are not exported or imported* (because the Generic Button manages the images itself instead of using the limited functionality of the Stream Deck software). Therefore, the images themselves must be copied manually from or to `%APPDATA%\Elgato\StreamDeck\Plugins\net.planetrenner.simhub.sdPlugin\images\custom`.
 
 When importing into a Stream Deck device with a different resolution (e.g. importing from a standard-res Stream Deck to a high-res Stream Deck), the plugin automatically scales the display elements to the size of the target device.
+
+== Built-in Properties
+
+In addition to SimHub properties, the Generic Button has access to built-in properties. These properties are produced locally by the plugin itself (no SimHub connection required) and can be used in conditions, expressions, and display values exactly like regular SimHub properties.
+
+All built-in properties use the prefix `StreamDeckSimHub.`.
+
+[cols="1,1,3"]
+|===
+|Property |Type |Description
+
+|`StreamDeckSimHub.Connection.Connected` | Boolean (`true` / `false`) | Indicates whether the plugin is currently connected to the SimHub Property Server.
+
+|`StreamDeckSimHub.Subscriptions.Count` | Integer | The number of SimHub properties currently subscribed to by the plugin.
+|===

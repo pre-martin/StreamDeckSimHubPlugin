@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2026 Martin Renner
+// Copyright (C) 2026 Martin Renner
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Diagnostics;
@@ -75,7 +75,7 @@ public class PropertyInformation
 /// <p>This connection does not support multiplexing. Thus, it is only used to receive "Property Changed" messages from the
 /// SimHub Property Server. Other receiving communication has to be handled in a different connection.</p>
 /// </remarks>
-public class SimHubConnection(IOptions<ConnectionSettings> connectionSettings, PropertyParser propertyParser)
+public class SimHubConnection(IOptions<ConnectionSettings> connectionSettings, PropertyParser propertyParser, BuiltInPropertyManager builtInPropertyManager)
     : ISimHubConnection
 {
     private readonly ConnectionSettings _connectionSettings = connectionSettings.Value;
@@ -110,6 +110,7 @@ public class SimHubConnection(IOptions<ConnectionSettings> connectionSettings, P
         Logger.Info("Connecting to SimHub (Property Server plugin has to be installed in SimHub)...");
         Logger.Info($"ConnectionSettings: {_connectionSettings.Host}:{_connectionSettings.Port}");
         Connected = false;
+        _ = builtInPropertyManager.SetProperty(BuiltInProperties.ConnectionConnected, false);
 
         while (!Connected)
         {
@@ -134,6 +135,7 @@ public class SimHubConnection(IOptions<ConnectionSettings> connectionSettings, P
                 {
                     Logger.Info($"Established connection to {Sanitize(line)}");
                     Connected = true;
+                    _ = builtInPropertyManager.SetProperty(BuiltInProperties.ConnectionConnected, true);
                     _heartbeatEnabled = IsHeartbeatSupported(line);
                     Logger.Info($"Heartbeat monitoring: {(_heartbeatEnabled ? "enabled" : "disabled")}");
                 }
@@ -197,6 +199,7 @@ public class SimHubConnection(IOptions<ConnectionSettings> connectionSettings, P
 
             // We have no subscription for this property: Add it to the list.
             _subscriptions.Add(propertyName, PropertyInformation.WithReceiver(propertyChangedReceiver));
+            _ = builtInPropertyManager.SetProperty(BuiltInProperties.SubscriptionsCount, _subscriptions.Count);
         }
         finally
         {
@@ -242,6 +245,7 @@ public class SimHubConnection(IOptions<ConnectionSettings> connectionSettings, P
             if (receivers.Count > 0) return;
             // Otherwise, remove the entry completely from the list.
             _subscriptions.Remove(propertyName);
+            _ = builtInPropertyManager.SetProperty(BuiltInProperties.SubscriptionsCount, _subscriptions.Count);
         }
         finally
         {
