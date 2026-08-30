@@ -46,14 +46,28 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
-    <PackageReference Include="Costura.Fody" Version="6.2.0">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="NLog" Version="5.3.3" />
-    <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0" />
   </ItemGroup>
 
-  <Target Name="RenameInstaller" AfterTargets="FodyVerifyTarget">
+  <!--
+    Replacement for Costura.Fody: embed the runtime assemblies of the NuGet dependencies above
+    (and their transitive dependencies) directly into the executable, so that end users only need
+    to download a single EXE file. The dependencies are removed from the normal "copy to output"
+    list and instead added as EmbeddedResource. AssemblyLoader (see Tools/AssemblyLoader.cs)
+    resolves them at runtime via AppDomain.AssemblyResolve.
+  -->
+  <Target Name="EmbedRuntimeDependencies" BeforeTargets="AssignTargetPaths" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <_EmbeddedDependency Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.Extension)' == '.dll'" />
+      <EmbeddedResource Include="@(_EmbeddedDependency)">
+        <LogicalName>%(_EmbeddedDependency.Filename)%(_EmbeddedDependency.Extension)</LogicalName>
+      </EmbeddedResource>
+      <!-- Remove from copy-local so the DLLs are not additionally copied next to the EXE. -->
+      <ReferenceCopyLocalPaths Remove="@(_EmbeddedDependency)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="RenameInstaller" AfterTargets="Build">
     <Copy SourceFiles="$(BaseOutputPath)\$(Configuration)\$(AssemblyName).exe" DestinationFiles="$(BaseOutputPath)\$(Configuration)\$(AssemblyName)-v$(BuildVersion3Components).exe" />
   </Target>
 
