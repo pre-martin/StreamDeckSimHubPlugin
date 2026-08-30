@@ -49,6 +49,6 @@ See <<requirements>> above, if the PowerShell script is failing!
   - `dotnet build StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c Release`
   - `dotnet publish StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c Release`
 . Build the installer:
-  - `MSBuild.exe" /p:Configuration=Release /p:Platform="Any CPU"`
+  - `dotnet build StreamDeckSimHub.Installer\StreamDeckSimHub.Installer.csproj -c Release`
 
-All three commands are combined in `deployInstaller.bat`
+All commands are combined in `deployInstaller.bat`

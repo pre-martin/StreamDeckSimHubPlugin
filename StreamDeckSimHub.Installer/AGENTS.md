@@ -9,7 +9,7 @@ This document provides coding agents with essential information about building, 
 The installer targets .NET Framework because it is included with Windows, so end users do not need to install additional software just to run the installer.
 
 - **Language**: C# with CommunityToolkit.Mvvm
-- **Framework**: .NET Framework 4.8 (WPF)
+- **Framework**: .NET Framework 4.8 (WPF), SDK-style project
 - **Architecture**: Action pipeline with MVVM-based UI
 - **Packaging**: Single executable with embedded plugin payload (Costura/Fody + embedded resource)
 - **License**: LGPL-3.0-or-later
@@ -19,21 +19,21 @@ The installer targets .NET Framework because it is included with Windows, so end
 ### Prerequisites
 - Windows
 - .NET Framework 4.8 targeting pack
-- Visual Studio 2022 (or Build Tools) with MSBuild
+- .NET SDK (for the `dotnet` CLI)
 - PowerShell (optional, for release automation in parent repo)
 
 ### Restore Dependencies
 ```bat
-"C:\Program Files\Microsoft Visual Studio\2022\Community\Msbuild\Current\Bin\amd64\MSBuild.exe" -t:restore -p:Platform="Any CPU" -p:RestorePackagesConfig=true StreamDeckSimHub.Installer.sln
+dotnet restore StreamDeckSimHub.Installer.csproj
 ```
 
 ### Build
 ```bat
 # Build Debug
-"C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\amd64\MSBuild.exe" StreamDeckSimHub.Installer.csproj /p:Configuration=Debug /p:Platform="Any CPU"
+dotnet build StreamDeckSimHub.Installer.csproj -c Debug
 
 # Build Release
-"C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\amd64\MSBuild.exe" StreamDeckSimHub.Installer.csproj /p:Configuration=Release /p:Platform="Any CPU"
+dotnet build StreamDeckSimHub.Installer.csproj -c Release
 ```
 
 For full release packaging (plugin + installer), use `deployInstaller.bat` in the repository root, which combines all required commands.
