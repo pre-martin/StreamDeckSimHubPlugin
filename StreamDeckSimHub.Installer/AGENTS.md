@@ -22,6 +22,10 @@ The installer targets .NET Framework because it is included with Windows, so end
 - .NET SDK (for the `dotnet` CLI)
 - PowerShell (optional, for release automation in parent repo)
 
+### Solution
+
+This project is part of `StreamDeckSimHub.sln` in the repository root, alongside the plugin and its tests. It is a separate SDK-style project (targeting `net48` instead of `net10.0-windows`), but it does not need its own solution file any more - use the root `StreamDeckSimHub.sln` for everything, including this project.
+
 ### Restore Dependencies
 ```bat
 dotnet restore StreamDeckSimHub.Installer.csproj
@@ -36,7 +40,7 @@ dotnet build StreamDeckSimHub.Installer.csproj -c Debug
 dotnet build StreamDeckSimHub.Installer.csproj -c Release
 ```
 
-For full release packaging (plugin + installer), use `deployInstaller.bat` in the repository root, which combines all required commands.
+For full release packaging (plugin + installer), use `deployInstaller.bat` in the repository root, which combines all required commands. The same steps also run automatically in the "Publish Release" GitHub Actions workflow (`.github/workflows/publish-release.yaml` in the repository root) - see `doc/Release.adoc` in the repository root for the full release process.
 
 ### Output
 ```bat

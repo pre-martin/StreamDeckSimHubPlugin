@@ -43,6 +43,10 @@ dotnet build --no-restore StreamDeckSimHub.Plugin/StreamDeckSimHub.Plugin.csproj
 dotnet publish StreamDeckSimHub.Plugin/StreamDeckSimHub.Plugin.csproj
 ```
 
+### Solution
+
+`StreamDeckSimHub.sln` contains all three projects: the plugin, the plugin tests, and `StreamDeckSimHub.Installer` (a .NET Framework 4.8 WPF installer, but still an SDK-style project, see `StreamDeckSimHub.Installer/AGENTS.md`). Building/testing the solution as a whole (e.g. `dotnet build StreamDeckSimHub.sln`, `dotnet test`) builds all three projects.
+
 ### Test Commands
 ```bash
 # Run all tests
@@ -206,6 +210,16 @@ StreamDeckSimHub.Plugin/
 - `Directory.Build.props` - MSBuild properties (Nerdbank.GitVersioning)
 - `version.json` - Version configuration
 - `manifest-streamdeck.json` - Stream Deck plugin manifest
+
+## CI / Release
+
+- This project uses the Gitflow workflow (`develop` / `release/vX.Y` / `main`) together with Nerdbank.GitVersioning (`nbgv`), same as the sibling project `SimHubPropertyServer`.
+- GitHub Actions workflows (`.github/workflows/`):
+  - `test.yml` - builds and tests the solution on every push.
+  - `prepare-release.yaml` - `workflow_dispatch` to cut a `release/vX.Y` branch from `develop`.
+  - `create-release.yaml` - `workflow_dispatch` to merge a release branch into `main`, tag it via `nbgv tag`, and merge back into `develop`.
+  - `publish-release.yaml` - triggers on pushed `vX.Y.Z` tags, builds the plugin and the installer, and creates a draft GitHub release with the Stream Deck plugin, the Stream Dock plugin, and the installer attached.
+- Full process: see `doc/Release.adoc`.
 
 ## Resources
 

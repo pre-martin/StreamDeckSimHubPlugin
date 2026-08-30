@@ -1,54 +1,51 @@
-= Release Process
+= Development and Release Process
 
-[#requirements]
-== Requirements
+== Development
 
-. Node (`nvm install --lts`, `nvm use --lts`)
-. StreamDeck CLI (`npm install -g @elgato/cli`)
+This project uses the Gitflow workflow. Although this workflow is a little bit more complex than e.g. the GitHub workflow, it assures that only tagged versions are on the main branch. Thus, our users always get the correct documentation for the latest version without having to switch branches in the UI.
 
-== Git
+The whole development happens on the `develop` branch. New features are started from the `develop` branch and merged back into it when they are finished.
 
-. Switch to the `develop` branch: +
-   `git switch develop`
-. Create a release branch based on `version.json`: +
-   `nbgv prepare-release`
-. Push the `develop` branch as nbgv updated the version number: +
-   `git push`
-. Switch to the release branch: +
-   `git switch release/v1.2`
-. Push the release branch: +
-   `git push origin release/v1.2`
+== Release
+
+When a new version is ready to be released, the following steps are taken:
+
+. Run the "Prepare Release" GitHub Actions workflow (via `workflow_dispatch`):
+  - Optionally provide a `releaseVersion` input (e.g. `2.6-alpha`) to set the version
+    for the new release branch explicitly, overriding what nbgv would otherwise
+    use (the current version on `develop`). Leave empty to use the current
+    version as-is.
+  - This runs `nbgv prepare-release` on `develop`, pushes the updated `develop`
+    branch (auto-incremented to the next version), and pushes the new
+    `release/vX.Y` branch.
 
 The release branch can be used to further stabilize the release. If there are any changes made to the release branch, they should be merged back into the `develop` branch as well.
 
 When the release is ready, the following steps are taken:
 
-. Merge the release branch into the `main` branch: +
-  - `git switch main`
-  - `git merge --no-ff release/v1.2`
-  - `git push`
-. Create a tag and push it afterward:
-  - `nbgv tag`
-  - `git push origin v1.2`
-. Build the plugin:
-  - see below
-. Create a release in GitHub from the tag and attach
-  - the file `StreamDeckSimHub.Installer-vX.Y.z.exe`
-  - the file `net.planetrenner.simhub.streamDeckPlugin`
-. Merge the main branch back into the `develop` branch: +
-  `git switch develop` +
-  `git merge --no-ff main` +
-  `git push`
+. Run the "Create Release" GitHub Actions workflow (via `workflow_dispatch`), providing the `releaseBranch` input (e.g. `release/v2.5`).
+  - This merges the release branch into `main`, creates and pushes the version tag via `nbgv tag`, and merges `main` back into `develop`.
+. The "Publish Release" GitHub Actions workflow triggers automatically on the pushed tag. It builds the plugin and the installer (see <<build>> below) and creates a draft GitHub release named "Version 2.5.x" with the following files attached:
+  - `net.planetrenner.simhub.streamDeckPlugin` (Stream Deck plugin)
+  - `net.planetrenner.simhub-streamdock.zip` (Stream Dock plugin)
+  - `StreamDeckSimHub.Installer-vX.Y.z.exe` (installer for both variants)
+. Open the draft release on GitHub, write the release notes, and publish it.
 
+[#build]
 == Build
 
 [IMPORTANT]
-See <<requirements>> above, if the PowerShell script is failing!
+See <<requirements>> below, if the PowerShell script `Bundle.ps1` is failing!
 
-. Build the plugin:
-  - `dotnet build StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c Release`
+The GitHub Actions workflow "Publish Release" runs the following commands (also available locally via `deployInstaller.bat`):
+
+. Publish the plugin (this builds the plugin first, then also bundles the Stream Deck and Stream Dock archives via `Bundle.ps1`, using the Stream Deck CLI):
   - `dotnet publish StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c Release`
-. Build the installer:
+. Build the installer (this embeds the bundled Stream Deck plugin from the previous step):
   - `dotnet build StreamDeckSimHub.Installer\StreamDeckSimHub.Installer.csproj -c Release`
 
-All commands are combined in `deployInstaller.bat`
+[#requirements]
+=== Requirements
+
+. Node (`nvm install --lts`, `nvm use --lts`)
+. Stream Deck CLI (`npm install -g @elgato/cli`)

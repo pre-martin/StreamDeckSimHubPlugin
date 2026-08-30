@@ -1,0 +1,64 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseBranch:
+        description: >
+          The release branch to merge into main and tag (e.g. "release/v2.5").
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PAT }}
+
+      - name: Install nbgv
+        run: dotnet tool install --global nbgv
+
+      - name: Configure git identity
+        run: |
+          git config user.name "Martin Renner"
+          git config user.email "martin+github@planet-renner.net"
+
+      - name: Fetch release branch
+        run: git fetch origin ${{ inputs.releaseBranch }}
+
+      - name: Merge release branch into main
+        run: git merge --no-ff origin/${{ inputs.releaseBranch }} -m "Merge branch '${{ inputs.releaseBranch }}'"
+
+      - name: Push main
+        run: git push origin main
+
+      - name: Create tag
+        id: tag
+        shell: pwsh
+        run: |
+          $output = nbgv tag | Out-String
+          Write-Host $output
+          if ($output -match '(?m)^(\S+) tag created') {
+            $tagName = $Matches[1]
+          } else {
+            throw "Could not determine tag name from nbgv output."
+          }
+          "tag-name=$tagName" >> $env:GITHUB_OUTPUT
+
+      - name: Push tag
+        run: git push origin ${{ steps.tag.outputs.tag-name }}
+
+      - name: Merge main back into develop
+        run: |
+          git fetch origin develop
+          git checkout -b develop origin/develop
+          git merge --no-ff main -m "Merge branch 'main' into develop"
+          git push origin develop
