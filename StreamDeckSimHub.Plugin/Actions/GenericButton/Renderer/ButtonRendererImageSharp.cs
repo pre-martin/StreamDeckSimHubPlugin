@@ -43,7 +43,7 @@ public class ButtonRendererImageSharp : IButtonRenderer
         _coords = coordinates;
     }
 
-    public Image<Rgba32> Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems, BlinkOverride? blinkOverride = null)
+    public Image<Rgba32> Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems, BlinkOverride? blinkOverride = null, bool warning = false)
     {
         _logger.Debug($"({_coords}) Rendering...");
         var image = new Image<Rgba32>(targetKeyInfo.KeySize.Width, targetKeyInfo.KeySize.Height, Color.Black);
@@ -90,6 +90,12 @@ public class ButtonRendererImageSharp : IButtonRenderer
                     break;
             }
             //image.SaveAsPng($@"\image_{_coords}_{DateTime.Now:yyyy-MM-dd-HH-mm-ss-fff}_{displayItem.DisplayName}.png");
+        }
+
+        if (warning)
+        {
+            //image.Mutate(ctx => ctx.Fill(Color.FromRgba(0, 0, 0, 128)));
+            RenderDisconnectedWarning(image);
         }
 
         return image;
@@ -336,5 +342,42 @@ public class ButtonRendererImageSharp : IButtonRenderer
 
         var scaleFactor = (float)keySize.Height / _defaultKeyInfo.KeySize.Height;
         return new Font(font.Family, font.Size * scaleFactor, font.FontStyle());
+    }
+
+    /// <summary>
+    /// Renders a small red warning triangle with an exclamation mark in the top-left corner.
+    /// The size is relative to the image dimensions so it looks consistent across all Stream Deck models.
+    /// </summary>
+    private void RenderDisconnectedWarning(Image<Rgba32> image)
+    {
+        // Size: 22% of the shorter side, minimum 14px.
+        var size = Math.Max(14, (int)(Math.Min(image.Width, image.Height) * 0.22f));
+        const int margin = 3;
+
+        // Equilateral triangle pointing up, anchored top-left.
+        var x = margin;
+        var y = margin;
+        var top = new PointF(x + size / 2f, y);
+        var bottomLeft = new PointF(x, y + size);
+        var bottomRight = new PointF(x + size, y + size);
+
+        var triangle = new Polygon(new LinearLineSegment(top, bottomLeft, bottomRight));
+        var red = Color.FromRgb(220, 40, 40);
+
+        image.Mutate(ctx =>
+        {
+            ctx.Fill(red, triangle);
+
+            // Exclamation mark: a small filled rect for the stem and a dot below.
+            var stemWidth = Math.Max(2, size / 8);
+            var stemX = x + size / 2f - stemWidth / 2f;
+            var stemTop = y + size * 0.25f;
+            var stemHeight = size * 0.35f;
+            var dotSize = Math.Max(2, stemWidth);
+            var dotY = y + size * 0.72f;
+
+            ctx.Fill(Color.White, new RectangularPolygon(stemX, stemTop, stemWidth, stemHeight));
+            ctx.Fill(Color.White, new EllipsePolygon(x + size / 2f, dotY + dotSize / 2f, dotSize / 2f));
+        });
     }
 }

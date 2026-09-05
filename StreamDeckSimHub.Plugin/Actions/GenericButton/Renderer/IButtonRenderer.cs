@@ -21,6 +21,10 @@ public interface IButtonRenderer
     /// <summary>
     /// Renders all display items onto an image.
     /// </summary>
+    /// <param name="targetKeyInfo">The target key info.</param>
+    /// <param name="displayItems">The display items to render.</param>
+    /// <param name="blinkOverride">Optional blink override.</param>
+    /// <param name="warning">When <c>true</c>, a warning icon is applied to the final image.</param>
     /// <returns>The image.</returns>
-    Image<Rgba32> Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems, BlinkOverride? blinkOverride = null);
+    Image<Rgba32> Render(StreamDeckKeyInfo targetKeyInfo, Collection<DisplayItem> displayItems, BlinkOverride? blinkOverride = null, bool warning = false);
 }
