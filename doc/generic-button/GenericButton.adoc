@@ -686,3 +686,5 @@ All built-in properties use the prefix `StreamDeckSimHub.`.
 
 |`StreamDeckSimHub.Subscriptions.Count` | Integer | The number of SimHub properties currently subscribed to by the plugin.
 |===
+
+The property `StreamDeckSimHub.Connection.Connected` is also used internally to display a red warning icon on the Stream Deck key, if the plugin is not connected to SimHub, but the relevant button is subscribed to at least one SimHub property.
