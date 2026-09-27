@@ -30,6 +30,13 @@ try {
     Copy-Item -Path "$PublishDir*" -Destination $BundleSourceDir -Recurse -Force
     Write-Host "  - Copying @core icons to build directory"
     Copy-Item -Path ..\Icons -Destination "$BundleSourceDir\images\custom\@core" -Recurse -Force
+
+    $pdbFiles = Get-ChildItem -Path "$BundleSourceDir\*.pdb" -File -Recurse -ErrorAction SilentlyContinue
+    if ($null -ne $pdbFiles) {
+        Write-Host "  - Removing .pdb files from bundle"
+        Remove-Item -Path $pdbFiles.FullName -Force
+    }
+
     Pushd ..\build
     Rename-Item -Path "publish" -NewName "net.planetrenner.simhub.sdPlugin" -ErrorAction Stop
 
