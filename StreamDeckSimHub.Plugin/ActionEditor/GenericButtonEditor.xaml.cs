@@ -64,6 +64,7 @@ public partial class GenericButtonEditor
         GetWindow(this)?.AddHandler(
             PreviewMouseDownEvent,
             new MouseButtonEventHandler(CloseSettingsOnOutsideClick));
+        GetWindow(this)!.LocationChanged += OnWindowLocationChanged;
         try
         {
             await ((SettingsViewModel)DataContext).FetchControlMapperRoles();
@@ -77,6 +78,18 @@ public partial class GenericButtonEditor
         }
     }
 
+    private void OnWindowLocationChanged(object? sender, EventArgs e)
+    {
+        // When the window is being moved while the popup is open, the popup shall follow the window.
+        if (SettingsPopup.IsOpen)
+        {
+            // Modify the offset and reset it again. This forces WPF to recalculate the popup position.
+            var offset = SettingsPopup.HorizontalOffset;
+            SettingsPopup.HorizontalOffset = offset + 1;
+            SettingsPopup.HorizontalOffset = offset;
+        }
+    }
+
     private void OnDeactivated(object? sender, EventArgs e)
     {
         ((SettingsViewModel)DataContext).IsSettingsOverlayVisible = false;
@@ -87,6 +100,7 @@ public partial class GenericButtonEditor
         GetWindow(this)?.RemoveHandler(
             PreviewMouseDownEvent,
             new MouseButtonEventHandler(CloseSettingsOnOutsideClick));
+        GetWindow(this)!.LocationChanged -= OnWindowLocationChanged;
         WeakReferenceMessenger.Default.Send(new GenericButtonEditorClosedEvent(_actionUuid));
     }
 

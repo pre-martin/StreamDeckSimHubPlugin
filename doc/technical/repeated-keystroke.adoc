@@ -1,0 +1,132 @@
+= Repeated Keystroke (Key-Repeat)
+:toc:
+:toclevels: 2
+
+== Background
+
+When a physical keyboard key is held down, the keyboard controller automatically sends repeated key events to Windows after an initial delay (key-repeat). This behaviour is implemented at the hardware level and governed by the operating system (typically: ~500 ms initial delay, ~30 ms repeat interval).
+
+=== Why SendInput Is Not Sufficient
+
+`SendInput` (Win32 API, used in `Keyboard.cs`) injects discrete events into the Windows input queue. The `KEYBDINPUT` struct supports the following flags (`KEYEVENTF`):
+
+* `KEYUP` – key-up event
+* `SCANCODE` – use scan code instead of virtual key
+* `UNICODE` – send a Unicode character
+* `EXTENDEDKEY` – extended-key flag
+
+There is **no flag for automatic repeat**. `SendInput` does not support this concept.
+
+What Windows does internally: a real keyboard produces repeated `WM_KEYDOWN` messages with the `KF_REPEAT` bit set (bit 30 of `lParam`). `SendInput` generates a single `WM_KEYDOWN` without that bit on the first call — no further repeats are generated automatically, regardless of how long the key-down state is maintained.
+
+The only way to produce genuine key-repeat via `SendInput` is therefore to **call `SendInput` with `KeyDown` repeatedly** from application code. There is no deeper hook available in `Keyboard.cs` or the Win32 API itself.
+
+To give GenericButton key actions the same behaviour as a physically held key, key-repeat must be implemented explicitly in code.
+
+== Constraint: Only Without a Long-Command
+
+Key-repeat is only applicable when **no long-press command** is configured (`hasLong == false` in `CommandItemHandler.Down()`).
+
+The reason: when a long-command exists, `ShortAndLongPressHandler` takes control. It deliberately waits for the key-up event to distinguish between a short and a long press. A parallel repeat mechanism would corrupt that logic.
+
+== Implementation Plan
+
+=== Affected Files
+
+* `StreamDeckSimHub.Plugin/Actions/GenericButton/CommandItemHandler.cs`
+
+=== New Field
+
+```csharp
+private CancellationTokenSource? _repeatCts;
+```
+
+=== `Down()` Method – `else` Branch (No Long-Command)
+
+After the initial `Accept` call (which physically presses the key), a background task is started:
+
+```csharp
+// Start key-repeat task
+_repeatCts = new CancellationTokenSource();
+var repeatItems = new List<CommandItem>(localItems);
+var token = _repeatCts.Token;
+_ = Task.Run(async () =>
+{
+    try
+    {
+        await Task.Delay(TimeSpan.FromMilliseconds(500), token); // initial delay
+        while (!token.IsCancellationRequested)
+        {
+            foreach (var commandItem in repeatItems)
+                await commandItem.Accept(this, action);           // repeated KeyDown
+            await Task.Delay(TimeSpan.FromMilliseconds(30), token); // repeat interval
+        }
+    }
+    catch (OperationCanceledException) { }
+}, token);
+```
+
+=== `Up()` Method – `else` Branch (No Long-Command)
+
+Before the `Accept` calls (which release the key), the repeat task is cancelled:
+
+```csharp
+await (_repeatCts?.CancelAsync() ?? Task.CompletedTask);
+_repeatCts = null;
+```
+
+=== `Stop()` Method
+
+As a safety net (e.g. when the button disappears while the key is held):
+
+```csharp
+await (_repeatCts?.CancelAsync() ?? Task.CompletedTask);
+_repeatCts = null;
+```
+
+== Considerations
+
+=== Key-Repeat Only for Keyboard Hotkeys (`CommandItemKeypress`)
+
+Windows key-repeat is a concept that applies exclusively to keyboard input. For SimHub controls (`CommandItemSimHubControl`) and SimHub roles (`CommandItemSimHubRole`), issuing repeated `TriggerInputPressed` calls without an intervening `TriggerInputReleased` is semantically questionable and could cause unexpected behaviour in SimHub.
+
+In the initial approach, key-repeat is enabled for all `CommandItem` types (the repeat task calls `commandItem.Accept(this, action)`). If SimHub controls turn out to be problematic, the `Visit()` overloads for those types can simply ignore repeated `KeyDown`/`DialDown` actions.
+
+=== No Repeat for `DialDown`
+
+Dials have no key-repeat concept. The repeat task is therefore only started when `action == StreamDeckAction.KeyDown`.
+
+=== Repeat Parameters
+
+In the initial approach, the values are hardcoded:
+
+* Initial delay: **500 ms** (matches the Windows default)
+* Repeat interval: **30 ms** (~33 repetitions/second, slightly faster than the Windows default of ~31 ms)
+
+A future extension could expose these values as configurable settings.
+
+=== Thread Safety
+
+`_repeatCts` is accessed from `Down()`, `Up()`, and `Stop()`. These methods are called sequentially by the Stream Deck SDK, so concurrent access is not expected. If this assumption ever changes, `_repeatCts` can be guarded with `Interlocked.Exchange`.
+
+== Relevant Code Locations
+
+[cols="1,3"]
+|===
+| File | Relevance
+
+| `CommandItemHandler.cs:60–92`
+| `Down()` method, `else` branch: where the repeat task is started
+
+| `CommandItemHandler.cs:94–116`
+| `Up()` method, `else` branch: where the task is cancelled
+
+| `CommandItemHandler.cs:32–36`
+| `Stop()` method: safety net when the button is deactivated
+
+| `Keyboard.cs`
+| Lowest level: `SendInput` wrapper — explains why repeat must be implemented manually
+
+| `KeyboardUtils.cs`
+| `KeyDown(Hotkey?)` / `KeyUp(Hotkey?)` — called by `Visit(CommandItemKeypress, ...)`
+|===

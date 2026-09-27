@@ -45,7 +45,9 @@ public abstract class Program
     {
         serviceCollection.Configure<ConnectionSettings>(context.Configuration.GetSection("SimHubConnection"));
         serviceCollection.AddSingleton<PropertyParser>();
+        serviceCollection.AddSingleton<BuiltInPropertyManager>();
         serviceCollection.AddSingleton<ISimHubConnection, SimHubConnection>();
+        serviceCollection.AddSingleton<PropertyRouter>();
         serviceCollection.AddSingleton<ShakeItStructureFetcher>();
         serviceCollection.AddSingleton<PropertyComparer>();
         serviceCollection.AddSingleton<ImageUtils>();

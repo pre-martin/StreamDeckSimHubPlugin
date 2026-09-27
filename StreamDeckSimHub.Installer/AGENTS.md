@@ -9,9 +9,9 @@ This document provides coding agents with essential information about building, 
 The installer targets .NET Framework because it is included with Windows, so end users do not need to install additional software just to run the installer.
 
 - **Language**: C# with CommunityToolkit.Mvvm
-- **Framework**: .NET Framework 4.8 (WPF)
+- **Framework**: .NET Framework 4.8 (WPF), SDK-style project
 - **Architecture**: Action pipeline with MVVM-based UI
-- **Packaging**: Single executable with embedded plugin payload (Costura/Fody + embedded resource)
+- **Packaging**: Single executable with embedded plugin payload and embedded NuGet dependencies (custom `AssemblyLoader` + `AppDomain.AssemblyResolve`, see `Tools/AssemblyLoader.cs`)
 - **License**: LGPL-3.0-or-later
 
 ## Build Commands
@@ -19,24 +19,28 @@ The installer targets .NET Framework because it is included with Windows, so end
 ### Prerequisites
 - Windows
 - .NET Framework 4.8 targeting pack
-- Visual Studio 2022 (or Build Tools) with MSBuild
+- .NET SDK (for the `dotnet` CLI)
 - PowerShell (optional, for release automation in parent repo)
+
+### Solution
+
+This project is part of `StreamDeckSimHub.sln` in the repository root, alongside the plugin and its tests. It is a separate SDK-style project (targeting `net48` instead of `net10.0-windows`), but it does not need its own solution file any more - use the root `StreamDeckSimHub.sln` for everything, including this project.
 
 ### Restore Dependencies
 ```bat
-"C:\Program Files\Microsoft Visual Studio\2022\Community\Msbuild\Current\Bin\amd64\MSBuild.exe" -t:restore -p:Platform="Any CPU" -p:RestorePackagesConfig=true StreamDeckSimHub.Installer.sln
+dotnet restore StreamDeckSimHub.Installer.csproj
 ```
 
 ### Build
 ```bat
 # Build Debug
-"C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\amd64\MSBuild.exe" StreamDeckSimHub.Installer.csproj /p:Configuration=Debug /p:Platform="Any CPU"
+dotnet build StreamDeckSimHub.Installer.csproj -c Debug
 
 # Build Release
-"C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\amd64\MSBuild.exe" StreamDeckSimHub.Installer.csproj /p:Configuration=Release /p:Platform="Any CPU"
+dotnet build StreamDeckSimHub.Installer.csproj -c Release
 ```
 
-For full release packaging (plugin + installer), use `deployInstaller.bat` in the repository root, which combines all required commands.
+For full release packaging (plugin + installer), use `deployInstaller.bat` in the repository root, which combines all required commands. The same steps also run automatically in the "Publish Release" GitHub Actions workflow (`.github/workflows/publish-release.yaml` in the repository root) - see `doc/Release.adoc` in the repository root for the full release process.
 
 ### Output
 ```bat
@@ -60,6 +64,7 @@ StreamDeckSimHub.Installer/
 |   |-- StartStreamDeckSoftware.cs
 |   `-- VerifySimHubPlugin.cs
 |-- Tools/
+|   |-- AssemblyLoader.cs       # AppDomain.AssemblyResolve for embedded NuGet dependencies
 |   |-- Configuration.cs        # Paths, registry keys, version requirements
 |   `-- ProcessTools.cs         # Process and shell helpers
 |-- MainWindow.xaml             # Installer UI
@@ -134,14 +139,16 @@ The final user status is computed from the highest-severity `ActionResult`.
 3. **Resource packaging**: The plugin archive must be embedded with the expected name (`PluginZipName`).
 4. **Registry assumptions**: Install locations may differ from defaults; always honor configured registry paths first.
 5. **Framework mismatch**: This project targets .NET Framework 4.8, not the .NET 8 stack used by the main plugin.
+6. **Embedded dependencies**: NuGet dependencies (and their transitive dependencies) are embedded via the `EmbedRuntimeDependencies` MSBuild target and resolved by `AssemblyLoader.Register()`, which must be called before any code touches a type from one of those dependencies (done in the `App` static constructor). Adding a new `PackageReference` does not require any extra step - it is picked up automatically.
 
 ## Important Files
 
-- `StreamDeckSimHub.Installer/StreamDeckSimHub.Installer.csproj` - project configuration, package references, post-build rename target
+- `StreamDeckSimHub.Installer/StreamDeckSimHub.Installer.csproj` - project configuration, package references, post-build rename target, `EmbedRuntimeDependencies` target
 - `StreamDeckSimHub.Installer/MainWindowViewModel.cs` - installation workflow and overall result handling
 - `StreamDeckSimHub.Installer/Actions/AbstractInstallerAction.cs` - base action behavior (status color, exception handling, logging)
 - `StreamDeckSimHub.Installer/Actions/InstallStreamDeckPlugin.cs` - plugin extraction and upgrade logic
 - `StreamDeckSimHub.Installer/Tools/Configuration.cs` - constants for directories, registry keys, and required versions
+- `StreamDeckSimHub.Installer/Tools/AssemblyLoader.cs` - resolves embedded NuGet dependency assemblies at runtime
 - `StreamDeckSimHub.Installer/NLog.config` - logging configuration
 
 ## Resources

@@ -3,13 +3,10 @@
 
 namespace StreamDeckSimHub.Plugin.SimHub;
 
-public interface ISimHubConnection
+public interface ISimHubConnection : IPropertySource
 {
     const string DefaultEmptyRole = "----";
 
-    Task Subscribe(string propertyName, IPropertyChangedReceiver propertyChangedReceiver);
-    Task Unsubscribe(string propertyName, IPropertyChangedReceiver propertyChangedReceiver);
-    PropertyChangedArgs? GetProperty(string propertyName);
     Task SendTriggerInputPressed(string simHubControl);
     Task SendTriggerInputReleased(string simHubControl);
     Task<bool> SendControlMapperRole(string ownerId, string roleName, bool isStart);

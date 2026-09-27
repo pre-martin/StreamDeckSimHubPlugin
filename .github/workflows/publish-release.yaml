@@ -1,0 +1,55 @@
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+
+      - name: Install Stream Deck CLI
+        run: npm install -g @elgato/cli
+
+      - name: Publish plugin (bundles for Stream Deck and Stream Dock)
+        run: dotnet publish StreamDeckSimHub.Plugin\StreamDeckSimHub.Plugin.csproj -c Release
+
+      - name: Build installer
+        run: dotnet build StreamDeckSimHub.Installer\StreamDeckSimHub.Installer.csproj -c Release
+
+      - name: Determine release title
+        id: title
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}" -replace '^v', ''
+          "title=Version $version" >> $env:GITHUB_OUTPUT
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ steps.title.outputs.title }}
+          draft: true
+          files: |
+            build/net.planetrenner.simhub.streamDeckPlugin
+            build/net.planetrenner.simhub-streamdock.zip
+            StreamDeckSimHub.Installer/bin/Release/StreamDeckSimHub.Installer-*.exe

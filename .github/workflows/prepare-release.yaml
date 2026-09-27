@@ -1,0 +1,53 @@
+name: Prepare Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseVersion:
+        description: >
+          Optional: version for the new release branch (e.g. "2.0-alpha"). Leave empty
+          to let nbgv use the current version on 'develop' as-is.
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  prepare-release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v7
+        with:
+          ref: develop
+          fetch-depth: 0
+
+      - name: Install nbgv
+        run: dotnet tool install --global nbgv
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Set release version
+        if: ${{ inputs.releaseVersion != '' }}
+        run: |
+          nbgv set-version ${{ inputs.releaseVersion }}
+          git commit -am "Set version to ${{ inputs.releaseVersion }}"
+
+      - name: Run nbgv prepare-release
+        id: prepare
+        shell: pwsh
+        run: |
+          $result = (nbgv prepare-release --format json | Out-String) | ConvertFrom-Json
+          $releaseBranch = $result.NewBranch.Name
+          Write-Host "New release branch: $releaseBranch"
+          "release-branch=$releaseBranch" >> $env:GITHUB_OUTPUT
+
+      - name: Push develop
+        run: git push origin develop
+
+      - name: Push release branch
+        run: git push origin ${{ steps.prepare.outputs.release-branch }}

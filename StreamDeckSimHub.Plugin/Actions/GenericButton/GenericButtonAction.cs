@@ -33,9 +33,10 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     private readonly ItemScaler _itemScaler;
     private readonly ImageManager _imageManager;
     private readonly ActionEditorManager _actionEditorManager;
-    private readonly ISimHubConnection _simHubConnection;
+    private readonly IPropertySource _propertySource;
     private readonly ConditionEvaluator _conditionEvaluator;
     private readonly IPropertyChangedReceiver _statePropertyChangedReceiver;
+    private readonly IPropertyChangedReceiver _connectedPropertyChangedReceiver;
     private readonly IButtonRenderer _buttonRenderer;
     private readonly CommandItemHandler _commandItemHandler;
 
@@ -43,6 +44,8 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     private Coordinates? _coordinates;
     private Settings? _settings;
     private bool _isVisible;
+    private bool _simHubConnected;
+    private bool _dependsOnSimHubConnection;
     private readonly HashSet<string> _subscribedProperties = new(StringComparer.OrdinalIgnoreCase);
     private CancellationTokenSource _settingsChangedDebounceCts = new();
 
@@ -52,15 +55,17 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         ImageManager imageManager,
         ActionEditorManager actionEditorManager,
         ISimHubConnection simHubConnection,
+        PropertyRouter propertyRouter,
         NCalcHandler ncalcHandler)
     {
         _settingsConverter = settingsConverter;
         _itemScaler = itemScaler;
         _imageManager = imageManager;
         _actionEditorManager = actionEditorManager;
-        _simHubConnection = simHubConnection;
+        _propertySource = propertyRouter;
         _conditionEvaluator = new ConditionEvaluator(ncalcHandler, GetProperty, () => _coordinates?.ToString() ?? "(?)");
         _statePropertyChangedReceiver = new PropertyChangedDelegate(PropertyChanged);
+        _connectedPropertyChangedReceiver = new PropertyChangedDelegate(ConnectedPropertyChanged);
         _buttonRenderer = new ButtonRendererImageSharp(GetProperty);
         _commandItemHandler = new CommandItemHandler(simHubConnection, new KeyboardUtils());
     }
@@ -144,6 +149,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         SubscribeToSettingsChanges();
         _commandItemHandler.Context = Context;
         _commandItemHandler.Start();
+        await _propertySource.Subscribe(BuiltInProperties.ConnectionConnected, _connectedPropertyChangedReceiver);
         await SubscribeProperties();
         await Render();
 
@@ -161,6 +167,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
 
         _actionEditorManager.RemoveGenericButtonEditor(Context);
         await _commandItemHandler.Stop();
+        await _propertySource.Unsubscribe(BuiltInProperties.ConnectionConnected, _connectedPropertyChangedReceiver);
         await UnsubscribeProperties();
 
         await base.OnWillDisappear(args);
@@ -350,6 +357,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
 
         _subscribedProperties.Clear();
         _subscribedProperties.UnionWith(newProperties);
+        _dependsOnSimHubConnection = _subscribedProperties.Any(p => !p.StartsWith(BuiltInProperties.Prefix, StringComparison.OrdinalIgnoreCase));
 
         Logger.LogDebug("({coords})   danglingProps : {danglingProps}", _coordinates, danglingProps);
         Logger.LogDebug("({coords})   newToSubProps : {newToSubProps}", _coordinates, newToSubProps);
@@ -357,12 +365,12 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
 
         foreach (var prop in danglingProps)
         {
-            await _simHubConnection.Unsubscribe(prop, _statePropertyChangedReceiver);
+            await _propertySource.Unsubscribe(prop, _statePropertyChangedReceiver);
         }
 
         foreach (var prop in newToSubProps)
         {
-            await _simHubConnection.Subscribe(prop, _statePropertyChangedReceiver);
+            await _propertySource.Subscribe(prop, _statePropertyChangedReceiver);
         }
     }
 
@@ -370,10 +378,11 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
     {
         foreach (var prop in _subscribedProperties)
         {
-            await _simHubConnection.Unsubscribe(prop, _statePropertyChangedReceiver);
+            await _propertySource.Unsubscribe(prop, _statePropertyChangedReceiver);
         }
 
         _subscribedProperties.Clear();
+        _dependsOnSimHubConnection = false;
     }
 
     private async Task PropertyChanged(PropertyChangedArgs arg)
@@ -383,11 +392,18 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
         await Render();
     }
 
+    private async Task ConnectedPropertyChanged(PropertyChangedArgs arg)
+    {
+        _simHubConnected = arg.PropertyValue is true;
+        await Render();
+    }
+
     private async Task Render()
     {
         if (!_isVisible || _settings == null || _sdKeyInfo == null) return;
 
-        var image = _buttonRenderer.Render(_sdKeyInfo, _settings.DisplayItems, _settings.BlinkOverride);
+        var simHubDisconnected = _dependsOnSimHubConnection && !_simHubConnected;
+        var image = _buttonRenderer.Render(_sdKeyInfo, _settings.DisplayItems, _settings.BlinkOverride, simHubDisconnected);
         try
         {
             if (_sdKeyInfo.IsDial)
@@ -423,7 +439,7 @@ public class GenericButtonAction : StreamDeckAction<SettingsDto>
 
     private IComparable? GetProperty(string propertyName)
     {
-        var propertyChangedArgs = _simHubConnection.GetProperty(propertyName);
+        var propertyChangedArgs = _propertySource.GetProperty(propertyName);
         return propertyChangedArgs?.PropertyValue;
     }
 

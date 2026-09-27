@@ -421,7 +421,19 @@ public partial class DisplayItemImageViewModel(DisplayItemImage model, ImageMana
         var imageSelector = new ImageSelector(imageManager, RelativePath, ParentViewModel.ParentWindow);
         if (imageSelector.ShowDialog() == true)
         {
-            RelativePath = imageSelector.RelativePath;
+            if (RelativePath == imageSelector.RelativePath)
+            {
+                // Path unchanged: fire PropertyChanged on the model's RelativePath so that GenericButtonAction
+                // reloads the image (e.g. file on disk was replaced with same name).
+                model.ForceRelativePathChanged();
+                // Also update the editor preview. See "_relativePath" for relevant events.
+                OnPropertyChanged(nameof(ImageSource));
+                OnPropertyChanged(nameof(Resolution));
+            }
+            else
+            {
+                RelativePath = imageSelector.RelativePath;
+            }
         }
     }
 }

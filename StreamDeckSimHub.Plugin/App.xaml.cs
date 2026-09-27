@@ -73,10 +73,12 @@ public partial class App
 
             var actionEditorManager = _host.Services.GetService<ActionEditorManager>();
             var window = actionEditorManager!.ShowGenericButtonEditor("someUuid", settings);
-            window.Closed += (_, _) =>
+            window.Closed += async (_, _) =>
             {
                 actionEditorManager.RemoveGenericButtonEditor("someUuid");
+                await _host.StopAsync();
                 Current.Shutdown();
+                Environment.Exit(0);
             };
         }
     }
