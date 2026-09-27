@@ -32,7 +32,7 @@
         <PackageReference Include="NLog" Version="5.3.4" />
         <PackageReference Include="NLog.Extensions.Logging" Version="5.3.15" />
         <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.4" />
-        <PackageReference Include="Svg.Skia" Version="3.2.1" />
+        <PackageReference Include="Svg.Skia" Version="5.2.3" />
         <PackageReference Include="NCalcSync" Version="5.4.2" />
         <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" Version="21.0.29" />
         <Reference Include="SharpDeck">
