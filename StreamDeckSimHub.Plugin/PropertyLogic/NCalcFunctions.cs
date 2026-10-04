@@ -2,8 +2,8 @@
 // LGPL-3.0-or-later (see file COPYING and COPYING.LESSER)
 
 using System.Globalization;
-using NCalc;
 using NCalc.Exceptions;
+using NCalc.Handlers;
 
 namespace StreamDeckSimHub.Plugin.PropertyLogic;
 
@@ -13,39 +13,43 @@ namespace StreamDeckSimHub.Plugin.PropertyLogic;
 public abstract class NCalcFunctions
 {
 
-    public static object? StrFunction(ExpressionFunctionData args)
+    public static object? StrFunction(FunctionData args)
     {
-        if (args.Count() != 1)
+        if (args.Count != 1)
         {
             throw new NCalcParserException("Error parsing the expression.",
                 new NCalcParserException("The 'str' function requires exactly one argument."));
         }
 
-        return args[0].Evaluate()?.ToString() ?? string.Empty;
+        return args.Evaluate(0)?.ToString() ?? string.Empty;
     }
 
-    public static object? IntFunction(ExpressionFunctionData args)
+    public static object? IntFunction(FunctionData args)
     {
-        if (args.Count() != 1)
+        if (args.Count != 1)
         {
             throw new NCalcParserException("Error parsing the expression.",
                 new NCalcParserException("The 'int' function requires exactly one argument."));
         }
 
-        var value = args[0].Evaluate();
+        var value = args.Evaluate(0);
         return value is int intValue ? intValue : Convert.ToInt32(value);
     }
 
-    public static object? FormatFunction(ExpressionFunctionData args)
+    public static object? FormatFunction(FunctionData args)
     {
-        if (args.Count() < 2)
+        if (args.Count < 2)
         {
             throw new NCalcParserException("Error parsing the expression.",
                 new NCalcParserException("The 'format' function requires at least two arguments."));
         }
 
-        var format = args[0].Evaluate()?.ToString() ?? string.Empty;
-        var parameters = args.Skip(1).Select(arg => arg.Evaluate()).ToArray();
+        var format = args.Evaluate(0)?.ToString() ?? string.Empty;
+        var parameters = new object[args.Count - 1];
+        for (var i = 1; i < args.Count; i++)
+        {
+            parameters[i - 1] = args.Evaluate(i) ?? string.Empty;
+        }
         try
         {
             return string.Format(CultureInfo.CurrentCulture, format, parameters);
