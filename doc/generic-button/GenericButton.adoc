@@ -473,9 +473,9 @@ The usage of NCalc expressions is another key feature of the Generic Button acti
 
 Please refer to the NCalc documentation for details about the syntax of NCalc expressions:
 
-* https://ncalc.github.io/ncalc/articles/functions.html
-* https://ncalc.github.io/ncalc/articles/operators.html
-* https://ncalc.github.io/ncalc/articles/values.html
+* https://ncalc.gumbarros.com.br/articles/language/functions.html
+* https://ncalc.gumbarros.com.br/articles/language/operators.html
+* https://ncalc.gumbarros.com.br/articles/language/values.html
 
 SimHub properties can be used by putting their name into square brackets, e.g.
 
